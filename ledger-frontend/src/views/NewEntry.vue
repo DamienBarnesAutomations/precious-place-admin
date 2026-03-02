@@ -268,8 +268,8 @@ onMounted(async () => {
 .table-head { height: 36px; align-items: center; background: rgba(0,0,0,0.2); font-size: 9px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; border-bottom: 1px solid var(--border); }
 .entry-line { height: 50px; align-items: center; border-bottom: 1px solid var(--border); }
 
-.ledger-select, .amt-input { width: 100%; background: transparent; border: 1px solid transparent; color: white; height: 36px; font-size: 14px; border-radius: 4px; padding: 0 8px; }
-.ledger-select:focus, .amt-input:focus { border-color: var(--accent); background: rgba(16, 185, 129, 0.05); outline: none; }
+.ledger-select, .amt-input { width: 100%; background: #09090b; border: 1px solid var(--border); color: white; height: 36px; font-size: 14px; border-radius: 4px; padding: 0 8px; transition: border-color 0.2s; }
+.ledger-select:focus, .amt-input:focus { border-color: var(--accent); outline: none; }
 .amt-input { text-align: right; font-family: 'JetBrains Mono', monospace; }
 .dr-field { color: var(--dr); }
 .cr-field { color: var(--cr); }
