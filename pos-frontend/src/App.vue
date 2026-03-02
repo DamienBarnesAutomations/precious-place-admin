@@ -1,9 +1,17 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { usePosStore } from './stores/posStore'
 
 const store = usePosStore()
-const isMobileCartOpen = ref(false) 
+const isMobileCartOpen = ref(false)
+const searchQuery = ref('')
+
+const filteredProducts = computed(() => {
+  if (!searchQuery.value.trim()) return store.products
+  return store.products.filter(p =>
+    p.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+})
 
 onMounted(() => {
   if (store.fetchProducts) store.fetchProducts()
@@ -14,7 +22,7 @@ onMounted(() => {
   <div class="flex flex-col lg:flex-row min-h-screen h-screen bg-zinc-950 text-zinc-100 overflow-hidden font-sans">
     
     <main class="flex-1 flex flex-col p-4 overflow-hidden">
-      <header class="flex justify-between items-center mb-6">
+      <header class="flex justify-between items-center mb-4">
         <div class="flex items-center gap-3">
           <img 
             :src="store.logo" 
@@ -41,10 +49,24 @@ onMounted(() => {
           </button>
         </div>
       </header>
+
+      <!-- Search Bar -->
+      <div class="mb-4 relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+        </svg>
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search products..."
+          class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-10 pr-10 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
+        />
+        <button v-if="searchQuery" @click="searchQuery = ''" class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors text-lg leading-none">×</button>
+      </div>
       
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 overflow-y-auto pr-2 custom-scrollbar">
         <div 
-          v-for="product in store.products" :key="product.id"
+          v-for="product in filteredProducts" :key="product.id"
           @click="store.addToCart(product)"
           class="bg-zinc-900 border border-zinc-800 p-2 sm:p-3 rounded-xl cursor-pointer hover:border-emerald-500/50 transition-all active:scale-95 group"
         >
@@ -53,6 +75,10 @@ onMounted(() => {
           </div>
           <h3 class="font-bold text-xs sm:text-sm truncate">{{ product.name }}</h3>
           <p class="text-emerald-400 font-mono text-xs sm:text-sm">{{store.currency}}{{ product.price }}</p>
+        </div>
+
+        <div v-if="filteredProducts.length === 0 && searchQuery" class="col-span-full flex flex-col items-center justify-center h-40 text-zinc-600 italic">
+          <p>No products found for "{{ searchQuery }}"</p>
         </div>
       </div>
     </main>

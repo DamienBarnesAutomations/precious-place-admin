@@ -59,7 +59,7 @@ export const usePosStore = defineStore('pos', {
     async fetchProducts() {
       this.loading = true
       try {
-        const response = await axios.get(getProductsWebhook)
+        const response = await axios.get(getProductsWebhook, { withCredentials: true })
         const data = Array.isArray(response.data) ? response.data : [];
         this.products = data.filter(item => 
           item && Object.keys(item).length > 0 && item.id
@@ -102,7 +102,7 @@ export const usePosStore = defineStore('pos', {
             quantity: item.quantity,
             price_at_sale: item.price
         }));
-        await axios.post(recordSalesWebhook, payload);
+        await axios.post(recordSalesWebhook, payload , { withCredentials: true });
             
         this.clearCart();
 
@@ -124,7 +124,7 @@ export const usePosStore = defineStore('pos', {
     async fetchDailySales() {
     this.expandedTransactions = [];
     try {
-      const response = await axios.get(dailySalesWebhook);
+      const response = await axios.get(dailySalesWebhook, { withCredentials: true });
       
       // Filter out empty objects [ {} ] or items missing essential data
       // Object.keys(item).length > 0 ensures it's not a blank JSON object

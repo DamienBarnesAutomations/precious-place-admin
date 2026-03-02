@@ -55,18 +55,25 @@ services:
       - "traefik.http.routers.n8n.tls.domains[0].sans=*.${BASE_DOMAIN}"
       - "traefik.http.routers.n8n.service=n8n-service"
 
-      # ── 2. PROTECTED WEBHOOK ROUTER ───────────────────────────────────────
-      - "traefik.http.routers.n8n-webhook.rule=Host(`${N8N_DOMAIN}`) && (PathPrefix(`/webhook`) || PathPrefix(`/webhook-test`) || PathPrefix(`/webhook-waiting`))"
+      # ── 2. PROTECTED WEBHOOK ROUTER (N8N_DOMAIN) ──────────────────────────
+      - "traefik.http.routers.n8n-webhook.rule=Host(`${DOMAIN_OR_IP}`) && (PathPrefix(`/webhook`) || PathPrefix(`/webhook-test`) || PathPrefix(`/webhook-waiting`))"
       - "traefik.http.routers.n8n-webhook.entrypoints=websecure"
       - "traefik.http.routers.n8n-webhook.tls.certresolver=myresolver"
       - "traefik.http.routers.n8n-webhook.priority=100"
       - "traefik.http.routers.n8n-webhook.service=n8n-service"
-      #- "traefik.http.routers.n8n-webhook.middlewares=n8n-auth"
+      - "traefik.http.routers.n8n-webhook.middlewares=n8n-auth"
+
+      # -- Telegram
+      - "traefik.http.routers.n8n-telegram.rule=Host(`${DOMAIN_OR_IP}`) && Path(`/webhook/89aa21fe-f0ce-4310-a3be-1c844dab6bf7/webhook`)"
+      - "traefik.http.routers.n8n-telegram.entrypoints=websecure"
+      - "traefik.http.routers.n8n-telegram.tls.certresolver=myresolver"
+      - "traefik.http.routers.n8n-telegram.priority=200"
+      - "traefik.http.routers.n8n-telegram.service=n8n-service"
 
       # ── Shared service & auth middleware ──────────────────────────────────
       - "traefik.http.services.n8n-service.loadbalancer.server.port=5678"
-      #- "traefik.http.middlewares.n8n-auth.forwardauth.address=http://n8n_app:5678/webhook/admin/authenticate"
-      #- "traefik.http.middlewares.n8n-auth.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.n8n-auth.forwardauth.address=http://n8n_app:5678/webhook/admin/authenticate"
+      - "traefik.http.middlewares.n8n-auth.forwardauth.trustForwardHeader=true"
 
     environment:
       - DB_TYPE=postgresdb
@@ -77,7 +84,6 @@ services:
       - DB_POSTGRESDB_PASSWORD=${DB_PASSWORD}
       - DB_PASSWORD=${DB_PASSWORD}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-      - CAKE_ORDER_TELEGRAM_BOT_TOKEN=${CAKE_ORDER_TELEGRAM_BOT_TOKEN}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - N8N_PORT=5678
       - N8N_SECURE_COOKIE=false
@@ -90,15 +96,11 @@ services:
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
       - SITE_ADMIN_USER=${SITE_ADMIN_USER}
       - SITE_ADMIN_PASSWORD=${SITE_ADMIN_PASSWORD}
-      - CAKE_ORDER_WHATSAPP_BOT_TOKEN=${CAKE_ORDER_WHATSAPP_BOT_TOKEN}
-      - WHATSAPP_VERIFY_TOKEN=${WHATSAPP_VERIFY_TOKEN}
-      - CAKE_ORDER_WHATSAPP_PHONE_NUMBER_ID=${CAKE_ORDER_WHATSAPP_PHONE_NUMBER_ID}
-      - CAKE_ORDER_WHATSAPP_WEBHOOK_URL=${CAKE_ORDER_WHATSAPP_WEBHOOK_URL}
-      - WHATSAPP_CLIENT_ID=${WHATSAPP_CLIENT_ID}
-      - WHATSPP_CLIENT_SECRET=${WHATSPP_CLIENT_SECRET}
-      - WHATSAPP_BUSINESS_ACCOUNT_ID=${WHATSAPP_BUSINESS_ACCOUNT_ID}
       - N8N_CORS_ENABLED=true
       - N8N_CORS_ALLOWED_ORIGINS=https://${DOMAIN_OR_IP}
+      - N8N_CORS_ALLOW_CREDENTIALS=true
+      - NODE_FUNCTION_ALLOW_BUILTIN=crypto
+      - WEBHOOK_URL=https://${DOMAIN_OR_IP}
     expose:
       - "5678"
     volumes:
@@ -151,6 +153,9 @@ services:
       - "traefik.http.routers.frontend.tls.domains[0].main=${BASE_DOMAIN}"
       - "traefik.http.routers.frontend.tls.domains[0].sans=*.${BASE_DOMAIN}"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"
+      - "traefik.http.routers.frontend.middlewares=frontend-auth"
+      - "traefik.http.middlewares.frontend-auth.forwardauth.address=http://n8n_app:5678/webhook/admin/authenticate"
+      - "traefik.http.middlewares.frontend-auth.forwardauth.trustForwardHeader=true"
     restart: always
     environment:
       - VITE_API_BASE_URL=${API_BASE_URL}
