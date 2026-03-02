@@ -1,153 +1,123 @@
-# Commerce Flow System  
-### Operational Infrastructure for a Small Retail Bakery
+# Precious Place Admin
+
+A comprehensive, modular business management system for independent retail bakeries and food businesses. 
 
 ---
 
-## Overview
+## 🌟 Overview
 
-This project is a modular commerce and operations system built for a small independent bakery.
+**Precious Place Admin** is a centralized operational hub designed to digitize and automate the day-to-day management of a retail bakery. It replaces fragmented, manual processes (paper accounting, text-based orders, manual inventory) with a cohesive digital infrastructure.
 
-The goal is to reduce administrative overhead, digitize in-store sales tracking, and centralize operational data — without relying on expensive SaaS platforms or complex enterprise software.
-
-The system currently supports:
-
-- Structured custom cake order intake
-- In-store Point of Sale (POS)
-- Product management via messaging
-- Daily accounting synchronization
-- Centralized operational visibility
-
-This project is being prepared for live deployment in a real bakery environment.
+The system is built on a **local-first, low-cost philosophy**, leveraging open-source tools and containerization to provide enterprise-grade capabilities without expensive SaaS subscriptions.
 
 ---
 
-## Business Context
+## 🏗️ System Architecture
 
-The bakery previously relied on:
+The project is organized into distinct but interconnected modules orchestrated by **n8n**.
 
-- Custom cake orders managed manually through text conversations
-- Paper-based accounting
-- No centralized sales tracking
-- Manual product updates for new items
+### 1. Point of Sale (POS)
+*   **Frontend:** Vue.js 3 / Vite application.
+*   **Capabilities:** Fast retail interface, cart management, transaction recording.
+*   **Integration:** Communicates with the POS database and triggers accounting events via n8n.
 
-This created:
+### 2. Double-Entry Accounting (General Ledger)
+*   **Frontend:** Vue.js 3 / Vite application.
+*   **Backend:** PostgreSQL `accounting` database with balanced journal entry enforcement (PL/pgSQL triggers).
+*   **Reports:** Real-time Balance Sheet, Profit & Loss, Trial Balance, and General Ledger views.
+*   **Automation:** Daily sales from the POS are automatically aggregated and posted to the ledger.
 
-- Time-consuming back-and-forth communication
-- Risk of missing order details
-- Fragmented information storage
-- Limited financial visibility
-- Repetitive administrative work
+### 3. COGS & Inventory Management
+*   **Database:** PostgreSQL `cogs` database.
+*   **Capabilities:** Ingredient tracking, unit conversion (e.g., grams to kilograms), and recipe management.
+*   **Costing:** Dynamically calculates product costs based on recipe components and current ingredient prices.
 
-The goal of this system is to impose structure on these workflows while keeping the technology lightweight and maintainable.
+### 4. AI-Powered Telegram Admin Bot
+*   **Orchestration:** n8n workflows using the **Gemini API**.
+*   **Natural Language Management:** Add products, update prices, or check inventory by simply messaging the bot (e.g., *"Add Double Chocolate Cake $100"*).
+*   **Order Intake:** Structured flow for custom cake orders, replacing unstructured text conversations.
 
----
-
-## System Architecture
-
-The system is divided into distinct but connected operational components.
-
-### 1. Custom Cake Order Manager
-
-- Customers interact through a guided messaging flow (Telegram integration)
-- Required order details are collected automatically
-- Orders are stored in a structured database
-- Admin interface allows review, approval, and scheduling
-- Provides a centralized view of upcoming baking commitments
-
-This replaces unstructured text conversations with structured intake and tracking.
+### 5. Orchestration & Integration (The "Brain")
+*   **Engine:** **n8n** manages all data flows between frontends, databases, and external APIs.
+*   **Security:** Acts as a custom authentication layer for frontends using Traefik's `forwardauth`.
 
 ---
 
-### 2. Point of Sale (POS)
+## 🛠️ Tech Stack
 
-- Vue.js frontend for in-store sales
-- Cart and checkout functionality
-- Transactions stored in PostgreSQL
-- Designed for simplicity and speed in a retail environment
-
-This replaces paper-based sales tracking with structured digital records.
-
----
-
-### 3. Product Management via Messaging
-
-- New products can be added by sending a message:
-  > "Add Double Chocolate Cake $100"
-- Product images can be uploaded via message
-- Images are stored and served through Nginx
-- Product data updates immediately in the POS interface
-
-This allows rapid product updates without logging into admin dashboards.
+| Layer | Technology |
+| :--- | :--- |
+| **Frontend** | Vue.js 3, Vite, Tailwind CSS (Vanilla CSS variants) |
+| **Orchestration** | n8n |
+| **Database** | PostgreSQL 15 (5 separate databases) |
+| **Proxy / Edge** | Traefik (HTTPS via Let's Encrypt + Cloudflare DNS Challenge) |
+| **Image Hosting** | Nginx |
+| **AI** | Google Gemini API |
+| **Infrastructure** | Docker & Docker Compose |
 
 ---
 
-### 4. Accounting Synchronization
+## 🚀 Getting Started
 
-- Daily scheduled aggregation of POS sales
-- Aggregated sales written into accounting software 
-- Enables digital financial tracking instead of paper reconciliation
+### Prerequisites
+*   Docker & Docker Compose
+*   Cloudflare Account (for DNS-01 SSL challenges)
+*   Telegram Bot Token
+*   Google Gemini API Key
 
-This creates a structured financial reporting pipeline.
+### Environment Setup
+1.  Copy `.env.example` (if available) or create a `.env` file with the following keys:
+    ```env
+    DOMAIN_OR_IP=yourdomain.com
+    BASE_DOMAIN=yourdomain.com
+    N8N_DOMAIN=n8n.yourdomain.com
+    ADMIN_EMAIL=admin@yourdomain.com
+    DNS_TOKEN=your_cloudflare_token
+    TELEGRAM_BOT_TOKEN=your_bot_token
+    GEMINI_API_KEY=your_gemini_key
+    POSTGRES_USER=...
+    POSTGRES_PASSWORD=...
+    DB_PASSWORD=...
+    ```
 
----
+2.  **Initialize the Databases:**
+    The databases are automatically initialized on the first run using the scripts in `./postgres/postgres-init/`.
 
-### 5. Orchestration Layer
+3.  **Deploy:**
+    ```bash
+    docker-compose up -d
+    ```
 
-n8n is used as the automation and orchestration engine to:
-
-- Handle Telegram bot interactions
-- Manage database reads and writes
-- Trigger scheduled workflows
-- Coordinate cross-system communication
-
-This keeps business logic modular and adaptable.
-
----
-
-### 6. Infrastructure
-
-- Dockerized services
-- Reverse proxy via Nginx
-- Separate image server
-- PostgreSQL database
-- Designed for low-cost deployment on a single server
-
-The architecture prioritizes clarity and maintainability over complexity.
-
----
-
-## Operational Impact
-
-When deployed, this system will:
-
-- Reduce time spent managing custom cake orders
-- Eliminate repetitive manual data entry
-- Provide centralized visibility into upcoming baking schedules
-- Digitize in-store sales records
-- Automate daily accounting updates
-- Improve decision-making through structured data
-
-The objective is not technological sophistication, but operational stability and clarity.
+4.  **Sync Local Environment (Optional):**
+    Use `dev_init.ps1` to sync production data/configurations to your local machine for development.
 
 ---
 
-## Current Status
+## 📂 Project Structure
 
-- POS core functionality complete
-- Custom order intake functional
-- Product management via messaging operational
-- Accounting aggregation implemented
-- Ingredients and recipe management in progress
-- Preparing for live deployment
+```text
+├── ledger-frontend/      # Accounting Vue.js app
+├── pos-frontend/         # POS Vue.js app
+├── n8n/                  # n8n workflows and initialization
+│   ├── n8n-workflows/    # Exported workflow JSONs
+│   └── flows2/           # n8n persistent data
+├── postgres/
+│   └── postgres-init/    # SQL scripts for 5 database schemas
+├── public/               # Static assets & image storage
+└── docker-compose.yml    # Main orchestration
+```
 
 ---
 
-## Design Philosophy
+## 💡 Design Philosophy
 
-This system was built with the following principles:
+*   **Solve Real Problems:** Prioritize stable, functional workflows over feature bloat.
+*   **Data Ownership:** All data remains on your server in standard PostgreSQL databases.
+*   **Modularity:** Each component (Accounting, POS, COGS) can operate independently or together.
+*   **AI for Accessibility:** Use AI (Gemini) to make complex database management as simple as sending a text.
 
-- Solve real workflow problems first
-- Use lightweight tools where possible
-- Keep data ownership local
-- Avoid unnecessary SaaS dependence
-- Favor clear data flow over feature bloat
+---
+
+## ⚖️ License
+
+[MIT](LICENSE) - See LICENSE file for details.
