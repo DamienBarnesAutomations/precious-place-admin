@@ -1,0 +1,299 @@
+{
+  "name": "Admin: Custom Orders Management",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "admin/custom-orders",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -200,
+        400
+      ],
+      "id": "webhook-telegram-intake",
+      "name": "Webhook Telegram Intake"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "custom-orders/update-status",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        200
+      ],
+      "id": "webhook-update-status",
+      "name": "Webhook Update Status"
+    },
+    {
+      "parameters": {
+        "path": "custom-orders/list",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "webhook-list",
+      "name": "Webhook List"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM orders ORDER BY order_date ASC, created_at DESC;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        250,
+        0
+      ],
+      "id": "pg-list",
+      "name": "Fetch Orders",
+      "credentials": {
+        "postgres": {
+          "id": "MBtoQsz0fuSb7cVd",
+          "name": "Message Admin DB Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        500,
+        0
+      ],
+      "id": "respond-list",
+      "name": "Respond List"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *;",
+        "options": {
+          "queryReplacement": "={{ [$json.body.status, $json.body.orderId] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        250,
+        200
+      ],
+      "id": "pg-update",
+      "name": "Update Status",
+      "credentials": {
+        "postgres": {
+          "id": "MBtoQsz0fuSb7cVd",
+          "name": "Message Admin DB Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        500,
+        200
+      ],
+      "id": "respond-update",
+      "name": "Respond Update"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst text = body.message;\nconst raw_message = text;\n\n// Regex for \"Date, Client Name, Client Phone, Note\"\n// Example: 15th March, Marinella, 4634945, 2-tier chocolate cake\nconst parts = text.split(',').map(p => p.trim());\n\nlet order_date = parts[0] || 'today';\nlet client_name = parts[1] || 'Unknown';\nlet client_phone = parts[2] || '';\nlet notes = parts.slice(3).join(', ') || text;\n\nreturn {\n  order_date,\n  client_name,\n  client_phone,\n  notes,\n  raw_message,\n  attachment_url: body.filename ? body.filename.replace('/home/node/.n8n-files/public/', '/images/') : null\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        250,
+        400
+      ],
+      "id": "parse-logic",
+      "name": "Parse Order"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO orders (order_date, client_name, client_phone, notes, attachment_url, raw_message) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;",
+        "options": {
+          "queryReplacement": "={{ [$json.order_date, $json.client_name, $json.client_phone, $json.notes, $json.attachment_url, $json.raw_message] }}"
+        }
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        500,
+        400
+      ],
+      "id": "pg-insert",
+      "name": "Insert Order",
+      "credentials": {
+        "postgres": {
+          "id": "MBtoQsz0fuSb7cVd",
+          "name": "Message Admin DB Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "set-response",
+              "name": "response_message",
+              "value": "=✅ *Cake Order Logged!*\\n\\n📅 **Date:** {{ $json.order_date }}\\n👤 **Client:** {{ $json.client_name }}\\n📝 **Notes:** {{ $json.notes }}\\n\\nView the full schedule at /orders/",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        750,
+        400
+      ],
+      "id": "set-response",
+      "name": "Success Message"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1000,
+        400
+      ],
+      "id": "respond-telegram",
+      "name": "Respond Telegram"
+    }
+  ],
+  "connections": {
+    "Webhook List": {
+      "main": [
+        [
+          {
+            "node": "Fetch Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Orders": {
+      "main": [
+        [
+          {
+            "node": "Respond List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Update Status": {
+      "main": [
+        [
+          {
+            "node": "Update Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Status": {
+      "main": [
+        [
+          {
+            "node": "Respond Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Telegram Intake": {
+      "main": [
+        [
+          {
+            "node": "Parse Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Order": {
+      "main": [
+        [
+          {
+            "node": "Insert Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Order": {
+      "main": [
+        [
+          {
+            "node": "Success Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success Message": {
+      "main": [
+        [
+          {
+            "node": "Respond Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

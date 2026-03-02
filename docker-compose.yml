@@ -225,6 +225,34 @@ services:
     depends_on:
       - n8n_app
 
+  orders_frontend:
+    build:
+      context: ./orders-frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=${API_BASE_URL}
+        - DOMAIN_OR_IP=${DOMAIN_OR_IP}
+    container_name: orders_frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.orders.rule=Host(`${DOMAIN_OR_IP}`) && PathPrefix(`/orders`)"
+      - "traefik.http.routers.orders.entrypoints=websecure"
+      - "traefik.http.routers.orders.tls.certresolver=myresolver"
+      - "traefik.http.routers.orders.tls.domains[0].main=${BASE_DOMAIN}"
+      - "traefik.http.routers.orders.tls.domains[0].sans=*.${BASE_DOMAIN}"
+      - "traefik.http.services.orders.loadbalancer.server.port=80"
+      - "traefik.http.routers.orders.middlewares=orders-auth"
+      - "traefik.http.middlewares.orders-auth.forwardauth.address=http://n8n_app:5678/webhook/admin/authenticate"
+      - "traefik.http.middlewares.orders-auth.forwardauth.trustForwardHeader=true"
+    restart: always
+    expose:
+      - "80"
+    environment:
+      - VITE_API_BASE_URL=${API_BASE_URL}
+      - DOMAIN_OR_IP=${DOMAIN_OR_IP}
+    depends_on:
+      - n8n_app
+
   traefik:
     image: traefik:latest
     container_name: traefik
