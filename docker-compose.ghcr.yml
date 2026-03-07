@@ -5,11 +5,10 @@ services:
     volumes:
       - ./n8n/flows2:/home/node/.n8n
       - ./public/images:/home/node/.n8n-files/public/images
-    entrypoint: [] # Clear the base entrypoint if needed, but the image has it
 
   pos_frontend:
     image: ghcr.io/damienbarnesautomations/precious-place-admin/pos_frontend:staging
-    build: !!null # Remove build context for prod
+    build: !!null # Remove build context for registry-based deployment
 
   ledger_frontend:
     image: ghcr.io/damienbarnesautomations/precious-place-admin/ledger_frontend:staging
