@@ -1,0 +1,529 @@
+﻿{
+    "updatedAt":  "2026-03-07T09:09:54.138Z",
+    "createdAt":  "2025-12-30T00:12:49.770Z",
+    "id":  "0pJhqz3JhUsGoGrI",
+    "name":  "Admin: Orchestrate Message",
+    "description":  null,
+    "active":  true,
+    "isArchived":  false,
+    "nodes":  [
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "SELECT current_mode \nFROM user_states \nWHERE user_id = $1;",
+                                         "options":  {
+                                                         "queryReplacement":  "={{ $(\u0027Edit Fields\u0027).item.json.request.user_id }}"
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       -416,
+                                       352
+                                   ],
+                      "id":  "65554cde-2d61-431a-96e0-98c9f4382cdd",
+                      "name":  "Execute a SQL query",
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "MBtoQsz0fuSb7cVd",
+                                                           "name":  "Message Admin DB Credentials"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "rules":  {
+                                                       "values":  [
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  false,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "leftValue":  "={{ $json.current_mode }}",
+                                                                                                                    "rightValue":  "Product",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals"
+                                                                                                                                 },
+                                                                                                                    "id":  "31e2b06a-ecf7-4250-bee1-a2c4db478916"
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         }
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  false,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "id":  "e0e7aaa1-a268-4740-a385-6d84d7335f03",
+                                                                                                                    "leftValue":  "={{ $json.current_mode }}",
+                                                                                                                    "rightValue":  "Ingredient",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals",
+                                                                                                                                     "name":  "filter.operator.equals"
+                                                                                                                                 }
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         }
+                                                                      },
+                                                                      {
+                                                                          "conditions":  {
+                                                                                             "options":  {
+                                                                                                             "caseSensitive":  false,
+                                                                                                             "leftValue":  "",
+                                                                                                             "typeValidation":  "strict",
+                                                                                                             "version":  3
+                                                                                                         },
+                                                                                             "conditions":  [
+                                                                                                                {
+                                                                                                                    "id":  "6f688a79-0922-4f06-b326-907dd26823d2",
+                                                                                                                    "leftValue":  "={{ $json.current_mode }}",
+                                                                                                                    "rightValue":  "recipe",
+                                                                                                                    "operator":  {
+                                                                                                                                     "type":  "string",
+                                                                                                                                     "operation":  "equals",
+                                                                                                                                     "name":  "filter.operator.equals"
+                                                                                                                                 }
+                                                                                                                }
+                                                                                                            ],
+                                                                                             "combinator":  "and"
+                                                                                         }
+                                                                      }
+                                                                  ]
+                                                   },
+                                         "options":  {
+                                                         "ignoreCase":  true,
+                                                         "allMatchingOutputs":  true
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.switch",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       -80,
+                                       336
+                                   ],
+                      "id":  "d71256fa-ee69-4223-8a93-29fd492d0125",
+                      "name":  "Switch"
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "// Get the message text from the Telegram trigger\nconst messageInputText = $input.first().json.request.message\n\nconst messageText = messageInputText.toLowerCase().trim();\nconst ingredientsGreeting = $input.first().json.ingredientsGreeting\nconst productsGreeting = $input.first().json.productsGreeting\nconst recipesGreeting = $input.first().json.recipesGreeting\n\n\nlet selectedMode = \u0027\u0027;\nvar responseMessage;\n\nswitch (messageText) {\n  case \u0027product\u0027:\n  case \u0027products\u0027:\n    selectedMode = \u0027PRODUCT\u0027;\n    responseMessage = productsGreeting;\n    break;\n\n  case \u0027ingredient\u0027:\n  case \u0027ingredients\u0027:\n    selectedMode = \u0027INGREDIENT\u0027;\n    responseMessage = ingredientsGreeting;\n    break;\n\n  case \u0027recipe\u0027:\n  case \u0027recipes\u0027:\n    selectedMode = \u0027RECIPE\u0027;\n    responseMessage = recipesGreeting;\n    break;\n\n  case \u0027exit\u0027:\n  case \u0027main\u0027:\n  case \u0027quit\u0027:\n    selectedMode = \u0027MAIN\u0027;\n    responseMessage = \u0027Returning to *Main Mode*. Standard POS commands active.\u0027;\n    break;\n\n  default:\n    // If it\u0027s not a mode-switch command, we keep the current state\n    // This allows the message to pass through to the Regex Router\n    return [{\n      json: {\n        isModeSwitch: false,\n        text: messageText\n      }\n    }];\n}\n\n// Return the new state data\nreturn [{\n  json: {\n    isModeSwitch: true,\n    newMode: selectedMode,\n    response: responseMessage,\n    userId: $input.first().json.request.user_id\n  }\n}];\n\n"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       -896,
+                                       336
+                                   ],
+                      "id":  "27ba2c5f-540f-4413-975b-a7b67a1a0817",
+                      "name":  "Code in JavaScript"
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "strict",
+                                                                            "version":  3
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "1d2b63db-0023-4b43-91ae-28ae70aff0e9",
+                                                                                   "leftValue":  "={{ $json.isModeSwitch }}",
+                                                                                   "rightValue":  false,
+                                                                                   "operator":  {
+                                                                                                    "type":  "boolean",
+                                                                                                    "operation":  "true",
+                                                                                                    "singleValue":  true
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.3,
+                      "position":  [
+                                       -688,
+                                       336
+                                   ],
+                      "id":  "f4fb80c3-d311-43ef-a2f3-ec515b1c537c",
+                      "name":  "If"
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "INSERT INTO user_states (user_id, current_mode) \nVALUES ($1, $2) \nON CONFLICT (user_id) \nDO UPDATE SET current_mode = $2, \n  last_updated = NOW();",
+                                         "options":  {
+                                                         "queryReplacement":  "={{[$json.userId, $json.newMode ]}}"
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       -576,
+                                       48
+                                   ],
+                      "id":  "3136ca73-dc99-4e24-bf30-3d974629d34d",
+                      "name":  "Update Mode",
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "MBtoQsz0fuSb7cVd",
+                                                           "name":  "Message Admin DB Credentials"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "e187528f-0f85-4873-9f92-8ec826a11ce8",
+                                                                                     "name":  "ingredientsGreeting",
+                                                                                     "value":  "=ðŸŒ¿ *Ingredient Mode Active*\n\nYou can now manage your raw stock and costs. I\u0027ll automatically calculate your weighted average costs as you buy!\n\n*Available Commands:*\nðŸ›’ **Buy:** `bought 5kg Flour for 10`\nðŸ“‰ **Use:** `used 500g Flour`\nðŸ’° **Price:** `Flour price is now 2.50`\nðŸ“Š **Status:** `status of Flour`\nðŸ“‹ **Inventory:** `list inventory`\nðŸ—‘ï¸ **Delete:** `delete Flour`\n\nType *exit* to return to the main menu.",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "a7756463-71ec-4f9f-9eea-c74f0ac6c90a",
+                                                                                     "name":  "productsGreeting",
+                                                                                     "value":  "=ðŸ“¦ *Product Mode Active*\n\nManage your shop\u0027s menu. You can add items with photos, update prices, or remove products.\n\n*Available Commands:*\nâž• **Add:** `Add Vanilla Cake $30`\n(Attach a photo to the message to set the product image!)\nðŸ”„ **Update:** `Update Carrot Cake $35`\nðŸ“‹ **List:** `list products`\nðŸ—‘ï¸ **Delete:** `Delete Chocolate Cake`\n\nType *exit* to return to the main menu.",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "5a4ec41d-f9af-437b-8fe1-3ebf1833c296",
+                                                                                     "name":  "request",
+                                                                                     "value":  "={{ $json.body }}",
+                                                                                     "type":  "object"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "cba637d8-c582-44ec-b978-7d4f69979d5d",
+                                                                                     "name":  "recipesGreeting",
+                                                                                     "value":  "=ðŸ‘©â€ðŸ³ *Recipe \u0026 Costing Mode Active*\n\nTurn your raw ingredients into profitable products. Manage your formulas and track your margins in real-time.\n\nâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\nðŸ› ï¸ **Build your Recipe:**\nâ€¢ **Create:** `create recipe \"Carrot Cake\" yields 1 unit`\nâ€¢ **Add:** `add 200g Flour to \"Carrot Cake\"`\nâ€¢ **Steps:** `set instructions for \"Carrot Cake\": Bake at 180Â°C...`\n\nðŸ“Š **Analysis \u0026 Action:**\nâ€¢ **Cost:** `how much does \"Carrot Cake\" cost?`\nâ€¢ **Details:** `what is in the \"Carrot Cake\"?`\nâ€¢ **Production:** `cooked 2 \"Carrot Cake\"` _(Auto-subtracts stock!)_\nâ€¢ **List:** `show all recipes`\n\nðŸ—‘ï¸ **Modify:**\nâ€¢ `remove \"Flour\" from \"Carrot Cake\"`\nâ”â”â”â”â”â”â”â”â”â”â”â”â”â”â”\n\nType *exit* to return to the main menu.",
+                                                                                     "type":  "string"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       -1104,
+                                       336
+                                   ],
+                      "id":  "40f48c5c-9420-40bd-897f-11a8cb7458ba",
+                      "name":  "Edit Fields"
+                  },
+                  {
+                      "parameters":  {
+                                         "httpMethod":  "POST",
+                                         "path":  "admin/orchestrate",
+                                         "responseMode":  "responseNode",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.webhook",
+                      "typeVersion":  2.1,
+                      "position":  [
+                                       -1376,
+                                       336
+                                   ],
+                      "id":  "c89a9678-867d-464c-b14e-d76746707970",
+                      "name":  "Webhook",
+                      "webhookId":  "575ed13b-b49d-43dd-9ffa-4ea1bcee2096"
+                  },
+                  {
+                      "parameters":  {
+                                         "respondWith":  "allIncomingItems",
+                                         "options":  {
+                                                         "responseCode":  200
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.respondToWebhook",
+                      "typeVersion":  1.5,
+                      "position":  [
+                                       -128,
+                                       48
+                                   ],
+                      "id":  "cd884d04-bed7-48d7-842a-d5ff02d5ef67",
+                      "name":  "Respond to Webhook"
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "http://localhost:5678/webhook/admin/products",
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={{ $(\u0027Edit Fields\u0027).item.json.request }}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       32,
+                                       160
+                                   ],
+                      "id":  "a88393d2-20a8-4bdd-8ab7-5fa480fd260c",
+                      "name":  "HTTP Request"
+                  },
+                  {
+                      "parameters":  {
+                                         "respondWith":  "allIncomingItems",
+                                         "options":  {
+                                                         "responseCode":  200
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.respondToWebhook",
+                      "typeVersion":  1.5,
+                      "position":  [
+                                       432,
+                                       160
+                                   ],
+                      "id":  "86ac6518-450b-4c98-8951-35eb1864537a",
+                      "name":  "Respond to Webhook1"
+                  },
+                  {
+                      "parameters":  {
+                                         "assignments":  {
+                                                             "assignments":  [
+                                                                                 {
+                                                                                     "id":  "78d811aa-309c-4567-bb53-7432eafcef81",
+                                                                                     "name":  "response_message",
+                                                                                     "value":  "={{ $(\u0027Code in JavaScript\u0027).item.json.response }}",
+                                                                                     "type":  "string"
+                                                                                 },
+                                                                                 {
+                                                                                     "id":  "9b4dbbbe-3ce3-4fac-a23a-8fa0b53f7c4f",
+                                                                                     "name":  "user_id",
+                                                                                     "value":  "={{ $(\u0027Code in JavaScript\u0027).item.json.userId }}",
+                                                                                     "type":  "string"
+                                                                                 }
+                                                                             ]
+                                                         },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.set",
+                      "typeVersion":  3.4,
+                      "position":  [
+                                       -368,
+                                       48
+                                   ],
+                      "id":  "1588ecdc-8272-4f50-ba20-7b2fd1550e8c",
+                      "name":  "Edit Fields1"
+                  }
+              ],
+    "connections":  {
+                        "Execute a SQL query":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "Switch",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "Switch":  {
+                                       "main":  [
+                                                    [
+                                                        {
+                                                            "node":  "HTTP Request",
+                                                            "type":  "main",
+                                                            "index":  0
+                                                        }
+                                                    ],
+                                                    [
+
+                                                    ],
+                                                    [
+
+                                                    ]
+                                                ]
+                                   },
+                        "Code in JavaScript":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "If",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               },
+                        "If":  {
+                                   "main":  [
+                                                [
+                                                    {
+                                                        "node":  "Update Mode",
+                                                        "type":  "main",
+                                                        "index":  0
+                                                    }
+                                                ],
+                                                [
+                                                    {
+                                                        "node":  "Execute a SQL query",
+                                                        "type":  "main",
+                                                        "index":  0
+                                                    }
+                                                ]
+                                            ]
+                               },
+                        "Update Mode":  {
+                                            "main":  [
+                                                         [
+                                                             {
+                                                                 "node":  "Edit Fields1",
+                                                                 "type":  "main",
+                                                                 "index":  0
+                                                             }
+                                                         ]
+                                                     ]
+                                        },
+                        "Edit Fields":  {
+                                            "main":  [
+                                                         [
+                                                             {
+                                                                 "node":  "Code in JavaScript",
+                                                                 "type":  "main",
+                                                                 "index":  0
+                                                             }
+                                                         ]
+                                                     ]
+                                        },
+                        "Webhook":  {
+                                        "main":  [
+                                                     [
+                                                         {
+                                                             "node":  "Edit Fields",
+                                                             "type":  "main",
+                                                             "index":  0
+                                                         }
+                                                     ]
+                                                 ]
+                                    },
+                        "Respond to Webhook":  {
+                                                   "main":  [
+                                                                [
+
+                                                                ]
+                                                            ]
+                                               },
+                        "HTTP Request":  {
+                                             "main":  [
+                                                          [
+                                                              {
+                                                                  "node":  "Respond to Webhook1",
+                                                                  "type":  "main",
+                                                                  "index":  0
+                                                              }
+                                                          ]
+                                                      ]
+                                         },
+                        "Edit Fields1":  {
+                                             "main":  [
+                                                          [
+                                                              {
+                                                                  "node":  "Respond to Webhook",
+                                                                  "type":  "main",
+                                                                  "index":  0
+                                                              }
+                                                          ]
+                                                      ]
+                                         }
+                    },
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "availableInMCP":  false
+                 },
+    "staticData":  null,
+    "meta":  {
+                 "templateCredsSetupCompleted":  true
+             },
+    "pinData":  {
+                    "Webhook":  [
+                                    {
+                                        "json":  {
+                                                     "headers":  {
+                                                                     "accept":  "application/json,text/html,application/xhtml+xml,application/xml,text/*;q=0.9, image/*;q=0.8, */*;q=0.7",
+                                                                     "content-type":  "application/json",
+                                                                     "user-agent":  "axios/1.12.0",
+                                                                     "content-length":  "81",
+                                                                     "accept-encoding":  "gzip, compress, deflate, br",
+                                                                     "host":  "localhost:5678",
+                                                                     "connection":  "close"
+                                                                 },
+                                                     "params":  {
+
+                                                                },
+                                                     "query":  {
+
+                                                               },
+                                                     "body":  {
+                                                                  "message":  "Products",
+                                                                  "user_id":  "8265615223",
+                                                                  "source":  "Telegram",
+                                                                  "filename":  null
+                                                              },
+                                                     "webhookUrl":  "http://localhost:5678/webhook/admin/orchestrate",
+                                                     "executionMode":  "production"
+                                                 }
+                                    }
+                                ]
+                },
+    "versionId":  "d5236b52-42e0-464b-bad6-e887ee395a11",
+    "activeVersionId":  "d5236b52-42e0-464b-bad6-e887ee395a11",
+    "versionCounter":  306,
+    "triggerCount":  1,
+    "tags":  [
+
+             ],
+    "shared":  [
+                   {
+                       "updatedAt":  "2026-03-06T23:55:11.339Z",
+                       "createdAt":  "2026-03-06T23:55:11.339Z",
+                       "role":  "workflow:owner",
+                       "workflowId":  "0pJhqz3JhUsGoGrI",
+                       "projectId":  "DEDiCUVz0XhDTMB5",
+                       "project":  {
+                                       "updatedAt":  "2026-03-07T00:11:01.227Z",
+                                       "createdAt":  "2026-03-06T23:55:03.070Z",
+                                       "id":  "DEDiCUVz0XhDTMB5",
+                                       "name":  "Damien Barnes \u003cdamie3@gmail.com\u003e",
+                                       "type":  "personal",
+                                       "icon":  null,
+                                       "description":  null,
+                                       "creatorId":  "88077238-d0ce-499c-af04-a5b21dbbe3f1"
+                                   }
+                   }
+               ],
+    "versionMetadata":  {
+                            "name":  null,
+                            "description":  null
+                        }
+}

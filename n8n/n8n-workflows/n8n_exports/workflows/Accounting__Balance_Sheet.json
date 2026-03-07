@@ -1,0 +1,135 @@
+﻿{
+    "updatedAt":  "2026-03-07T09:10:13.465Z",
+    "createdAt":  "2026-02-06T02:04:22.904Z",
+    "id":  "v0ypRfoHb0HThaAI",
+    "name":  "Accounting: Balance Sheet",
+    "description":  null,
+    "active":  true,
+    "isArchived":  false,
+    "nodes":  [
+                  {
+                      "parameters":  {
+                                         "path":  "accounting/balanceSheet",
+                                         "responseMode":  "responseNode",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.webhook",
+                      "typeVersion":  2.1,
+                      "position":  [
+                                       -64,
+                                       0
+                                   ],
+                      "id":  "fd6fa06b-2772-4d67-bd65-09dbd5cd1fd1",
+                      "name":  "Webhook",
+                      "webhookId":  "e49a5ce1-931e-4665-9f7e-5ae997e21c05"
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "-- Logic for Balance Sheet Aggregation\nSELECT \n    ac.type,\n    ac.label AS category_label,\n    a.code,\n    a.name,\n    SUM(CASE \n        WHEN a.normal_balance = \u0027debit\u0027 THEN (l.debit - l.credit)\n        ELSE (l.credit - l.debit)\n    END) as balance\nFROM accounts a\nJOIN account_categories ac ON a.category_id = ac.id\nLEFT JOIN journal_lines l ON a.id = l.account_id\nWHERE a.type IN (\u0027asset\u0027, \u0027liability\u0027, \u0027equity\u0027)\nGROUP BY ac.type, ac.label, a.code, a.name\nORDER BY a.code;\n",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       192,
+                                       0
+                                   ],
+                      "id":  "e6488a45-2606-4d6b-9848-21158d0f99be",
+                      "name":  "Execute a SQL query",
+                      "executeOnce":  false,
+                      "alwaysOutputData":  true,
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "tdeYwbyCFeBuflzs",
+                                                           "name":  "Accounting Db Credentials"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "respondWith":  "allIncomingItems",
+                                         "options":  {
+                                                         "responseCode":  200
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.respondToWebhook",
+                      "typeVersion":  1.5,
+                      "position":  [
+                                       416,
+                                       0
+                                   ],
+                      "id":  "2d2298c6-0495-45ff-91e1-10ac2ba2e1b6",
+                      "name":  "Respond to Webhook"
+                  }
+              ],
+    "connections":  {
+                        "Webhook":  {
+                                        "main":  [
+                                                     [
+                                                         {
+                                                             "node":  "Execute a SQL query",
+                                                             "type":  "main",
+                                                             "index":  0
+                                                         }
+                                                     ]
+                                                 ]
+                                    },
+                        "Execute a SQL query":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "Respond to Webhook",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                }
+                    },
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "availableInMCP":  false
+                 },
+    "staticData":  null,
+    "meta":  {
+                 "templateCredsSetupCompleted":  true
+             },
+    "pinData":  {
+
+                },
+    "versionId":  "9f5c8e5a-9e12-42be-b726-410c607afe94",
+    "activeVersionId":  "9f5c8e5a-9e12-42be-b726-410c607afe94",
+    "versionCounter":  121,
+    "triggerCount":  1,
+    "tags":  [
+
+             ],
+    "shared":  [
+                   {
+                       "updatedAt":  "2026-03-06T23:55:11.339Z",
+                       "createdAt":  "2026-03-06T23:55:11.339Z",
+                       "role":  "workflow:owner",
+                       "workflowId":  "v0ypRfoHb0HThaAI",
+                       "projectId":  "DEDiCUVz0XhDTMB5",
+                       "project":  {
+                                       "updatedAt":  "2026-03-07T00:11:01.227Z",
+                                       "createdAt":  "2026-03-06T23:55:03.070Z",
+                                       "id":  "DEDiCUVz0XhDTMB5",
+                                       "name":  "Damien Barnes \u003cdamie3@gmail.com\u003e",
+                                       "type":  "personal",
+                                       "icon":  null,
+                                       "description":  null,
+                                       "creatorId":  "88077238-d0ce-499c-af04-a5b21dbbe3f1"
+                                   }
+                   }
+               ],
+    "versionMetadata":  {
+                            "name":  null,
+                            "description":  null
+                        }
+}

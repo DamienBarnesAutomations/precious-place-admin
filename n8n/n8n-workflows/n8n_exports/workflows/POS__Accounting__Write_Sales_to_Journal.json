@@ -1,0 +1,367 @@
+﻿{
+    "updatedAt":  "2026-03-07T09:09:10.601Z",
+    "createdAt":  "2026-02-09T04:21:04.342Z",
+    "id":  "EUJyYwQ207ipp82dvCM-D",
+    "name":  "POS: Accounting: Write Sales to Journal",
+    "description":  null,
+    "active":  true,
+    "isArchived":  false,
+    "nodes":  [
+                  {
+                      "parameters":  {
+
+                                     },
+                      "type":  "n8n-nodes-base.manualTrigger",
+                      "typeVersion":  1,
+                      "position":  [
+                                       -512,
+                                       -160
+                                   ],
+                      "id":  "7a212c87-b0c2-4e70-b0f2-5a9dd65cef6c",
+                      "name":  "When clicking â€˜Execute workflowâ€™"
+                  },
+                  {
+                      "parameters":  {
+                                         "rule":  {
+                                                      "interval":  [
+                                                                       {
+
+                                                                       },
+                                                                       {
+                                                                           "triggerAtHour":  6
+                                                                       },
+                                                                       {
+                                                                           "triggerAtHour":  12
+                                                                       },
+                                                                       {
+                                                                           "triggerAtHour":  18
+                                                                       }
+                                                                   ]
+                                                  }
+                                     },
+                      "type":  "n8n-nodes-base.scheduleTrigger",
+                      "typeVersion":  1.3,
+                      "position":  [
+                                       -512,
+                                       -336
+                                   ],
+                      "id":  "bc2b45a4-67d7-41f7-8751-307f9b5bb878",
+                      "name":  "Schedule Trigger"
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "WITH next_event AS (\n    -- 1. Find the absolute next timestamp to process\n    SELECT MIN(created_at) as start_ts\n    FROM sales\n    WHERE created_at \u003e COALESCE(\n        (SELECT MAX(last_write) FROM journal_write_log), \n        \u00271900-01-01\u0027::timestamp\n    )\n),\ndaily_data AS (\n    -- 2. Grab all sales from that timestamp until the end of its specific day\n    SELECT \n        s.total_price,\n        s.quantity,\n        s.transaction_id,\n        (ne.start_ts)::DATE as day_label,\n        s.created_at\n    FROM sales s\n    JOIN next_event ne ON s.created_at \u003e= ne.start_ts\n    WHERE s.created_at \u003c (DATE_TRUNC(\u0027day\u0027, ne.start_ts) + INTERVAL \u00271 day\u0027)\n)\n-- 3. Aggregate into your requested JSON format\nSELECT json_build_object(\n    \u0027sales_date\u0027, day_label,\n    \u0027total_revenue\u0027, SUM(total_price),\n    \u0027total_items_sold\u0027, SUM(quantity),\n    \u0027total_transactions\u0027, COUNT(DISTINCT transaction_id),\n    \u0027source\u0027, \u0027POS_TERMINAL\u0027,\n    \u0027next_timestamp\u0027, MAX(created_at)\n) AS day_totals\nFROM daily_data\nGROUP BY day_label;\n",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       -160,
+                                       -192
+                                   ],
+                      "id":  "e178ac8f-d396-4f51-b9ad-a15322653d38",
+                      "name":  "Execute a SQL query",
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "LleDUwLucS7vZHjv",
+                                                           "name":  "POS DB Credentials"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "operation":  "executeQuery",
+                                         "query":  "SELECT json_object_agg(\u0027code_\u0027 || code, id) AS accounts\nFROM accounts\nWHERE code IN (\u00271000\u0027, \u00274000\u0027);\n",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       288,
+                                       -192
+                                   ],
+                      "id":  "3f2ed273-c03f-441b-893b-547efb9bba6a",
+                      "name":  "Execute a SQL query1",
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "tdeYwbyCFeBuflzs",
+                                                           "name":  "Accounting Db Credentials"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const accounts = $input.first().json.accounts;\nconst day_totals = $(\u0027Execute a SQL query\u0027).first().json.day_totals;\n\nconst amount = day_totals.total_revenue;\nconst date = day_totals.sales_date; // e.g., \"2026-02-08\"\nconst items = day_totals.total_items_sold;\nconst txns = day_totals.total_transactions;\n\nconst cash_account_id = accounts.code_1000;\nconst sales_account_id = accounts.code_4000;\n\n// Description with volume context\nconst description = `Sold: $${Number(amount).toLocaleString()} from ${items} items across ${txns} transactions.`;\n\n/** * Build reference using the sales_date.\n * We sanitize the date and add a mini-timestamp suffix \n * to keep it unique if the process runs multiple times.\n */\nconst datePart = date.replace(/-/g, \u0027\u0027); // \"20260208\"\nconst timePart = new Date().toLocaleTimeString(\u0027en-GB\u0027, { hour12: false }).replace(/:/g, \u0027\u0027).slice(0, 4); \nconst reference = `POS-${datePart}-${timePart}`;\n\nreturn [\n  {\n    json: {\n      date: date,\n      description: description,\n      reference: reference,\n      lines: [\n        {\n          account_id: cash_account_id,\n          debit: amount,\n          credit: 0\n        },\n        {\n          account_id: sales_account_id,\n          debit: 0,\n          credit: amount\n        }\n      ]\n    }\n  }\n];\n"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       528,
+                                       -192
+                                   ],
+                      "id":  "2252ed92-80db-40bb-9b60-6451e707ab3b",
+                      "name":  "Code in JavaScript"
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "http://n8n_app:5678/webhook/accounting/journalEntry",
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={{$json}}",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.3,
+                      "position":  [
+                                       752,
+                                       -192
+                                   ],
+                      "id":  "9c132603-6eae-4a64-99c1-cb162f7a7e87",
+                      "name":  "HTTP Request"
+                  },
+                  {
+                      "parameters":  {
+                                         "schema":  {
+                                                        "__rl":  true,
+                                                        "mode":  "list",
+                                                        "value":  "public"
+                                                    },
+                                         "table":  {
+                                                       "__rl":  true,
+                                                       "value":  "journal_write_log",
+                                                       "mode":  "list",
+                                                       "cachedResultName":  "journal_write_log"
+                                                   },
+                                         "columns":  {
+                                                         "mappingMode":  "defineBelow",
+                                                         "value":  {
+                                                                       "last_write":  "={{ $(\u0027Execute a SQL query\u0027).first().json.day_totals.next_timestamp }}",
+                                                                       "reference":  "={{ $(\u0027Code in JavaScript\u0027).item.json.reference }}"
+                                                                   },
+                                                         "matchingColumns":  [
+                                                                                 "id"
+                                                                             ],
+                                                         "schema":  [
+                                                                        {
+                                                                            "id":  "id",
+                                                                            "displayName":  "id",
+                                                                            "required":  false,
+                                                                            "defaultMatch":  true,
+                                                                            "display":  true,
+                                                                            "type":  "number",
+                                                                            "canBeUsedToMatch":  true,
+                                                                            "removed":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "last_write",
+                                                                            "displayName":  "last_write",
+                                                                            "required":  true,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "dateTime",
+                                                                            "canBeUsedToMatch":  true
+                                                                        },
+                                                                        {
+                                                                            "id":  "reference",
+                                                                            "displayName":  "reference",
+                                                                            "required":  true,
+                                                                            "defaultMatch":  false,
+                                                                            "display":  true,
+                                                                            "type":  "string",
+                                                                            "canBeUsedToMatch":  true
+                                                                        }
+                                                                    ],
+                                                         "attemptToConvertTypes":  false,
+                                                         "convertFieldsToString":  false
+                                                     },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.postgres",
+                      "typeVersion":  2.6,
+                      "position":  [
+                                       944,
+                                       -192
+                                   ],
+                      "id":  "84a1fe1a-1f94-45e0-bb83-b03d119dca26",
+                      "name":  "Insert rows in a table",
+                      "credentials":  {
+                                          "postgres":  {
+                                                           "id":  "LleDUwLucS7vZHjv",
+                                                           "name":  "POS DB Credentials"
+                                                       }
+                                      }
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "strict",
+                                                                            "version":  3
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "fcc35520-7dd0-4f3e-b7a9-67cc09fe4083",
+                                                                                   "leftValue":  "={{ $json.success }}",
+                                                                                   "rightValue":  false,
+                                                                                   "operator":  {
+                                                                                                    "type":  "boolean",
+                                                                                                    "operation":  "notExists",
+                                                                                                    "singleValue":  true
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.3,
+                      "position":  [
+                                       48,
+                                       -192
+                                   ],
+                      "id":  "df146ea7-af34-409b-a54e-3de5af85c4d0",
+                      "name":  "If"
+                  }
+              ],
+    "connections":  {
+                        "Schedule Trigger":  {
+                                                 "main":  [
+                                                              [
+                                                                  {
+                                                                      "node":  "Execute a SQL query",
+                                                                      "type":  "main",
+                                                                      "index":  0
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                        "When clicking â€˜Execute workflowâ€™":  {
+                                                                     "main":  [
+                                                                                  [
+                                                                                      {
+                                                                                          "node":  "Execute a SQL query",
+                                                                                          "type":  "main",
+                                                                                          "index":  0
+                                                                                      }
+                                                                                  ]
+                                                                              ]
+                                                                 },
+                        "Execute a SQL query":  {
+                                                    "main":  [
+                                                                 [
+                                                                     {
+                                                                         "node":  "If",
+                                                                         "type":  "main",
+                                                                         "index":  0
+                                                                     }
+                                                                 ]
+                                                             ]
+                                                },
+                        "Execute a SQL query1":  {
+                                                     "main":  [
+                                                                  [
+                                                                      {
+                                                                          "node":  "Code in JavaScript",
+                                                                          "type":  "main",
+                                                                          "index":  0
+                                                                      }
+                                                                  ]
+                                                              ]
+                                                 },
+                        "Code in JavaScript":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "HTTP Request",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               },
+                        "HTTP Request":  {
+                                             "main":  [
+                                                          [
+                                                              {
+                                                                  "node":  "Insert rows in a table",
+                                                                  "type":  "main",
+                                                                  "index":  0
+                                                              }
+                                                          ]
+                                                      ]
+                                         },
+                        "If":  {
+                                   "main":  [
+                                                [
+                                                    {
+                                                        "node":  "Execute a SQL query1",
+                                                        "type":  "main",
+                                                        "index":  0
+                                                    }
+                                                ]
+                                            ]
+                               }
+                    },
+    "settings":  {
+                     "executionOrder":  "v1",
+                     "availableInMCP":  false
+                 },
+    "staticData":  {
+                       "node:Schedule Trigger":  {
+                                                     "recurrenceRules":  [
+
+                                                                         ]
+                                                 }
+                   },
+    "meta":  {
+                 "templateCredsSetupCompleted":  true
+             },
+    "pinData":  {
+
+                },
+    "versionId":  "33ce31a9-671f-4bf5-91ee-2c9ac27b7fdf",
+    "activeVersionId":  "33ce31a9-671f-4bf5-91ee-2c9ac27b7fdf",
+    "versionCounter":  67,
+    "triggerCount":  1,
+    "tags":  [
+
+             ],
+    "shared":  [
+                   {
+                       "updatedAt":  "2026-03-06T23:55:11.339Z",
+                       "createdAt":  "2026-03-06T23:55:11.339Z",
+                       "role":  "workflow:owner",
+                       "workflowId":  "EUJyYwQ207ipp82dvCM-D",
+                       "projectId":  "DEDiCUVz0XhDTMB5",
+                       "project":  {
+                                       "updatedAt":  "2026-03-07T00:11:01.227Z",
+                                       "createdAt":  "2026-03-06T23:55:03.070Z",
+                                       "id":  "DEDiCUVz0XhDTMB5",
+                                       "name":  "Damien Barnes \u003cdamie3@gmail.com\u003e",
+                                       "type":  "personal",
+                                       "icon":  null,
+                                       "description":  null,
+                                       "creatorId":  "88077238-d0ce-499c-af04-a5b21dbbe3f1"
+                                   }
+                   }
+               ],
+    "versionMetadata":  {
+                            "name":  null,
+                            "description":  null
+                        }
+}
