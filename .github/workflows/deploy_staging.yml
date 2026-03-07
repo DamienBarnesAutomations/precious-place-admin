@@ -33,15 +33,27 @@ jobs:
       - name: Load and Expand Environment Variables
         run: |
           echo '${{ secrets.ENV_JSON }}' | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env.tmp
+          
+          # First pass: Export all variables as-is to the environment
           while IFS= read -r line || [ -n "$line" ]; do
             if [[ ! "$line" =~ ^# && "$line" =~ = ]]; then
-              export "$line"
               key=$(echo "$line" | cut -d '=' -f 1)
-              eval expanded_value=\"\$$key\"
-              echo "$key=$expanded_value" >> $GITHUB_ENV
+              value=$(echo "$line" | cut -d '=' -f 2-)
+              export "$key"="$value"
             fi
           done < .env.tmp
-          rm .env.tmp
+          
+          # Second pass: Use envsubst to expand variables in the .env.tmp file
+          # and then write the expanded values to $GITHUB_ENV
+          envsubst < .env.tmp > .env.expanded
+          
+          while IFS= read -r line || [ -n "$line" ]; do
+            if [[ ! "$line" =~ ^# && "$line" =~ = ]]; then
+              echo "$line" >> $GITHUB_ENV
+            fi
+          done < .env.expanded
+          
+          rm .env.tmp .env.expanded
 
       # Build and Push POS Frontend
       - name: Build and push POS Frontend
@@ -179,6 +191,7 @@ jobs:
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             cd /app
             echo "${{ secrets.GITHUB_TOKEN }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            sudo docker compose down --remove-orphans
             sudo docker compose -f docker-compose.yml -f docker-compose.ghcr.yml pull
             sudo docker compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d --remove-orphans
             sudo docker image prune -f
