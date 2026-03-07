@@ -1,23 +1,16 @@
 services:
   n8n_app:
     image: ghcr.io/damienbarnesautomations/precious-place-admin/n8n_custom:staging
-    # Entrypoint and workflows are baked into this image
-    volumes:
-      - ./n8n/flows2:/home/node/.n8n
-      - ./public/images:/home/node/.n8n-files/public/images
+    # NO workflow volume mounts here to prevent masking
 
   pos_frontend:
     image: ghcr.io/damienbarnesautomations/precious-place-admin/pos_frontend:staging
-    build: !!null # Remove build context for registry-based deployment
 
   ledger_frontend:
     image: ghcr.io/damienbarnesautomations/precious-place-admin/ledger_frontend:staging
-    build: !!null
 
   python_app:
     image: ghcr.io/damienbarnesautomations/precious-place-admin/python_app:staging
-    build: !!null
 
   custom_cake_frontend:
     image: ghcr.io/damienbarnesautomations/precious-place-admin/custom_cake_frontend:staging
-    build: !!null

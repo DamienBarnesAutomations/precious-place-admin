@@ -30,7 +30,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # This step turns your JSON secret into variables available via ${{ env.VARIABLE_NAME }}
       - name: Load and Expand Environment Variables
         run: |
           echo '${{ secrets.ENV_JSON }}' | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env.tmp
@@ -148,7 +147,7 @@ jobs:
 
       - name: Transfer Configuration Files
         run: |
-          scp docker-compose.yml docker-compose.override.yml docker-compose.ghcr.yml .env ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app/
+          scp docker-compose.yml docker-compose.ghcr.yml .env ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app/
           scp postgres/postgres-init/*.sh postgres/postgres-init/*.sql ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app/postgres/postgres-init/
           scp custom-cake-order-manager/postgres/postgres-init/*.sql ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app/custom-cake-order-manager/postgres/postgres-init/
 
@@ -176,7 +175,7 @@ jobs:
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             cd /app
             echo "${{ secrets.GITHUB_TOKEN }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            sudo docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.ghcr.yml pull
-            sudo docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.ghcr.yml up -d --remove-orphans
+            sudo docker compose -f docker-compose.yml -f docker-compose.ghcr.yml pull
+            sudo docker compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d --remove-orphans
             sudo docker image prune -f
           EOF
