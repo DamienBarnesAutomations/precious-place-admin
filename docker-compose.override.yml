@@ -1,0 +1,89 @@
+services:
+  db:
+    volumes:
+      - ./custom-cake-order-manager/postgres/postgres-init/04_00_custom_order_database.sql:/docker-entrypoint-initdb.d/04_00_custom_order_database.sql
+
+  n8n_app:
+    labels:
+      # -- Telegram / Whatsapp Bot Webhook Router --
+      - "traefik.http.routers.n8n-cakebots.rule=Host(`${DOMAIN_OR_IP}`) && (Path(`/webhook/22dff49f-91a6-427d-9ef2-99a0992d3174/webhook`) || Path(`/webhook-test/3f80fa72-cb16-45d9-a38f-c2923269eee9/webhook`) || Path(`/webhook/3f80fa72-cb16-45d9-a38f-c2923269eee9/webhook`))"
+      - "traefik.http.routers.n8n-cakebots.entrypoints=websecure"
+      - "traefik.http.routers.n8n-cakebots.tls.certresolver=myresolver"
+      - "traefik.http.routers.n8n-cakebots.priority=200"
+      - "traefik.http.routers.n8n-cakebots.service=n8n-service"
+    volumes:
+      - ./custom-cake-order-manager/n8n/n8n-workflows:/home/node/.n8n-files/cake-workflows
+    environment:
+      - CAKE_ORDER_TELEGRAM_BOT_TOKEN=${CAKE_ORDER_TELEGRAM_BOT_TOKEN}
+      - CAKE_ORDER_WHATSAPP_BOT_TOKEN=${CAKE_ORDER_WHATSAPP_BOT_TOKEN}
+      - CAKE_ORDER_WHATSAPP_WEBHOOK_URL=${CAKE_ORDER_WHATSAPP_WEBHOOK_URL}
+      - CAKE_ORDER_WHATSAPP_PHONE_NUMBER_ID=${CAKE_ORDER_WHATSAPP_PHONE_NUMBER_ID}
+      - WHATSAPP_CLIENT_ID=${WHATSAPP_CLIENT_ID}
+      - WHATSAPP_CLIENT_SECRET=${WHATSAPP_CLIENT_SECRET}
+      - WHATSAPP_BUSINESS_ACCOUNT_ID=${WHATSAPP_BUSINESS_ACCOUNT_ID}
+      - WHATSAPP_VERIFY_TOKEN=${WHATSAPP_VERIFY_TOKEN}
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - N8N_INTERNAL_URL=http://n8n_app:5678
+
+  python_app:
+    build:
+      context: ./custom-cake-order-manager/python_app
+      dockerfile: Dockerfile
+    container_name: python_app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.python-api-public.rule=Host(`${DOMAIN_OR_IP}`) && PathPrefix(`/api/cakeOrder`)"
+      - "traefik.http.routers.python-api-public.entrypoints=websecure"
+      - "traefik.http.routers.python-api-public.tls.certresolver=myresolver"
+      - "traefik.http.routers.python-api-public.priority=200"
+      - "traefik.http.routers.python-api-public.service=python-api-service"
+      - "traefik.http.routers.python-api-private.rule=Host(`${DOMAIN_OR_IP}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.python-api-private.entrypoints=websecure"
+      - "traefik.http.routers.python-api-private.tls.certresolver=myresolver"
+      - "traefik.http.routers.python-api-private.priority=100"
+      - "traefik.http.routers.python-api-private.middlewares=python-auth"
+      - "traefik.http.routers.python-api-private.service=python-api-service"
+      - "traefik.http.services.python-api-service.loadbalancer.server.port=5000"
+      - "traefik.http.middlewares.python-auth.forwardauth.address=http://n8n_app:5678/webhook/admin/authenticate"
+      - "traefik.http.middlewares.python-auth.forwardauth.trustForwardHeader=true"
+    restart: unless-stopped
+    expose:
+      - "5000"
+    environment:
+      - N8N_INTERNAL_URL=http://n8n_app:5678
+      - DOMAIN_OR_IP=${DOMAIN_OR_IP}
+    depends_on:
+      - n8n_app
+
+  custom_cake_frontend:
+    build:
+      context: ./custom-cake-order-manager/custom_cake_frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=${API_BASE_URL}
+        - VITE_APP_TITLE=Custom Cake
+        - VITE_IMAGE_BASE_URL=${IMAGE_BASE_URL}
+        - DOMAIN_OR_IP=${DOMAIN_OR_IP}
+    container_name: custom_cake_frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.custom_cake.rule=Host(`${DOMAIN_OR_IP}`) && PathPrefix(`/custom-cake-manager`)"
+      - "traefik.http.routers.custom_cake.entrypoints=websecure"
+      - "traefik.http.routers.custom_cake.tls.certresolver=myresolver"
+      - "traefik.http.routers.custom_cake.tls.domains[0].main=${BASE_DOMAIN}"
+      - "traefik.http.routers.custom_cake.tls.domains[0].sans=*.${BASE_DOMAIN}"
+      - "traefik.http.services.custom_cake.loadbalancer.server.port=80"
+      - "traefik.http.routers.custom_cake.middlewares=custom-cake-auth"
+      - "traefik.http.middlewares.custom-cake-auth.forwardauth.address=http://n8n_app:5678/webhook/admin/authenticate"
+      - "traefik.http.middlewares.custom-cake-auth.forwardauth.trustForwardHeader=true"
+    restart: always
+    expose:
+      - "80"
+    environment:
+      - VITE_API_BASE_URL=${API_BASE_URL}
+      - VITE_APP_TITLE=Custom Cake
+      - DOMAIN_OR_IP=${DOMAIN_OR_IP}
+      - VITE_IMAGE_BASE_URL=${IMAGE_BASE_URL}
+    depends_on:
+      - n8n_app

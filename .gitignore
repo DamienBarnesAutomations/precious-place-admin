@@ -15,3 +15,6 @@ certs/*
 my_deploy_key*
 env_secrets*
 letsencrypt
+node_modules
+public/images/cake-orders/*
+public/images/cake-orders/tmp/*

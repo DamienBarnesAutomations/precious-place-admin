@@ -1,0 +1,3 @@
+[submodule "custom-cake-order-manager"]
+	path = custom-cake-order-manager
+	url = https://github.com/DamienBarnesAutomations/custom-cake-order-manager.git
