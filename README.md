@@ -100,7 +100,7 @@ The project is organized into distinct but interconnected modules orchestrated b
 ├── pos-frontend/         # POS Vue.js app
 ├── n8n/                  # n8n workflows and initialization
 │   ├── n8n-workflows/    # Exported workflow JSONs
-│   └── flows2/           # n8n persistent data
+│   └── flows/           # n8n persistent data
 ├── postgres/
 │   └── postgres-init/    # SQL scripts for 5 database schemas
 ├── public/               # Static assets & image storage

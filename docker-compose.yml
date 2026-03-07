@@ -89,11 +89,9 @@ services:
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
       - SITE_ADMIN_USER=${SITE_ADMIN_USER}
       - SITE_ADMIN_PASSWORD=${SITE_ADMIN_PASSWORD}
-      - N8N_CORS_ENABLED=true
-      - N8N_CORS_ALLOWED_ORIGINS=https://${DOMAIN_OR_IP}
-      - N8N_CORS_ALLOW_CREDENTIALS=true
-      - NODE_FUNCTION_ALLOW_BUILTIN=crypto
+      - N8N_HOST=${N8N_DOMAIN}
       - WEBHOOK_URL=https://${DOMAIN_OR_IP}
+      - N8N_CORS_ENABLED=true
       - CAKE_ORDER_TELEGRAM_BOT_TOKEN=${CAKE_ORDER_TELEGRAM_BOT_TOKEN}
       - CAKE_ORDER_WHATSAPP_BOT_TOKEN=${CAKE_ORDER_WHATSAPP_BOT_TOKEN}
       - CAKE_ORDER_WHATSAPP_WEBHOOK_URL=${CAKE_ORDER_WHATSAPP_WEBHOOK_URL}
@@ -108,7 +106,7 @@ services:
     expose:
       - "5678"
     volumes:
-      - ./n8n/flows2:/home/node/.n8n
+      - ./n8n/flows:/home/node/.n8n
       - ./public/images:/home/node/.n8n-files/public/images
     depends_on:
       db:
