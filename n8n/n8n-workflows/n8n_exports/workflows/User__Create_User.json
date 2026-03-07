@@ -1,5 +1,5 @@
 {
-    "updatedAt":  "2026-03-07T09:10:08.611Z",
+    "updatedAt":  "2026-03-07T14:00:45.168Z",
     "createdAt":  "2026-02-08T10:21:02.475Z",
     "id":  "bve7hur8eQHhxk2CEhfEc",
     "name":  "User: Create User",
@@ -32,37 +32,11 @@
                       "type":  "n8n-nodes-base.set",
                       "typeVersion":  3.4,
                       "position":  [
-                                       -176,
-                                       0
+                                       528,
+                                       80
                                    ],
-                      "id":  "288ea7d3-f07d-4e76-bd7a-e19018980124",
+                      "id":  "d4c20a09-ae0e-437d-b691-bbc0a0b49278",
                       "name":  "Edit Fields"
-                  },
-                  {
-                      "parameters":  {
-                                         "method":  "POST",
-                                         "url":  "http://python_app:5000/api/password/hash",
-                                         "sendBody":  true,
-                                         "bodyParameters":  {
-                                                                "parameters":  [
-                                                                                   {
-                                                                                       "name":  "password",
-                                                                                       "value":  "={{ $json.password }}"
-                                                                                   }
-                                                                               ]
-                                                            },
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.httpRequest",
-                      "typeVersion":  4.3,
-                      "position":  [
-                                       320,
-                                       -16
-                                   ],
-                      "id":  "e97527ae-c57e-421f-bb82-51197a30ac9a",
-                      "name":  "HTTP Request"
                   },
                   {
                       "parameters":  {
@@ -104,10 +78,10 @@
                       "type":  "n8n-nodes-base.if",
                       "typeVersion":  2.3,
                       "position":  [
-                                       32,
-                                       0
+                                       752,
+                                       80
                                    ],
-                      "id":  "15c83d8f-2970-490f-906e-73588aed99d1",
+                      "id":  "b9a2f1e9-1072-4da7-81a7-c86e70cf0a63",
                       "name":  "If"
                   },
                   {
@@ -121,10 +95,10 @@
                       "type":  "n8n-nodes-base.postgres",
                       "typeVersion":  2.6,
                       "position":  [
-                                       624,
-                                       -16
+                                       1200,
+                                       80
                                    ],
-                      "id":  "daa5de8c-0480-4f80-8f6a-01c23014442a",
+                      "id":  "be085225-2c8b-4190-9609-d23cc506e8f4",
                       "name":  "Execute a SQL query",
                       "credentials":  {
                                           "postgres":  {
@@ -142,11 +116,24 @@
                       "type":  "n8n-nodes-base.n8nTrigger",
                       "typeVersion":  1,
                       "position":  [
-                                       -384,
-                                       0
+                                       304,
+                                       80
                                    ],
-                      "id":  "a797b015-0b26-49c9-b78f-41ef97889e12",
+                      "id":  "c96c0f34-82cb-49d3-aa11-ba41afe62959",
                       "name":  "n8n Trigger"
+                  },
+                  {
+                      "parameters":  {
+                                         "jsCode":  "const crypto = require(\u0027crypto\u0027);\nconst password = $input.first().json.password;\n\nif (!password) {\n  return [{ json: { error: \u0027No password provided\u0027 } }];\n}\n\n// Generate a random salt (like bcrypt.gensalt())\nconst salt = crypto.randomBytes(16).toString(\u0027hex\u0027);\n\n// Hash with scrypt (64-byte output, comparable security to bcrypt 12 rounds)\nconst hashed = crypto.scryptSync(password, salt, 64).toString(\u0027hex\u0027);\n\n// Store as \"salt:hash\" â€” matches your verify logic exactly\nreturn [{ json: { hashed_password: `${salt}:${hashed}` } }];"
+                                     },
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       976,
+                                       80
+                                   ],
+                      "id":  "ccc84f49-a170-4c5d-aa5c-db19584c1d57",
+                      "name":  "Code in JavaScript"
                   }
               ],
     "connections":  {
@@ -161,35 +148,17 @@
                                                          ]
                                                      ]
                                         },
-                        "HTTP Request":  {
-                                             "main":  [
-                                                          [
-                                                              {
-                                                                  "node":  "Execute a SQL query",
-                                                                  "type":  "main",
-                                                                  "index":  0
-                                                              }
-                                                          ]
-                                                      ]
-                                         },
                         "If":  {
                                    "main":  [
                                                 [
                                                     {
-                                                        "node":  "HTTP Request",
+                                                        "node":  "Code in JavaScript",
                                                         "type":  "main",
                                                         "index":  0
                                                     }
                                                 ]
                                             ]
                                },
-                        "Execute a SQL query":  {
-                                                    "main":  [
-                                                                 [
-
-                                                                 ]
-                                                             ]
-                                                },
                         "n8n Trigger":  {
                                             "main":  [
                                                          [
@@ -200,7 +169,18 @@
                                                              }
                                                          ]
                                                      ]
-                                        }
+                                        },
+                        "Code in JavaScript":  {
+                                                   "main":  [
+                                                                [
+                                                                    {
+                                                                        "node":  "Execute a SQL query",
+                                                                        "type":  "main",
+                                                                        "index":  0
+                                                                    }
+                                                                ]
+                                                            ]
+                                               }
                     },
     "settings":  {
                      "executionOrder":  "v1",
@@ -213,8 +193,8 @@
     "pinData":  {
 
                 },
-    "versionId":  "34a677f8-aa2d-45f9-aba3-4a015dba8720",
-    "activeVersionId":  "34a677f8-aa2d-45f9-aba3-4a015dba8720",
+    "versionId":  "dff35ad5-973f-4f00-afef-fd39a99fe540",
+    "activeVersionId":  "dff35ad5-973f-4f00-afef-fd39a99fe540",
     "triggerCount":  1,
     "tags":  [
 
@@ -239,7 +219,7 @@
                    }
                ],
     "versionMetadata":  {
-                            "name":  null,
-                            "description":  null
+                            "name":  "Version dff35ad5",
+                            "description":  ""
                         }
 }
