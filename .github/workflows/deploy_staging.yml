@@ -79,7 +79,7 @@ jobs:
               sudo mkdir -p /app
               sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /app
               sudo rm -rf /app/*
-              git clone -b staging git@github.com:DamienBarnesAutomations/commerce-flow-project.git /app
+              git clone -b staging https://github.com/DamienBarnesAutomations/precious-place-admin.git /app
             else
               cd /app
               git fetch origin staging
