@@ -154,9 +154,13 @@ jobs:
       - name: Manager Persistence Folders
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            sudo mkdir -p /app/n8n/flows2 /app/public/images/product /app/public/images/tmp
+            # Ensure base directories exist
+            sudo mkdir -p /app/n8n/flows2 
+            sudo mkdir -p /app/public/images/products 
             sudo mkdir -p /app/public/images/cake-orders/tmp
+            sudo mkdir -p /app/public/images/tmp
 
+            # Correct ownership for all persistent data
             sudo chown -R 1000:1000 /app/n8n/flows2 /app/public
             sudo chmod -R 775 /app/n8n/flows2 /app/public
           EOF

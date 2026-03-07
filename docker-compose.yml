@@ -43,7 +43,7 @@ services:
         condition: service_healthy
 
   n8n_app:
-    image: n8nio/n8n:latest
+    image: ghcr.io/damienbarnesautomations/precious-place-admin/n8n_custom:staging
     container_name: n8n_app
     restart: always
     labels:
@@ -132,6 +132,7 @@ services:
       - ./public/images:/usr/share/nginx/html/images:ro
 
   pos_frontend:
+    image: ghcr.io/damienbarnesautomations/precious-place-admin/pos_frontend:staging
     container_name: pos_frontend
     labels:
       - "traefik.enable=true"
@@ -163,6 +164,7 @@ services:
       - image_server
 
   ledger_frontend:
+    image: ghcr.io/damienbarnesautomations/precious-place-admin/ledger_frontend:staging
     container_name: ledger_frontend
     labels:
       - "traefik.enable=true"
@@ -197,6 +199,7 @@ services:
       - n8n_app
 
   python_app:
+    image: ghcr.io/damienbarnesautomations/precious-place-admin/python_app:staging
     container_name: python_app
     labels:
       - "traefik.enable=true"
@@ -224,6 +227,7 @@ services:
       - n8n_app
 
   custom_cake_frontend:
+    image: ghcr.io/damienbarnesautomations/precious-place-admin/custom_cake_frontend:staging
     container_name: custom_cake_frontend
     labels:
       - "traefik.enable=true"
@@ -258,12 +262,15 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
+      # Redirect HTTP to HTTPS automatically
       - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
       - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      # Cloudflare DNS Challenge Setup
       - "--certificatesresolvers.myresolver.acme.dnschallenge=true"
       - "--certificatesresolvers.myresolver.acme.dnschallenge.provider=cloudflare"
       - "--certificatesresolvers.myresolver.acme.email=${ADMIN_EMAIL}"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      # Use Cloudflare's DNS for the challenge check
       - "--certificatesresolvers.myresolver.acme.dnschallenge.resolvers=1.1.1.1:53"
     ports:
       - "80:80"

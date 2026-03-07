@@ -1,8 +1,12 @@
 services:
   n8n_app:
+    build:
+      context: .
+      dockerfile: ./n8n/Dockerfile
     volumes:
       - ./n8n/n8n-workflows:/home/node/.n8n-files/workflows
       - ./custom-cake-order-manager/n8n/n8n-workflows:/home/node/.n8n-files/cake-workflows
+    # Locally, we still use the entrypoint to run from the mounted volumes
     entrypoint: ["/bin/sh", "/home/node/.n8n-files/workflows/n8n-init/n8n-import.sh"]
 
   pos_frontend:
