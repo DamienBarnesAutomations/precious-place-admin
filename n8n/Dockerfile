@@ -2,8 +2,8 @@ FROM n8nio/n8n:latest
 
 USER root
 
-# Install dos2unix to handle potential Windows line endings
-RUN apk add --no-cache dos2unix
+# Install dos2unix using apt-get (Debian-based image)
+RUN apt-get update && apt-get install -y dos2unix && rm -rf /var/lib/apt/lists/*
 
 # Create directories for workflows
 RUN mkdir -p /home/node/.n8n-files/workflows /home/node/.n8n-files/cake-workflows
