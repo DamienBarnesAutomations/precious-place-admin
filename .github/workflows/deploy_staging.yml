@@ -153,7 +153,7 @@ jobs:
       - name: Prepare server directories
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-            "sudo mkdir -p /app/letsencrypt /app/postgres/postgres-init /app/custom-cake-order-manager/postgres/postgres-init \
+            "sudo mkdir -p /app/letsencrypt /app/postgres/postgres-init /app/custom-cake-order-manager/postgres/postgres-init /app/public/images \
              && sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /app"
 
       - name: Transfer config files
@@ -164,6 +164,8 @@ jobs:
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app/postgres/postgres-init/
           scp custom-cake-order-manager/postgres/postgres-init/*.sql \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app/custom-cake-order-manager/postgres/postgres-init/
+          scp public/images/icon.png public/images/precious_place_logo-removebg.png public/images/precious_place_logo-removebg1.png \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app/public/images/
 
       - name: Ensure persistent directories
         run: |
