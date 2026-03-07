@@ -51,6 +51,8 @@ foreach ($wf in $workflows) {
   }
   if ($skip) { continue }
 
+  $wf.PSObject.Properties.Remove('versionCounter')
+
   $safeName = $name -replace '[^\w\-]', '_'
   $outFile  = Join-Path $SplitDir "$safeName.json"
 
