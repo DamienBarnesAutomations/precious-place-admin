@@ -23,39 +23,19 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Log in to the Container registry
+      - name: Log in to Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Load and Expand Environment Variables
+      - name: Parse ENV_JSON into environment
         run: |
-          echo '${{ secrets.ENV_JSON }}' | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env.tmp
-          
-          # First pass: Export all variables as-is to the environment
-          while IFS= read -r line || [ -n "$line" ]; do
-            if [[ ! "$line" =~ ^# && "$line" =~ = ]]; then
-              key=$(echo "$line" | cut -d '=' -f 1)
-              value=$(echo "$line" | cut -d '=' -f 2-)
-              export "$key"="$value"
-            fi
-          done < .env.tmp
-          
-          # Second pass: Use envsubst to expand variables in the .env.tmp file
-          # and then write the expanded values to $GITHUB_ENV
-          envsubst < .env.tmp > .env.expanded
-          
-          while IFS= read -r line || [ -n "$line" ]; do
-            if [[ ! "$line" =~ ^# && "$line" =~ = ]]; then
-              echo "$line" >> $GITHUB_ENV
-            fi
-          done < .env.expanded
-          
-          rm .env.tmp .env.expanded
+          echo '${{ secrets.ENV_JSON }}' \
+            | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' \
+            >> $GITHUB_ENV
 
-      # Build and Push POS Frontend
       - name: Build and push POS Frontend
         uses: docker/build-push-action@v5
         with:
@@ -74,7 +54,6 @@ jobs:
             VITE_RECORD_SALES_WEBHOOK=${{ env.API_BASE_URL }}pos/recordSales
             VITE_DAILY_SALES_WEBHOOK=${{ env.API_BASE_URL }}pos/dailyTotalSales
 
-      # Build and Push Ledger Frontend
       - name: Build and push Ledger Frontend
         uses: docker/build-push-action@v5
         with:
@@ -96,7 +75,6 @@ jobs:
             VITE_GET_INCOME_WEBHOOK=${{ env.API_BASE_URL }}accounting/incomeReport
             VITE_GET_EXPENSE_WEBHOOK=${{ env.API_BASE_URL }}accounting/expenseReport
 
-      # Build and Push Custom Cake Frontend
       - name: Build and push Custom Cake Frontend
         uses: docker/build-push-action@v5
         with:
@@ -109,7 +87,6 @@ jobs:
             VITE_IMAGE_BASE_URL=${{ env.IMAGE_BASE_URL }}
             DOMAIN_OR_IP=${{ env.DOMAIN_OR_IP }}
 
-      # Build and Push Python App
       - name: Build and push Python App
         uses: docker/build-push-action@v5
         with:
@@ -117,7 +94,6 @@ jobs:
           push: true
           tags: ${{ env.IMAGE_NAME_PREFIX }}/python_app:staging
 
-      # Build and Push Custom n8n
       - name: Build and push Custom n8n
         uses: docker/build-push-action@v5
         with:
@@ -137,58 +113,55 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Create .env from JSON
+      - name: Write .env file
         run: |
           echo '${{ secrets.ENV_JSON }}' \
-          | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env
+            | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env
 
-      - name: Install SSH client
-        run: sudo apt-get update && sudo apt-get install -y openssh-client
-
-      - name: Setup Runner SSH
+      - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+          echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
 
-      - name: Prepare Server Directories
+      - name: Prepare server directories
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
-          "sudo mkdir -p /app/letsencrypt /app/postgres/postgres-init /app/custom-cake-order-manager/postgres/postgres-init && sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /app"
+            "sudo mkdir -p /app/letsencrypt /app/postgres/postgres-init /app/custom-cake-order-manager/postgres/postgres-init \
+             && sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /app"
 
-      - name: Transfer Configuration Files
+      - name: Transfer config files
         run: |
-          scp docker-compose.yml docker-compose.ghcr.yml .env ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app/
-          scp postgres/postgres-init/*.sh postgres/postgres-init/*.sql ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app/postgres/postgres-init/
-          scp custom-cake-order-manager/postgres/postgres-init/*.sql ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app/custom-cake-order-manager/postgres/postgres-init/
+          scp docker-compose.yml docker-compose.ghcr.yml .env \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app/
+          scp postgres/postgres-init/*.sh postgres/postgres-init/*.sql \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app/postgres/postgres-init/
+          scp custom-cake-order-manager/postgres/postgres-init/*.sql \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/app/custom-cake-order-manager/postgres/postgres-init/
 
-      - name: Manager Persistence Folders
+      - name: Ensure persistent directories
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            # Ensure base directories exist
             sudo mkdir -p /app/n8n/flows
-            sudo mkdir -p /app/public/images/products 
+            sudo mkdir -p /app/public/images/products
             sudo mkdir -p /app/public/images/cake-orders/tmp
             sudo mkdir -p /app/public/images/tmp
-
-            # Correct ownership for all persistent data
             sudo chown -R 1000:1000 /app/n8n/flows /app/public
             sudo chmod -R 775 /app/n8n/flows /app/public
           EOF
 
-      - name: Inject ACME Secret
+      - name: Inject ACME certificate
+        env:
+          ACME_JSON: ${{ secrets.ACME_JSON }}
         run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            cat << 'ACME_EOF' > /app/letsencrypt/acme.json
-          ${{ secrets.ACME_JSON }}
-          ACME_EOF
-            chmod 600 /app/letsencrypt/acme.json
-          EOF
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} \
+            "cat > /app/letsencrypt/acme.json && chmod 600 /app/letsencrypt/acme.json" \
+            <<< "$ACME_JSON"
 
       - name: Deploy with Docker Compose
         run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
             cd /app
             echo "${{ secrets.GITHUB_TOKEN }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
             sudo docker compose down --remove-orphans
