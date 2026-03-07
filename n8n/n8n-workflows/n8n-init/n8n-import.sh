@@ -4,6 +4,8 @@ set -e
 HASH_DIR="/home/node/.n8n/hashes"
 mkdir -p "$HASH_DIR"
 
+WORKFLOWS_CHANGED=0
+
 check_and_import_workflows() {
   FILE="$1"
   HASH_KEY="$2"
@@ -23,6 +25,7 @@ check_and_import_workflows() {
     echo "$HASH_KEY changed, importing..."
     n8n import:workflow --input="$FILE"
     echo "$CURRENT_HASH" > "$HASH_FILE"
+    WORKFLOWS_CHANGED=1
     echo "$HASH_KEY import complete."
   fi
 }
@@ -43,5 +46,20 @@ check_and_import_workflows \
 check_and_import_workflows \
   "/home/node/.n8n-files/cake-workflows/n8n_exports/all_workflows.json" \
   "cake_workflows"
+
+# Activate once if anything changed
+if [ "$WORKFLOWS_CHANGED" = "1" ]; then
+  echo "Activating workflows..."
+  n8n list:workflow | awk -F'|' '
+  {
+    gsub(/^[ \t]+|[ \t]+$/, "", $1);
+    gsub(/^[ \t]+|[ \t]+$/, "", $2);
+    if ($1 != "" && $1 != "ID") {
+      system("echo \"Activating: " $2 " (ID: " $1 ")\"");
+      system("n8n publish:workflow --id=\"" $1 "\"");
+    }
+  }'
+  echo "Activation complete."
+fi
 
 exec n8n
