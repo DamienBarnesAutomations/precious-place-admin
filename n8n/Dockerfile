@@ -2,14 +2,21 @@ FROM n8nio/n8n:latest
 
 USER root
 
+# Install dos2unix to handle potential Windows line endings
+RUN apk add --no-cache dos2unix
+
 # Create directories for workflows
 RUN mkdir -p /home/node/.n8n-files/workflows /home/node/.n8n-files/cake-workflows
 
-# Copy workflows and scripts from root (Relative to project root context)
+# Copy workflows and scripts from root
 COPY n8n/n8n-workflows /home/node/.n8n-files/workflows
 
-# Copy workflows from sub-module (Relative to project root context)
+# Copy workflows from sub-module
 COPY custom-cake-order-manager/n8n/n8n-workflows /home/node/.n8n-files/cake-workflows
+
+# Fix line endings and permissions for the script
+RUN dos2unix /home/node/.n8n-files/workflows/n8n-init/n8n-import.sh && \
+    chmod +x /home/node/.n8n-files/workflows/n8n-init/n8n-import.sh
 
 # Ensure the node user owns these files
 RUN chown -R node:node /home/node/.n8n-files
