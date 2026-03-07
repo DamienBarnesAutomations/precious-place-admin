@@ -28,10 +28,13 @@ docker cp "${ContainerName}:${ContainerPath}/all_credentials.json" (Join-Path $O
 Write-Host "`nSplitting into individual workflow files..."
 Write-Host "Ignoring prefixes: $($IgnorePrefixes -join ', ')"
 
-$workflows = Get-Content (Join-Path $OutputDir "all_workflows.json") | ConvertFrom-Json
+$workflows = Get-Content (Join-Path $OutputDir "all_workflows.json") -Raw | ConvertFrom-Json
 
 $saved   = 0
 $ignored = 0
+
+# UTF8 without BOM encoder for Linux-compatible files
+$utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
 foreach ($wf in $workflows) {
   $name = $wf.name
@@ -50,7 +53,12 @@ foreach ($wf in $workflows) {
 
   $safeName = $name -replace '[^\w\-]', '_'
   $outFile  = Join-Path $SplitDir "$safeName.json"
-  $wf | ConvertTo-Json -Depth 20 | Set-Content -Path $outFile -Encoding UTF8
+
+  # Convert to JSON, replace CRLF with LF, write with UTF8 no BOM
+  $json = $wf | ConvertTo-Json -Depth 20
+  $json = $json -replace "`r`n", "`n"
+  [System.IO.File]::WriteAllText($outFile, $json, $utf8NoBom)
+
   Write-Host "  Saved: $safeName.json"
   $saved++
 }
