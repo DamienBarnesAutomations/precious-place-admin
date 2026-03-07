@@ -60,7 +60,7 @@ services:
       - "traefik.http.routers.n8n-webhook.priority=100"
       - "traefik.http.routers.n8n-webhook.service=n8n-service"
       - "traefik.http.routers.n8n-webhook.middlewares=n8n-auth"
-      - "traefik.http.routers.n8n-telegram.rule=Host(`${DOMAIN_OR_IP}`) && Path(`/webhook/89aa21fe-f0ce-4310-a3be-1c844dab6bf7/webhook`)"
+      - "traefik.http.routers.n8n-telegram.rule=Host(`${DOMAIN_OR_IP}`) && (Path(`/webhook/22dff49f-91a6-427d-9ef2-99a0992d3174/webhook`) || Path(`/webhook-test/3f80fa72-cb16-45d9-a38f-c2923269eee9/webhook`) || Path(`/webhook/3f80fa72-cb16-45d9-a38f-c2923269eee9/webhook`))"
       - "traefik.http.routers.n8n-telegram.entrypoints=websecure"
       - "traefik.http.routers.n8n-telegram.tls.certresolver=myresolver"
       - "traefik.http.routers.n8n-telegram.priority=200"
