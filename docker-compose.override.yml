@@ -4,13 +4,6 @@ services:
       - ./custom-cake-order-manager/postgres/postgres-init/04_00_custom_order_database.sql:/docker-entrypoint-initdb.d/04_00_custom_order_database.sql
 
   n8n_app:
-    labels:
-      # -- Telegram / Whatsapp Bot Webhook Router --
-      - "traefik.http.routers.n8n-cakebots.rule=Host(`${DOMAIN_OR_IP}`) && (Path(`/webhook/22dff49f-91a6-427d-9ef2-99a0992d3174/webhook`) || Path(`/webhook-test/3f80fa72-cb16-45d9-a38f-c2923269eee9/webhook`) || Path(`/webhook/3f80fa72-cb16-45d9-a38f-c2923269eee9/webhook`))"
-      - "traefik.http.routers.n8n-cakebots.entrypoints=websecure"
-      - "traefik.http.routers.n8n-cakebots.tls.certresolver=myresolver"
-      - "traefik.http.routers.n8n-cakebots.priority=200"
-      - "traefik.http.routers.n8n-cakebots.service=n8n-service"
     volumes:
       - ./custom-cake-order-manager/n8n/n8n-workflows:/home/node/.n8n-files/cake-workflows
     environment:

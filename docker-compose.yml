@@ -46,35 +46,26 @@ services:
     restart: always
     labels:
       - "traefik.enable=true"
-
-      # ── 1. MAIN UI ROUTER (catch-all for N8N_DOMAIN) ──────────────────────
       - "traefik.http.routers.n8n.rule=Host(`${N8N_DOMAIN}`)"
       - "traefik.http.routers.n8n.entrypoints=websecure"
       - "traefik.http.routers.n8n.tls.certresolver=myresolver"
       - "traefik.http.routers.n8n.tls.domains[0].main=${BASE_DOMAIN}"
       - "traefik.http.routers.n8n.tls.domains[0].sans=*.${BASE_DOMAIN}"
       - "traefik.http.routers.n8n.service=n8n-service"
-
-      # ── 2. PROTECTED WEBHOOK ROUTER (N8N_DOMAIN) ──────────────────────────
       - "traefik.http.routers.n8n-webhook.rule=Host(`${DOMAIN_OR_IP}`) && (PathPrefix(`/webhook`) || PathPrefix(`/webhook-test`) || PathPrefix(`/webhook-waiting`))"
       - "traefik.http.routers.n8n-webhook.entrypoints=websecure"
       - "traefik.http.routers.n8n-webhook.tls.certresolver=myresolver"
       - "traefik.http.routers.n8n-webhook.priority=100"
       - "traefik.http.routers.n8n-webhook.service=n8n-service"
       - "traefik.http.routers.n8n-webhook.middlewares=n8n-auth"
-
-      # -- Telegram
       - "traefik.http.routers.n8n-telegram.rule=Host(`${DOMAIN_OR_IP}`) && Path(`/webhook/89aa21fe-f0ce-4310-a3be-1c844dab6bf7/webhook`)"
       - "traefik.http.routers.n8n-telegram.entrypoints=websecure"
       - "traefik.http.routers.n8n-telegram.tls.certresolver=myresolver"
       - "traefik.http.routers.n8n-telegram.priority=200"
       - "traefik.http.routers.n8n-telegram.service=n8n-service"
-
-      # ── Shared service & auth middleware ──────────────────────────────────
       - "traefik.http.services.n8n-service.loadbalancer.server.port=5678"
       - "traefik.http.middlewares.n8n-auth.forwardauth.address=http://n8n_app:5678/webhook/admin/authenticate"
       - "traefik.http.middlewares.n8n-auth.forwardauth.trustForwardHeader=true"
-
     environment:
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_HOST=db
@@ -104,7 +95,7 @@ services:
     expose:
       - "5678"
     volumes:
-      - ./n8n/flows:/home/node/.n8n
+      - ./n8n/flows2:/home/node/.n8n
       - ./public/images:/home/node/.n8n-files/public/images
       - ./n8n/n8n-workflows:/home/node/.n8n-files/workflows
     entrypoint: ["/bin/sh", "/home/node/.n8n-files/workflows/n8n-init/n8n-import.sh"]
