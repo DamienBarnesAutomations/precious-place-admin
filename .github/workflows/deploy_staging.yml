@@ -33,8 +33,20 @@ jobs:
       - name: Parse ENV_JSON into environment
         run: |
           echo '${{ secrets.ENV_JSON }}' \
-            | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' \
-            >> $GITHUB_ENV
+            | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env.tmp
+
+          # Export all vars so shell can expand cross-references
+          set -a && source .env.tmp && set +a
+
+          # Re-expand and write to GITHUB_ENV
+          while IFS= read -r line; do
+            [[ "$line" =~ ^# || ! "$line" =~ = ]] && continue
+            key="${line%%=*}"
+            value="${line#*=}"
+            echo "$key=$(eval echo \"$value\")" >> $GITHUB_ENV
+          done < .env.tmp
+
+          rm .env.tmp
 
       - name: Build and push POS Frontend
         uses: docker/build-push-action@v5
@@ -116,7 +128,20 @@ jobs:
       - name: Write .env file
         run: |
           echo '${{ secrets.ENV_JSON }}' \
-            | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env
+            | jq -r 'to_entries | map("\(.key)=\(.value)") | .[]' > .env.tmp
+
+          # Export all vars so shell can expand cross-references
+          set -a && source .env.tmp && set +a
+
+          # Re-expand and write to .env
+          while IFS= read -r line; do
+            [[ "$line" =~ ^# || ! "$line" =~ = ]] && continue
+            key="${line%%=*}"
+            value="${line#*=}"
+            echo "$key=$(eval echo \"$value\")" >> .env
+          done < .env.tmp
+
+          rm .env.tmp
 
       - name: Setup SSH
         run: |
