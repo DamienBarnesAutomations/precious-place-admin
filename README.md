@@ -1,123 +1,154 @@
-# Precious Place Admin
+# <img src="public/images/precious_place_logo-removebg.png" width="40" height="40" valign="middle"> Precious Place Admin Suite
 
-A comprehensive, modular business management system for independent retail bakeries and food businesses. 
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Vue.js](https://img.shields.io/badge/Vue.js-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)](https://vuejs.org/)
+[![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![n8n](https://img.shields.io/badge/n8n-FF6D5A?style=for-the-badge&logo=n8n&logoColor=white)](https://n8n.io/)
 
----
-
-## 🌟 Overview
-
-**Precious Place Admin** is a centralized operational hub designed to digitize and automate the day-to-day management of a retail bakery. It replaces fragmented, manual processes (paper accounting, text-based orders, manual inventory) with a cohesive digital infrastructure.
-
-The system is built on a **local-first, low-cost philosophy**, leveraging open-source tools and containerization to provide enterprise-grade capabilities without expensive SaaS subscriptions.
+A comprehensive business administration platform for a boutique bakery. This suite integrates a web-based Point of Sale (POS), a professional double-entry accounting system, and an AI-driven custom cake ordering assistant. It demonstrates the orchestration of specialized microservices into a unified workflow, automating the transition from operational sales to financial reporting while leveraging LLMs for natural language processing.
 
 ---
 
-## 🏗️ System Architecture
+## 🏗️ Architecture
 
-The project is organized into distinct but interconnected modules orchestrated by **n8n**.
+```mermaid
+graph TD
+    User((Customer))
+    Admin((Staff/Admin))
+    
+    subgraph Ingress [Security Layer]
+        Traefik[Traefik Proxy]
+        Auth[n8n Auth Middleware]
+    end
 
-### 1. Point of Sale (POS)
-*   **Frontend:** Vue.js 3 / Vite application.
-*   **Capabilities:** Fast retail interface, cart management, transaction recording.
-*   **Integration:** Communicates with the POS database and triggers accounting events via n8n.
+    subgraph Frontends [Vue.js SPAs]
+        POS[POS Terminal]
+        Ledger[Accounting Dashboard]
+        CakeUI[Order Manager]
+    end
 
-### 2. Double-Entry Accounting (General Ledger)
-*   **Frontend:** Vue.js 3 / Vite application.
-*   **Backend:** PostgreSQL `accounting` database with balanced journal entry enforcement (PL/pgSQL triggers).
-*   **Reports:** Real-time Balance Sheet, Profit & Loss, Trial Balance, and General Ledger views.
-*   **Automation:** Daily sales from the POS are automatically aggregated and posted to the ledger.
+    subgraph Orchestration [Logic & Automation]
+        n8n[n8n Engine]
+        PythonAPI[FastAPI Validator]
+    end
 
-### 3. COGS & Inventory Management
-*   **Database:** PostgreSQL `cogs` database.
-*   **Capabilities:** Ingredient tracking, unit conversion (e.g., grams to kilograms), and recipe management.
-*   **Costing:** Dynamically calculates product costs based on recipe components and current ingredient prices.
+    subgraph Storage [Persistence]
+        DB[(PostgreSQL 15)]
+        Images[Nginx Asset Server]
+    end
 
-### 4. AI-Powered Telegram Admin Bot
-*   **Orchestration:** n8n workflows using the **Gemini API**.
-*   **Natural Language Management:** Add products, update prices, or check inventory by simply messaging the bot (e.g., *"Add Double Chocolate Cake $100"*).
-*   **Order Intake:** Structured flow for custom cake orders, replacing unstructured text conversations.
-
-### 5. Orchestration & Integration (The "Brain")
-*   **Engine:** **n8n** manages all data flows between frontends, databases, and external APIs.
-*   **Security:** Acts as a custom authentication layer for frontends using Traefik's `forwardauth`.
+    %% Flow lines
+    User -->|WhatsApp/Telegram| n8n
+    Admin --> Traefik
+    Traefik --> Auth
+    Auth -.-> POS & Ledger & CakeUI
+    
+    POS --> n8n
+    Ledger --> n8n
+    CakeUI --> PythonAPI
+    
+    n8n --> DB
+    n8n --> PythonAPI
+    PythonAPI --> DB
+    n8n --> Images
+    
+    %% Styling
+    style Ingress fill:#f9f,stroke:#333,stroke-width:2px
+    style Orchestration fill:#bbf,stroke:#333,stroke-width:2px
+    style Storage fill:#dfd,stroke:#333,stroke-width:2px
+```
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-| :--- | :--- |
-| **Frontend** | Vue.js 3, Vite, Tailwind CSS (Vanilla CSS variants) |
-| **Orchestration** | n8n |
-| **Database** | PostgreSQL 15 (5 separate databases) |
-| **Proxy / Edge** | Traefik (HTTPS via Let's Encrypt + Cloudflare DNS Challenge) |
-| **Image Hosting** | Nginx |
-| **AI** | Google Gemini API |
-| **Infrastructure** | Docker & Docker Compose |
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-*   Docker & Docker Compose
-*   Cloudflare Account (for DNS-01 SSL challenges)
-*   Telegram Bot Token
-*   Google Gemini API Key
-
-### Environment Setup
-1.  Copy `.env.example` (if available) or create a `.env` file with the following keys:
-    ```env
-    DOMAIN_OR_IP=yourdomain.com
-    BASE_DOMAIN=yourdomain.com
-    N8N_DOMAIN=n8n.yourdomain.com
-    ADMIN_EMAIL=admin@yourdomain.com
-    DNS_TOKEN=your_cloudflare_token
-    TELEGRAM_BOT_TOKEN=your_bot_token
-    GEMINI_API_KEY=your_gemini_key
-    POSTGRES_USER=...
-    POSTGRES_PASSWORD=...
-    DB_PASSWORD=...
-    ```
-
-2.  **Initialize the Databases:**
-    The databases are automatically initialized on the first run using the scripts in `./postgres/postgres-init/`.
-
-3.  **Deploy:**
-    ```bash
-    docker-compose up -d
-    ```
-
-4.  **Sync Local Environment (Optional):**
-    Use `dev_init.ps1` to sync production data/configurations to your local machine for development.
+| Component | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Ingress** | `Traefik` | SSL termination (Cloudflare DNS), routing, and forward-auth. |
+| **Automation** | `n8n` | Backend orchestration, webhook handling, and AI prompting. |
+| **Validation** | `FastAPI (Python)` | Rule-based validation logic for multi-tier cake orders. |
+| **UI/UX** | `Vue 3 + Vite` | Interactive dashboards for POS and double-entry ledger. |
+| **Persistence** | `PostgreSQL 15` | Relational storage for financial, operational, and chat state. |
+| **Security** | `n8n Webhooks` | Centralized session validation for all admin routes. |
+| **Styling** | `Tailwind CSS v4` | Modern utility-first CSS for responsive admin interfaces. |
 
 ---
 
 ## 📂 Project Structure
 
 ```text
-├── ledger-frontend/      # Accounting Vue.js app
-├── pos-frontend/         # POS Vue.js app
-├── n8n/                  # n8n workflows and initialization
-│   ├── n8n-workflows/    # Exported workflow JSONs
-│   └── flows/           # n8n persistent data
-├── postgres/
-│   └── postgres-init/    # SQL scripts for 5 database schemas
-├── public/               # Static assets & image storage
-└── docker-compose.yml    # Main orchestration
+📁 precious-place-admin/
+├── 📄 docker-compose.yml           # Service orchestration and env mapping
+├── 📁 n8n/
+│   └── 📁 n8n-workflows/           # JSON exports of all automation logic
+├── 📁 custom-cake-order-manager/
+│   ├── 📁 python_app/
+│   │   ├── 📄 app.py               # FastAPI entry point
+│   │   └── 📁 utils/               # Core cake validation logic (cake_order_validator.py)
+│   └── 📁 postgres/                # Schema for custom order state (04_00_custom_order_database.sql)
+├── 📁 pos-frontend/                # Vue 3 terminal for sales operations
+├── 📁 ledger-frontend/             # Vue 3 dashboard for bookkeeping
+└── 📁 postgres/
+    └── 📁 postgres-init/           # Schemas for accounting (03_...) and pos (02_...)
 ```
 
 ---
 
-## 💡 Design Philosophy
+## 🚀 Quick Start
 
-*   **Solve Real Problems:** Prioritize stable, functional workflows over feature bloat.
-*   **Data Ownership:** All data remains on your server in standard PostgreSQL databases.
-*   **Modularity:** Each component (Accounting, POS, COGS) can operate independently or together.
-*   **AI for Accessibility:** Use AI (Gemini) to make complex database management as simple as sending a text.
+1.  **Clone with submodules:**
+    ```bash
+    git clone --recursive https://github.com/damienbarnesautomations/precious-place-admin.git
+    cd precious-place-admin
+    ```
+
+2.  **Initialize Environment:**
+    Create a `.env` in the root with values for `POSTGRES_USER`, `DOMAIN_OR_IP`, `N8N_DOMAIN`, and `DNS_TOKEN`.
+
+3.  **Deploy Stack:**
+    ```bash
+    docker compose up -d
+    ```
+    *Note: Port 80 and 443 must be available for Traefik.*
 
 ---
 
-## ⚖️ License
+## ⚙️ How it Works
 
-[MIT](LICENSE) - See LICENSE file for details.
+1.  **AI Custom Order Pipeline**:
+    *   **Extraction**: Messages from Telegram/WhatsApp are routed via `Admin__Telegram.json` (n8n) to an LLM.
+    *   **Validation**: Structured data is sent to `python_app/utils/cake_order_validator.py`.
+    *   **Rules**: The validator enforces multi-tier hierarchy and lead times (min 7 days) as defined in `04_00_custom_order_database.sql`.
+    *   **Persistence**: Valid orders are committed to the `custom_orders` table.
+
+2.  **POS & Financial Reconciliation**:
+    *   **Sales**: The `pos-frontend` records transactions via `POS__Record_Sales.json`.
+    *   **Auto-Journaling**: `POS__Accounting__Write_Sales_to_Journal.json` is triggered upon sale completion.
+    *   **Integrity**: A balanced journal entry is created in the `accounting` DB, fulfilling the double-entry requirements in `03_create_accounting_db.sql`.
+
+---
+
+## 💡 Design Decisions
+
+*   **Logic Decoupling**: used n8n as the orchestration layer instead of a monolith to allow visual logic editing for workflows while keeping compute-heavy validation in Python (`python_app/app.py`).
+*   **Database-Level Integrity**: Implemented the `balanced_journal_trigger` in `03_create_accounting_db.sql` to prevent unbalanced journal entries at the schema level, ensuring financial accuracy.
+*   **Metadata-Driven Validation**: Validation rules are stored as data, not code. `cake_order_validator.py` consumes the `order_config` and `field_rules` tables to dynamically adapt to new menu items or lead times.
+*   **Centralized Security Proxy**: Employed Traefik's `forwardauth` middleware (`docker-compose.yml`) to decouple authentication from business services, using n8n as a unified identity provider.
+
+---
+
+## 🏆 Technical Highlights
+
+*   **Full-Stack Orchestration**: Integrating Vue, Python, n8n, and PostgreSQL. **Ref:** `docker-compose.yml`.
+*   **Financial Engineering**: Implementing a professional double-entry accounting system with strict constraints. **Ref:** `postgres/postgres-init/03_create_accounting_db.sql`.
+*   **Structured AI Agents**: Moving beyond simple chat bots to rigorous data extraction and business-rule validation. **Ref:** `custom-cake-order-manager/python_app/utils/cake_order_validator.py`.
+*   **Infrastructure Management**: Automated SSL (ACME) and complex microservice routing. **Ref:** Traefik labels in `docker-compose.yml`.
+
+---
+
+## ⚠️ Limitations
+
+*   **Payments**: Manual verification is required; no live payment gateway (e.g., Stripe) integration is implemented.
+*   **Inventory**: Sales are recorded, but the system does not yet perform real-time ingredient deduction from stock.
+*   **Public Web**: There is no public-facing e-commerce storefront; the system is designed for internal admin and chat-based ordering.
