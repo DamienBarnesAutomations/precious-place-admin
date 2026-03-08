@@ -1,225 +1,217 @@
 {
-    "updatedAt":  "2026-03-07T14:17:48.472Z",
-    "createdAt":  "2026-02-08T10:21:02.475Z",
-    "id":  "bve7hur8eQHhxk2CEhfEc",
-    "name":  "User: Create User",
-    "description":  null,
-    "active":  true,
-    "isArchived":  false,
-    "nodes":  [
-                  {
-                      "parameters":  {
-                                         "assignments":  {
-                                                             "assignments":  [
-                                                                                 {
-                                                                                     "id":  "40bd5b03-c017-44e0-96ec-fc0bc1b9f7f3",
-                                                                                     "name":  "password",
-                                                                                     "value":  "={{$env.SITE_ADMIN_PASSWORD}}",
-                                                                                     "type":  "string"
-                                                                                 },
-                                                                                 {
-                                                                                     "id":  "95a55a8f-dfaa-48f7-9c39-9f102af2dec1",
-                                                                                     "name":  "userName",
-                                                                                     "value":  "={{$env.SITE_ADMIN_USER}}",
-                                                                                     "type":  "string"
-                                                                                 }
-                                                                             ]
-                                                         },
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.set",
-                      "typeVersion":  3.4,
-                      "position":  [
-                                       528,
-                                       0
-                                   ],
-                      "id":  "d4c20a09-ae0e-437d-b691-bbc0a0b49278",
-                      "name":  "Edit Fields"
-                  },
-                  {
-                      "parameters":  {
-                                         "conditions":  {
-                                                            "options":  {
-                                                                            "caseSensitive":  true,
-                                                                            "leftValue":  "",
-                                                                            "typeValidation":  "strict",
-                                                                            "version":  3
-                                                                        },
-                                                            "conditions":  [
-                                                                               {
-                                                                                   "id":  "497f6a85-0c1e-42c3-95c4-a168d41bdf2f",
-                                                                                   "leftValue":  "={{ $json.userName }}",
-                                                                                   "rightValue":  "",
-                                                                                   "operator":  {
-                                                                                                    "type":  "string",
-                                                                                                    "operation":  "notEmpty",
-                                                                                                    "singleValue":  true
-                                                                                                }
-                                                                               },
-                                                                               {
-                                                                                   "id":  "340402d6-3de5-4376-afe9-0b6d0de7bf5d",
-                                                                                   "leftValue":  "={{ $json.password }}",
-                                                                                   "rightValue":  "",
-                                                                                   "operator":  {
-                                                                                                    "type":  "string",
-                                                                                                    "operation":  "notEmpty",
-                                                                                                    "singleValue":  true
-                                                                                                }
-                                                                               }
-                                                                           ],
-                                                            "combinator":  "and"
-                                                        },
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.if",
-                      "typeVersion":  2.3,
-                      "position":  [
-                                       752,
-                                       0
-                                   ],
-                      "id":  "b9a2f1e9-1072-4da7-81a7-c86e70cf0a63",
-                      "name":  "If"
-                  },
-                  {
-                      "parameters":  {
-                                         "operation":  "executeQuery",
-                                         "query":  "INSERT INTO users (username, password_hash)\nvalues ($1, $2)\nON CONFLICT (username)\nDO NOTHING",
-                                         "options":  {
-                                                         "queryReplacement":  "={{[$(\u0027Edit Fields\u0027).item.json.userName, $json.hashed_password]}}"
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.postgres",
-                      "typeVersion":  2.6,
-                      "position":  [
-                                       1200,
-                                       0
-                                   ],
-                      "id":  "be085225-2c8b-4190-9609-d23cc506e8f4",
-                      "name":  "Execute a SQL query",
-                      "credentials":  {
-                                          "postgres":  {
-                                                           "id":  "MBtoQsz0fuSb7cVd",
-                                                           "name":  "Message Admin DB Credentials"
-                                                       }
-                                      }
-                  },
-                  {
-                      "parameters":  {
-                                         "events":  [
-                                                        "init"
-                                                    ]
-                                     },
-                      "type":  "n8n-nodes-base.n8nTrigger",
-                      "typeVersion":  1,
-                      "position":  [
-                                       304,
-                                       0
-                                   ],
-                      "id":  "c96c0f34-82cb-49d3-aa11-ba41afe62959",
-                      "name":  "n8n Trigger"
-                  },
-                  {
-                      "parameters":  {
-                                         "jsCode":  "const crypto = require(\u0027crypto\u0027);\nconst password = $input.first().json.password;\n\nif (!password) {\n  return [{ json: { error: \u0027No password provided\u0027 } }];\n}\n\n// Generate a random salt (like bcrypt.gensalt())\nconst salt = crypto.randomBytes(16).toString(\u0027hex\u0027);\n\n// Hash with scrypt (64-byte output, comparable security to bcrypt 12 rounds)\nconst hashed = crypto.scryptSync(password, salt, 64).toString(\u0027hex\u0027);\n\n// Store as \"salt:hash\" â€” matches your verify logic exactly\nreturn [{ json: { hashed_password: `${salt}:${hashed}` } }];"
-                                     },
-                      "type":  "n8n-nodes-base.code",
-                      "typeVersion":  2,
-                      "position":  [
-                                       976,
-                                       0
-                                   ],
-                      "id":  "ccc84f49-a170-4c5d-aa5c-db19584c1d57",
-                      "name":  "Code in JavaScript"
-                  }
-              ],
-    "connections":  {
-                        "Edit Fields":  {
-                                            "main":  [
-                                                         [
-                                                             {
-                                                                 "node":  "If",
-                                                                 "type":  "main",
-                                                                 "index":  0
-                                                             }
-                                                         ]
-                                                     ]
-                                        },
-                        "If":  {
-                                   "main":  [
-                                                [
-                                                    {
-                                                        "node":  "Code in JavaScript",
-                                                        "type":  "main",
-                                                        "index":  0
-                                                    }
-                                                ]
-                                            ]
-                               },
-                        "n8n Trigger":  {
-                                            "main":  [
-                                                         [
-                                                             {
-                                                                 "node":  "Edit Fields",
-                                                                 "type":  "main",
-                                                                 "index":  0
-                                                             }
-                                                         ]
-                                                     ]
-                                        },
-                        "Code in JavaScript":  {
-                                                   "main":  [
-                                                                [
-                                                                    {
-                                                                        "node":  "Execute a SQL query",
-                                                                        "type":  "main",
-                                                                        "index":  0
-                                                                    }
-                                                                ]
-                                                            ]
-                                               }
-                    },
-    "settings":  {
-                     "executionOrder":  "v1",
-                     "availableInMCP":  false
-                 },
-    "staticData":  null,
-    "meta":  {
-                 "templateCredsSetupCompleted":  true
-             },
-    "pinData":  {
-
-                },
-    "versionId":  "534ca32d-252d-4eeb-b11d-cec657ec1e33",
-    "activeVersionId":  "534ca32d-252d-4eeb-b11d-cec657ec1e33",
-    "triggerCount":  1,
-    "tags":  [
-
-             ],
-    "shared":  [
-                   {
-                       "updatedAt":  "2026-03-06T23:55:08.671Z",
-                       "createdAt":  "2026-03-06T23:55:08.671Z",
-                       "role":  "workflow:owner",
-                       "workflowId":  "bve7hur8eQHhxk2CEhfEc",
-                       "projectId":  "DEDiCUVz0XhDTMB5",
-                       "project":  {
-                                       "updatedAt":  "2026-03-07T00:11:01.227Z",
-                                       "createdAt":  "2026-03-06T23:55:03.070Z",
-                                       "id":  "DEDiCUVz0XhDTMB5",
-                                       "name":  "Damien Barnes \u003cdamie3@gmail.com\u003e",
-                                       "type":  "personal",
-                                       "icon":  null,
-                                       "description":  null,
-                                       "creatorId":  "88077238-d0ce-499c-af04-a5b21dbbe3f1"
-                                   }
-                   }
-               ],
-    "versionMetadata":  {
-                            "name":  "Version 534ca32d",
-                            "description":  ""
+    "updatedAt": "2026-03-07T14:17:48.472Z",
+    "createdAt": "2026-02-08T10:21:02.475Z",
+    "id": "bve7hur8eQHhxk2CEhfEc",
+    "name": "User: Create User",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "40bd5b03-c017-44e0-96ec-fc0bc1b9f7f3",
+                            "name": "password",
+                            "value": "={{$env.SITE_ADMIN_PASSWORD}}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "95a55a8f-dfaa-48f7-9c39-9f102af2dec1",
+                            "name": "userName",
+                            "value": "={{$env.SITE_ADMIN_USER}}",
+                            "type": "string"
                         }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                528,
+                0
+            ],
+            "id": "d4c20a09-ae0e-437d-b691-bbc0a0b49278",
+            "name": "Edit Fields"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
+                    },
+                    "conditions": [
+                        {
+                            "id": "497f6a85-0c1e-42c3-95c4-a168d41bdf2f",
+                            "leftValue": "={{ $json.userName }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "notEmpty",
+                                "singleValue": true
+                            }
+                        },
+                        {
+                            "id": "340402d6-3de5-4376-afe9-0b6d0de7bf5d",
+                            "leftValue": "={{ $json.password }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "notEmpty",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                752,
+                0
+            ],
+            "id": "b9a2f1e9-1072-4da7-81a7-c86e70cf0a63",
+            "name": "If"
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "INSERT INTO users (username, password_hash)\nvalues ($1, $2)\nON CONFLICT (username)\nDO NOTHING",
+                "options": {
+                    "queryReplacement": "={{[$('Edit Fields').item.json.userName, $json.hashed_password]}}"
+                }
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.6,
+            "position": [
+                1200,
+                0
+            ],
+            "id": "be085225-2c8b-4190-9609-d23cc506e8f4",
+            "name": "Execute a SQL query",
+            "credentials": {
+                "postgres": {
+                    "id": "MBtoQsz0fuSb7cVd",
+                    "name": "Message Admin DB Credentials"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "events": [
+                    "init"
+                ]
+            },
+            "type": "n8n-nodes-base.n8nTrigger",
+            "typeVersion": 1,
+            "position": [
+                304,
+                0
+            ],
+            "id": "c96c0f34-82cb-49d3-aa11-ba41afe62959",
+            "name": "n8n Trigger"
+        },
+        {
+            "parameters": {
+                "jsCode": "const crypto = require('crypto');\nconst password = $input.first().json.password;\n\nif (!password) {\n  return [{ json: { error: 'No password provided' } }];\n}\n\n// Generate a random salt (like bcrypt.gensalt())\nconst salt = crypto.randomBytes(16).toString('hex');\n\n// Hash with scrypt (64-byte output, comparable security to bcrypt 12 rounds)\nconst hashed = crypto.scryptSync(password, salt, 64).toString('hex');\n\n// Store as \"salt:hash\" — matches your verify logic exactly\nreturn [{ json: { hashed_password: `${salt}:${hashed}` } }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                976,
+                0
+            ],
+            "id": "ccc84f49-a170-4c5d-aa5c-db19584c1d57",
+            "name": "Code in JavaScript"
+        }
+    ],
+    "connections": {
+        "Edit Fields": {
+            "main": [
+                [
+                    {
+                        "node": "If",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "n8n Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Edit Fields",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript": {
+            "main": [
+                [
+                    {
+                        "node": "Execute a SQL query",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1",
+        "availableInMCP": false
+    },
+    "staticData": null,
+    "meta": {
+        "templateCredsSetupCompleted": true
+    },
+    "pinData": {},
+    "versionId": "534ca32d-252d-4eeb-b11d-cec657ec1e33",
+    "activeVersionId": "534ca32d-252d-4eeb-b11d-cec657ec1e33",
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+        {
+            "updatedAt": "2026-03-06T23:55:08.671Z",
+            "createdAt": "2026-03-06T23:55:08.671Z",
+            "role": "workflow:owner",
+            "workflowId": "bve7hur8eQHhxk2CEhfEc",
+            "projectId": "DEDiCUVz0XhDTMB5",
+            "project": {
+                "updatedAt": "2026-03-07T00:11:01.227Z",
+                "createdAt": "2026-03-06T23:55:03.070Z",
+                "id": "DEDiCUVz0XhDTMB5",
+                "name": "Damien Barnes <damie3@gmail.com>",
+                "type": "personal",
+                "icon": null,
+                "description": null,
+                "creatorId": "88077238-d0ce-499c-af04-a5b21dbbe3f1"
+            }
+        }
+    ],
+    "versionMetadata": {
+        "name": "Version 534ca32d",
+        "description": ""
+    }
 }

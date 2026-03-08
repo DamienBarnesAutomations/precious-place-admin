@@ -1,133 +1,125 @@
 {
-    "updatedAt":  "2026-03-07T09:10:54.189Z",
-    "createdAt":  "2026-02-09T05:23:28.623Z",
-    "id":  "5pZlcUtSz8r6SqXq",
-    "name":  "Acccounting: Expense Report",
-    "description":  null,
-    "active":  true,
-    "isArchived":  false,
-    "nodes":  [
-                  {
-                      "parameters":  {
-                                         "operation":  "executeQuery",
-                                         "query":  "SELECT \n    je.entry_date,\n    ac.label AS vendor, -- Using category label as the \u0027Vendor\u0027 group for your UI\n    je.description,\n    jl.debit AS amount,\n    je.reference\nFROM journal_lines jl\nJOIN journal_entries je ON jl.journal_entry_id = je.id\nJOIN accounts a ON jl.account_id = a.id\nJOIN account_categories ac ON a.category_id = ac.id\nWHERE a.type = \u0027expense\u0027\n  AND jl.debit \u003e 0\nORDER BY je.entry_date DESC, jl.created_at DESC;\n",
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.postgres",
-                      "typeVersion":  2.6,
-                      "position":  [
-                                       -80,
-                                       0
-                                   ],
-                      "id":  "c4700c15-400d-4141-bc5a-0f5b77da8750",
-                      "name":  "Execute a SQL query",
-                      "alwaysOutputData":  true,
-                      "credentials":  {
-                                          "postgres":  {
-                                                           "id":  "tdeYwbyCFeBuflzs",
-                                                           "name":  "Accounting Db Credentials"
-                                                       }
-                                      }
-                  },
-                  {
-                      "parameters":  {
-                                         "path":  "accounting/expenseReport",
-                                         "responseMode":  "responseNode",
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.webhook",
-                      "typeVersion":  2.1,
-                      "position":  [
-                                       -560,
-                                       0
-                                   ],
-                      "id":  "158f26ca-30f7-4d4d-9317-0014a604dd1c",
-                      "name":  "Webhook",
-                      "webhookId":  "8d362942-1a3b-43dd-8fc8-82b9ea47d7fb"
-                  },
-                  {
-                      "parameters":  {
-                                         "respondWith":  "allIncomingItems",
-                                         "options":  {
-                                                         "responseCode":  200
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.respondToWebhook",
-                      "typeVersion":  1.5,
-                      "position":  [
-                                       320,
-                                       0
-                                   ],
-                      "id":  "2b1f7c0f-ede8-4f0b-aeff-78b42116af1b",
-                      "name":  "Respond to Webhook"
-                  }
-              ],
-    "connections":  {
-                        "Webhook":  {
-                                        "main":  [
-                                                     [
-                                                         {
-                                                             "node":  "Execute a SQL query",
-                                                             "type":  "main",
-                                                             "index":  0
-                                                         }
-                                                     ]
-                                                 ]
-                                    },
-                        "Execute a SQL query":  {
-                                                    "main":  [
-                                                                 [
-                                                                     {
-                                                                         "node":  "Respond to Webhook",
-                                                                         "type":  "main",
-                                                                         "index":  0
-                                                                     }
-                                                                 ]
-                                                             ]
-                                                }
-                    },
-    "settings":  {
-                     "executionOrder":  "v1",
-                     "availableInMCP":  false
-                 },
-    "staticData":  null,
-    "meta":  {
-                 "templateCredsSetupCompleted":  true
-             },
-    "pinData":  {
-
-                },
-    "versionId":  "172ef17b-a57b-4dc6-a8aa-9857d4c27020",
-    "activeVersionId":  "172ef17b-a57b-4dc6-a8aa-9857d4c27020",
-    "triggerCount":  1,
-    "tags":  [
-
-             ],
-    "shared":  [
-                   {
-                       "updatedAt":  "2026-03-06T23:55:11.339Z",
-                       "createdAt":  "2026-03-06T23:55:11.339Z",
-                       "role":  "workflow:owner",
-                       "workflowId":  "5pZlcUtSz8r6SqXq",
-                       "projectId":  "DEDiCUVz0XhDTMB5",
-                       "project":  {
-                                       "updatedAt":  "2026-03-07T00:11:01.227Z",
-                                       "createdAt":  "2026-03-06T23:55:03.070Z",
-                                       "id":  "DEDiCUVz0XhDTMB5",
-                                       "name":  "Damien Barnes \u003cdamie3@gmail.com\u003e",
-                                       "type":  "personal",
-                                       "icon":  null,
-                                       "description":  null,
-                                       "creatorId":  "88077238-d0ce-499c-af04-a5b21dbbe3f1"
-                                   }
-                   }
-               ],
-    "versionMetadata":  {
-                            "name":  null,
-                            "description":  null
-                        }
+    "updatedAt": "2026-03-07T09:10:54.189Z",
+    "createdAt": "2026-02-09T05:23:28.623Z",
+    "id": "5pZlcUtSz8r6SqXq",
+    "name": "Acccounting: Expense Report",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "SELECT \n    je.entry_date,\n    ac.label AS vendor, -- Using category label as the 'Vendor' group for your UI\n    je.description,\n    jl.debit AS amount,\n    je.reference\nFROM journal_lines jl\nJOIN journal_entries je ON jl.journal_entry_id = je.id\nJOIN accounts a ON jl.account_id = a.id\nJOIN account_categories ac ON a.category_id = ac.id\nWHERE a.type = 'expense'\n  AND jl.debit > 0\nORDER BY je.entry_date DESC, jl.created_at DESC;\n",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.6,
+            "position": [
+                -80,
+                0
+            ],
+            "id": "c4700c15-400d-4141-bc5a-0f5b77da8750",
+            "name": "Execute a SQL query",
+            "alwaysOutputData": true,
+            "credentials": {
+                "postgres": {
+                    "id": "tdeYwbyCFeBuflzs",
+                    "name": "Accounting Db Credentials"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "path": "accounting/expenseReport",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                -560,
+                0
+            ],
+            "id": "158f26ca-30f7-4d4d-9317-0014a604dd1c",
+            "name": "Webhook",
+            "webhookId": "8d362942-1a3b-43dd-8fc8-82b9ea47d7fb"
+        },
+        {
+            "parameters": {
+                "respondWith": "allIncomingItems",
+                "options": {
+                    "responseCode": 200
+                }
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                320,
+                0
+            ],
+            "id": "2b1f7c0f-ede8-4f0b-aeff-78b42116af1b",
+            "name": "Respond to Webhook"
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Execute a SQL query",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Execute a SQL query": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1",
+        "availableInMCP": false
+    },
+    "staticData": null,
+    "meta": {
+        "templateCredsSetupCompleted": true
+    },
+    "pinData": {},
+    "versionId": "172ef17b-a57b-4dc6-a8aa-9857d4c27020",
+    "activeVersionId": "172ef17b-a57b-4dc6-a8aa-9857d4c27020",
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+        {
+            "updatedAt": "2026-03-06T23:55:11.339Z",
+            "createdAt": "2026-03-06T23:55:11.339Z",
+            "role": "workflow:owner",
+            "workflowId": "5pZlcUtSz8r6SqXq",
+            "projectId": "DEDiCUVz0XhDTMB5",
+            "project": {
+                "updatedAt": "2026-03-07T00:11:01.227Z",
+                "createdAt": "2026-03-06T23:55:03.070Z",
+                "id": "DEDiCUVz0XhDTMB5",
+                "name": "Damien Barnes <damie3@gmail.com>",
+                "type": "personal",
+                "icon": null,
+                "description": null,
+                "creatorId": "88077238-d0ce-499c-af04-a5b21dbbe3f1"
+            }
+        }
+    ],
+    "versionMetadata": {
+        "name": null,
+        "description": null
+    }
 }

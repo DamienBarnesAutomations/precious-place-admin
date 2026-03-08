@@ -20,58 +20,70 @@ Write-Host "Exporting credentials..."
 docker exec $ContainerName n8n export:credentials --all --decrypted --output=$ContainerPath/all_credentials.json
 if ($LASTEXITCODE -ne 0) { Write-Error "Credentials export failed."; exit 1 }
 
+# ---- Write the Node.js splitter script to a temp file and copy into container ----
+$tempScript = Join-Path $env:TEMP "n8n_split.js"
+$utf8NoBom  = [System.Text.UTF8Encoding]::new($false)
+
+[System.IO.File]::WriteAllText($tempScript, @'
+const fs   = require('fs');
+const path = require('path');
+
+const exportDir      = '/home/node/.n8n-files/workflows/n8n_exports';
+const splitDir       = path.join(exportDir, 'workflows');
+const ignorePrefixes = process.argv[2]
+  ? process.argv[2].split(',').map(p => p.trim().toLowerCase())
+  : [];
+
+if (!fs.existsSync(splitDir)) fs.mkdirSync(splitDir, { recursive: true });
+
+fs.readdirSync(splitDir)
+  .filter(f => f.endsWith('.json'))
+  .forEach(f => fs.unlinkSync(path.join(splitDir, f)));
+
+const workflows = JSON.parse(fs.readFileSync(path.join(exportDir, 'all_workflows.json'), 'utf8'));
+
+let saved   = 0;
+let ignored = 0;
+
+for (const wf of workflows) {
+  const name       = wf.name;
+  const nameLower  = name.toLowerCase();
+  const skip       = ignorePrefixes.some(p => nameLower.startsWith(p));
+
+  if (skip) {
+    console.log('  Ignoring: ' + name);
+    ignored++;
+    continue;
+  }
+
+  delete wf.versionCounter;
+
+  const safeName = name
+    .replace(/[\\/:*?"<>|]/g, '_')
+    .trim()
+    .replace(/\s+/g, '_');
+
+  const outFile = path.join(splitDir, safeName + '.json');
+  fs.writeFileSync(outFile, JSON.stringify(wf, null, 4), 'utf8');
+  console.log('  Saved: ' + safeName + '.json');
+  saved++;
+}
+
+console.log('\nDone. ' + saved + ' workflows split (' + ignored + ' ignored).');
+'@, $utf8NoBom)
+
+Write-Host "Splitting workflows inside container..."
+Write-Host "Ignoring prefixes: $($IgnorePrefixes -join ', ')"
+
+$prefixArg = $IgnorePrefixes -join ','
+docker cp $tempScript "${ContainerName}:/tmp/n8n_split.js"
+docker exec $ContainerName node /tmp/n8n_split.js $prefixArg
+if ($LASTEXITCODE -ne 0) { Write-Error "Splitting failed."; exit 1 }
+
+# ---- Copy the already-split files out of the container ----
 Write-Host "Copying files from container..."
 docker cp "${ContainerName}:${ContainerPath}/all_workflows.json"   (Join-Path $OutputDir "all_workflows.json")
 docker cp "${ContainerName}:${ContainerPath}/all_credentials.json" (Join-Path $OutputDir "all_credentials.json")
+docker cp "${ContainerName}:${ContainerPath}/workflows/."          $SplitDir
 
-# ---- Clear SplitDir before writing ----
-if (Test-Path $SplitDir) {
-  Remove-Item (Join-Path $SplitDir "*.json") -Force
-  Write-Host "Cleared existing files in $SplitDir"
-}
-
-# ---- Split into individual workflow files ----
-Write-Host "`nSplitting into individual workflow files..."
-Write-Host "Ignoring prefixes: $($IgnorePrefixes -join ', ')"
-
-$workflows = Get-Content (Join-Path $OutputDir "all_workflows.json") -Raw | ConvertFrom-Json
-
-$saved   = 0
-$ignored = 0
-
-# UTF8 without BOM encoder for Linux-compatible files
-$utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-
-foreach ($wf in $workflows) {
-  $name = $wf.name
-
-  # Check if workflow name starts with any ignored prefix (case-insensitive)
-  $skip = $false
-  foreach ($prefix in $IgnorePrefixes) {
-    if ($name -ilike "$prefix*") {
-      Write-Host "  Ignoring: $name"
-      $skip = $true
-      $ignored++
-      break
-    }
-  }
-  if ($skip) { continue }
-
-  $wf.PSObject.Properties.Remove('versionCounter')
-
-  # Remove characters that are unsafe for filenames, but preserve Unicode letters/numbers/emojis
-  $safeName = $name -replace '[\\/:*?"<>|]', '_'   # strip actual illegal filename chars
-  $safeName = $safeName.Trim()                       # trim leading/trailing whitespace
-  $safeName = $safeName -replace '\s+', '_'          # replace whitespace runs with underscore
-  $outFile  = Join-Path $SplitDir "$safeName.json"
-
-  # Convert to JSON, replace CRLF with LF, write with UTF8 no BOM
-  $json = $wf | ConvertTo-Json -Depth 20
-  $json = $json -replace "`r`n", "`n"
-  [System.IO.File]::WriteAllText($outFile, $json, $utf8NoBom)
-
-  Write-Host "  Saved: $safeName.json"
-  $saved++
-}
-
-Write-Host "`nDone. $saved workflows saved to: $SplitDir ($ignored ignored)."
+Write-Host "`nDone. Workflows saved to: $SplitDir"

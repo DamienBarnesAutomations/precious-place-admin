@@ -1,522 +1,502 @@
 {
-    "updatedAt":  "2026-03-07T09:10:27.973Z",
-    "createdAt":  "2026-02-06T14:14:50.830Z",
-    "id":  "hGjEA3zaZV-Boc3QPOYjr",
-    "name":  "Admin: Telegram",
-    "description":  null,
-    "active":  true,
-    "isArchived":  false,
-    "nodes":  [
-                  {
-                      "parameters":  {
-                                         "method":  "POST",
-                                         "url":  "http://localhost:5678/webhook/admin/orchestrate",
-                                         "sendBody":  true,
-                                         "specifyBody":  "json",
-                                         "jsonBody":  "={{ $json }}",
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.httpRequest",
-                      "typeVersion":  4.3,
-                      "position":  [
-                                       1600,
-                                       0
-                                   ],
-                      "id":  "ab485764-e390-4c78-929c-1735ce5c2316",
-                      "name":  "HTTP Request"
-                  },
-                  {
-                      "parameters":  {
-                                         "resource":  "file",
-                                         "fileId":  "={{ $(\u0027Code in JavaScript\u0027).item.json.fileId }}",
-                                         "additionalFields":  {
-
-                                                              }
-                                     },
-                      "type":  "n8n-nodes-base.telegram",
-                      "typeVersion":  1.2,
-                      "position":  [
-                                       1136,
-                                       -336
-                                   ],
-                      "id":  "29deb43e-f275-4c8e-bb9b-c604812139ac",
-                      "name":  "Get a file",
-                      "webhookId":  "8c4d170c-c5d8-4941-ab9a-95b3bc49dc46",
-                      "credentials":  {
-                                          "telegramApi":  {
-                                                              "id":  "td8a7Y8V7pDvKjeX",
-                                                              "name":  "Admin Telegram Account"
-                                                          }
-                                      }
-                  },
-                  {
-                      "parameters":  {
-                                         "conditions":  {
-                                                            "options":  {
-                                                                            "caseSensitive":  true,
-                                                                            "leftValue":  "",
-                                                                            "typeValidation":  "strict",
-                                                                            "version":  3
-                                                                        },
-                                                            "conditions":  [
-                                                                               {
-                                                                                   "id":  "9463ca9a-79fa-44b7-a2ad-2498e700cf48",
-                                                                                   "leftValue":  "={{ $json.fileId }}",
-                                                                                   "rightValue":  "",
-                                                                                   "operator":  {
-                                                                                                    "type":  "string",
-                                                                                                    "operation":  "exists",
-                                                                                                    "singleValue":  true
-                                                                                                }
-                                                                               }
-                                                                           ],
-                                                            "combinator":  "and"
-                                                        },
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.if",
-                      "typeVersion":  2.3,
-                      "position":  [
-                                       1024,
-                                       -16
-                                   ],
-                      "id":  "7366d58d-35cb-4b6e-8ee8-f56e7c7b1771",
-                      "name":  "If"
-                  },
-                  {
-                      "parameters":  {
-                                         "assignments":  {
-                                                             "assignments":  [
-                                                                                 {
-                                                                                     "id":  "f9b63e42-d331-4752-bb38-4053443ba696",
-                                                                                     "name":  "message",
-                                                                                     "value":  "={{ $(\u0027Code in JavaScript\u0027).item.json.message }}",
-                                                                                     "type":  "string"
-                                                                                 },
-                                                                                 {
-                                                                                     "id":  "f587cb43-dbf9-466b-9b5c-4cab25e67c10",
-                                                                                     "name":  "user_id",
-                                                                                     "value":  "={{ $(\u0027Code in JavaScript\u0027).item.json.userId }}",
-                                                                                     "type":  "string"
-                                                                                 },
-                                                                                 {
-                                                                                     "id":  "a5f1b2be-7540-467a-b5bb-3d24a194089a",
-                                                                                     "name":  "source",
-                                                                                     "value":  "Telegram",
-                                                                                     "type":  "string"
-                                                                                 },
-                                                                                 {
-                                                                                     "id":  "03545781-2474-4446-b505-ac839e45bcf4",
-                                                                                     "name":  "filename",
-                                                                                     "value":  "={{ $json.fileName }}",
-                                                                                     "type":  "string"
-                                                                                 }
-                                                                             ]
-                                                         },
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.set",
-                      "typeVersion":  3.4,
-                      "position":  [
-                                       1408,
-                                       0
-                                   ],
-                      "id":  "8218e7f1-0a10-44e9-b318-fb0936df61fc",
-                      "name":  "Edit Fields"
-                  },
-                  {
-                      "parameters":  {
-                                         "operation":  "write",
-                                         "fileName":  "=/home/node/.n8n-files/public/images/tmp/{{ $(\u0027Code in JavaScript\u0027).item.json.fileId }}.jpg",
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.readWriteFile",
-                      "typeVersion":  1.1,
-                      "position":  [
-                                       1296,
-                                       -336
-                                   ],
-                      "id":  "893c84ca-c951-45e8-b133-73a81e303497",
-                      "name":  "Read/Write Files from Disk"
-                  },
-                  {
-                      "parameters":  {
-                                         "operation":  "select",
-                                         "schema":  {
-                                                        "__rl":  true,
-                                                        "mode":  "list",
-                                                        "value":  "public"
-                                                    },
-                                         "table":  {
-                                                       "__rl":  true,
-                                                       "value":  "user_states",
-                                                       "mode":  "list",
-                                                       "cachedResultName":  "user_states"
-                                                   },
-                                         "where":  {
-                                                       "values":  [
-                                                                      {
-                                                                          "column":  "user_id",
-                                                                          "value":  "={{ $json.message.from.id }}"
-                                                                      },
-                                                                      {
-                                                                          "column":  "is_active",
-                                                                          "value":  "TRUE"
-                                                                      }
-                                                                  ]
-                                                   },
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.postgres",
-                      "typeVersion":  2.6,
-                      "position":  [
-                                       112,
-                                       0
-                                   ],
-                      "id":  "a9d0e7f9-9343-4c25-89a4-edc58a3cd7c1",
-                      "name":  "Select rows from a table",
-                      "alwaysOutputData":  true,
-                      "credentials":  {
-                                          "postgres":  {
-                                                           "id":  "MBtoQsz0fuSb7cVd",
-                                                           "name":  "Message Admin DB Credentials"
-                                                       }
-                                      }
-                  },
-                  {
-                      "parameters":  {
-                                         "conditions":  {
-                                                            "options":  {
-                                                                            "caseSensitive":  true,
-                                                                            "leftValue":  "",
-                                                                            "typeValidation":  "strict",
-                                                                            "version":  3
-                                                                        },
-                                                            "conditions":  [
-                                                                               {
-                                                                                   "id":  "ff359306-8163-440c-8e3d-1b1a5c5c418d",
-                                                                                   "leftValue":  "={{ $json }}",
-                                                                                   "rightValue":  "",
-                                                                                   "operator":  {
-                                                                                                    "type":  "object",
-                                                                                                    "operation":  "notEmpty",
-                                                                                                    "singleValue":  true
-                                                                                                }
-                                                                               }
-                                                                           ],
-                                                            "combinator":  "and"
-                                                        },
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.if",
-                      "typeVersion":  2.3,
-                      "position":  [
-                                       320,
-                                       0
-                                   ],
-                      "id":  "c5d494c7-1ff9-4d47-93dd-cb997e06ec8d",
-                      "name":  "If1"
-                  },
-                  {
-                      "parameters":  {
-                                         "respondWith":  "allIncomingItems",
-                                         "options":  {
-                                                         "responseCode":  200
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.respondToWebhook",
-                      "typeVersion":  1.5,
-                      "position":  [
-                                       720,
-                                       240
-                                   ],
-                      "id":  "fe6d1ccf-d865-451b-ac02-26b5f0c974bf",
-                      "name":  "Respond to Webhook1"
-                  },
-                  {
-                      "parameters":  {
-                                         "jsCode":  "const body = $(\u0027Telegram Trigger\u0027).first().json\nconst fileId = body.message.photo ? body.message.photo[2].file_id : null\nreturn {\n  userId : body.message.from.id,\n  message : body.message.text || body.message.caption,\n  fileId : fileId\n}"
-                                     },
-                      "type":  "n8n-nodes-base.code",
-                      "typeVersion":  2,
-                      "position":  [
-                                       784,
-                                       -16
-                                   ],
-                      "id":  "b515dfb2-0bcb-4932-b144-4d148df46a38",
-                      "name":  "Code in JavaScript"
-                  },
-                  {
-                      "parameters":  {
-                                         "jsCode":  "return {\n  \"user_id\":  $(\u0027Telegram Trigger\u0027).first().json.message.from.id ,\n  \"response_message\": \"You are unauthorized to use this bot\"\n}"
-                                     },
-                      "type":  "n8n-nodes-base.code",
-                      "typeVersion":  2,
-                      "position":  [
-                                       432,
-                                       240
-                                   ],
-                      "id":  "4d126107-f765-4bf4-a0b9-6db05497ee60",
-                      "name":  "Code in JavaScript1"
-                  },
-                  {
-                      "parameters":  {
-                                         "updates":  [
-                                                         "message"
-                                                     ],
-                                         "additionalFields":  {
-
-                                                              }
-                                     },
-                      "type":  "n8n-nodes-base.telegramTrigger",
-                      "typeVersion":  1.2,
-                      "position":  [
-                                       -144,
-                                       0
-                                   ],
-                      "id":  "76ac966d-2d6f-4fbc-b48e-65a76eb56aae",
-                      "name":  "Telegram Trigger",
-                      "webhookId":  "89aa21fe-f0ce-4310-a3be-1c844dab6bf7",
-                      "credentials":  {
-                                          "telegramApi":  {
-                                                              "id":  "td8a7Y8V7pDvKjeX",
-                                                              "name":  "Admin Telegram Account"
-                                                          }
-                                      }
-                  },
-                  {
-                      "parameters":  {
-                                         "chatId":  "={{ $json.user_id }}",
-                                         "text":  "={{ $json.response_message }}",
-                                         "additionalFields":  {
-                                                                  "appendAttribution":  false
-                                                              }
-                                     },
-                      "type":  "n8n-nodes-base.telegram",
-                      "typeVersion":  1.2,
-                      "position":  [
-                                       1808,
-                                       0
-                                   ],
-                      "id":  "5b935376-1c66-4692-9d2e-45287fcf2f7a",
-                      "name":  "Send a text message",
-                      "webhookId":  "fb513f2d-ac09-4bfa-826a-64bcbb65a6bd",
-                      "credentials":  {
-                                          "telegramApi":  {
-                                                              "id":  "td8a7Y8V7pDvKjeX",
-                                                              "name":  "Admin Telegram Account"
-                                                          }
-                                      }
-                  }
-              ],
-    "connections":  {
-                        "HTTP Request":  {
-                                             "main":  [
-                                                          [
-                                                              {
-                                                                  "node":  "Send a text message",
-                                                                  "type":  "main",
-                                                                  "index":  0
-                                                              }
-                                                          ]
-                                                      ]
-                                         },
-                        "Get a file":  {
-                                           "main":  [
-                                                        [
-                                                            {
-                                                                "node":  "Read/Write Files from Disk",
-                                                                "type":  "main",
-                                                                "index":  0
-                                                            }
-                                                        ]
-                                                    ]
-                                       },
-                        "If":  {
-                                   "main":  [
-                                                [
-                                                    {
-                                                        "node":  "Get a file",
-                                                        "type":  "main",
-                                                        "index":  0
-                                                    }
-                                                ],
-                                                [
-                                                    {
-                                                        "node":  "Edit Fields",
-                                                        "type":  "main",
-                                                        "index":  0
-                                                    }
-                                                ]
-                                            ]
-                               },
-                        "Edit Fields":  {
-                                            "main":  [
-                                                         [
-                                                             {
-                                                                 "node":  "HTTP Request",
-                                                                 "type":  "main",
-                                                                 "index":  0
-                                                             }
-                                                         ]
-                                                     ]
-                                        },
-                        "Read/Write Files from Disk":  {
-                                                           "main":  [
-                                                                        [
-                                                                            {
-                                                                                "node":  "Edit Fields",
-                                                                                "type":  "main",
-                                                                                "index":  0
-                                                                            }
-                                                                        ]
-                                                                    ]
-                                                       },
-                        "Select rows from a table":  {
-                                                         "main":  [
-                                                                      [
-                                                                          {
-                                                                              "node":  "If1",
-                                                                              "type":  "main",
-                                                                              "index":  0
-                                                                          }
-                                                                      ]
-                                                                  ]
-                                                     },
-                        "If1":  {
-                                    "main":  [
-                                                 [
-                                                     {
-                                                         "node":  "Code in JavaScript",
-                                                         "type":  "main",
-                                                         "index":  0
-                                                     }
-                                                 ],
-                                                 [
-                                                     {
-                                                         "node":  "Code in JavaScript1",
-                                                         "type":  "main",
-                                                         "index":  0
-                                                     }
-                                                 ]
-                                             ]
-                                },
-                        "Code in JavaScript":  {
-                                                   "main":  [
-                                                                [
-                                                                    {
-                                                                        "node":  "If",
-                                                                        "type":  "main",
-                                                                        "index":  0
-                                                                    }
-                                                                ]
-                                                            ]
-                                               },
-                        "Code in JavaScript1":  {
-                                                    "main":  [
-                                                                 [
-                                                                     {
-                                                                         "node":  "Respond to Webhook1",
-                                                                         "type":  "main",
-                                                                         "index":  0
-                                                                     }
-                                                                 ]
-                                                             ]
-                                                },
-                        "Telegram Trigger":  {
-                                                 "main":  [
-                                                              [
-                                                                  {
-                                                                      "node":  "Select rows from a table",
-                                                                      "type":  "main",
-                                                                      "index":  0
-                                                                  }
-                                                              ]
-                                                          ]
-                                             },
-                        "Send a text message":  {
-                                                    "main":  [
-                                                                 [
-
-                                                                 ]
-                                                             ]
-                                                }
+    "updatedAt": "2026-03-07T09:10:27.973Z",
+    "createdAt": "2026-02-06T14:14:50.830Z",
+    "id": "hGjEA3zaZV-Boc3QPOYjr",
+    "name": "Admin: Telegram",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "http://localhost:5678/webhook/admin/orchestrate",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ $json }}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.3,
+            "position": [
+                1600,
+                0
+            ],
+            "id": "ab485764-e390-4c78-929c-1735ce5c2316",
+            "name": "HTTP Request"
+        },
+        {
+            "parameters": {
+                "resource": "file",
+                "fileId": "={{ $('Code in JavaScript').item.json.fileId }}",
+                "additionalFields": {}
+            },
+            "type": "n8n-nodes-base.telegram",
+            "typeVersion": 1.2,
+            "position": [
+                1136,
+                -336
+            ],
+            "id": "29deb43e-f275-4c8e-bb9b-c604812139ac",
+            "name": "Get a file",
+            "webhookId": "8c4d170c-c5d8-4941-ab9a-95b3bc49dc46",
+            "credentials": {
+                "telegramApi": {
+                    "id": "td8a7Y8V7pDvKjeX",
+                    "name": "Admin Telegram Account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
                     },
-    "settings":  {
-                     "executionOrder":  "v1",
-                     "availableInMCP":  false,
-                     "timeSavedMode":  "fixed",
-                     "saveManualExecutions":  false,
-                     "callerPolicy":  "workflowsFromSameOwner"
-                 },
-    "staticData":  null,
-    "meta":  {
-                 "templateCredsSetupCompleted":  true
-             },
-    "pinData":  {
-                    "Telegram Trigger":  [
-                                             {
-                                                 "json":  {
-                                                              "update_id":  564822032,
-                                                              "message":  {
-                                                                              "message_id":  7,
-                                                                              "from":  {
-                                                                                           "id":  8265615223,
-                                                                                           "is_bot":  false,
-                                                                                           "first_name":  "DB",
-                                                                                           "language_code":  "en"
-                                                                                       },
-                                                                              "chat":  {
-                                                                                           "id":  8265615223,
-                                                                                           "first_name":  "DB",
-                                                                                           "type":  "private"
-                                                                                       },
-                                                                              "date":  1772436970,
-                                                                              "text":  "Test"
-                                                                          }
-                                                          }
-                                             }
-                                         ]
-                },
-    "versionId":  "1b7cd225-bf98-4ae0-b9b9-ca99adffbd2c",
-    "activeVersionId":  "1b7cd225-bf98-4ae0-b9b9-ca99adffbd2c",
-    "triggerCount":  1,
-    "tags":  [
-
-             ],
-    "shared":  [
-                   {
-                       "updatedAt":  "2026-03-06T23:55:11.339Z",
-                       "createdAt":  "2026-03-06T23:55:11.339Z",
-                       "role":  "workflow:owner",
-                       "workflowId":  "hGjEA3zaZV-Boc3QPOYjr",
-                       "projectId":  "DEDiCUVz0XhDTMB5",
-                       "project":  {
-                                       "updatedAt":  "2026-03-07T00:11:01.227Z",
-                                       "createdAt":  "2026-03-06T23:55:03.070Z",
-                                       "id":  "DEDiCUVz0XhDTMB5",
-                                       "name":  "Damien Barnes \u003cdamie3@gmail.com\u003e",
-                                       "type":  "personal",
-                                       "icon":  null,
-                                       "description":  null,
-                                       "creatorId":  "88077238-d0ce-499c-af04-a5b21dbbe3f1"
-                                   }
-                   }
-               ],
-    "versionMetadata":  {
-                            "name":  "Version 5356cc97",
-                            "description":  ""
+                    "conditions": [
+                        {
+                            "id": "9463ca9a-79fa-44b7-a2ad-2498e700cf48",
+                            "leftValue": "={{ $json.fileId }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "exists",
+                                "singleValue": true
+                            }
                         }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                1024,
+                -16
+            ],
+            "id": "7366d58d-35cb-4b6e-8ee8-f56e7c7b1771",
+            "name": "If"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "f9b63e42-d331-4752-bb38-4053443ba696",
+                            "name": "message",
+                            "value": "={{ $('Code in JavaScript').item.json.message }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "f587cb43-dbf9-466b-9b5c-4cab25e67c10",
+                            "name": "user_id",
+                            "value": "={{ $('Code in JavaScript').item.json.userId }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "a5f1b2be-7540-467a-b5bb-3d24a194089a",
+                            "name": "source",
+                            "value": "Telegram",
+                            "type": "string"
+                        },
+                        {
+                            "id": "03545781-2474-4446-b505-ac839e45bcf4",
+                            "name": "filename",
+                            "value": "={{ $json.fileName }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                1408,
+                0
+            ],
+            "id": "8218e7f1-0a10-44e9-b318-fb0936df61fc",
+            "name": "Edit Fields"
+        },
+        {
+            "parameters": {
+                "operation": "write",
+                "fileName": "=/home/node/.n8n-files/public/images/tmp/{{ $('Code in JavaScript').item.json.fileId }}.jpg",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.readWriteFile",
+            "typeVersion": 1.1,
+            "position": [
+                1296,
+                -336
+            ],
+            "id": "893c84ca-c951-45e8-b133-73a81e303497",
+            "name": "Read/Write Files from Disk"
+        },
+        {
+            "parameters": {
+                "operation": "select",
+                "schema": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "public"
+                },
+                "table": {
+                    "__rl": true,
+                    "value": "user_states",
+                    "mode": "list",
+                    "cachedResultName": "user_states"
+                },
+                "where": {
+                    "values": [
+                        {
+                            "column": "user_id",
+                            "value": "={{ $json.message.from.id }}"
+                        },
+                        {
+                            "column": "is_active",
+                            "value": "TRUE"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.6,
+            "position": [
+                112,
+                0
+            ],
+            "id": "a9d0e7f9-9343-4c25-89a4-edc58a3cd7c1",
+            "name": "Select rows from a table",
+            "alwaysOutputData": true,
+            "credentials": {
+                "postgres": {
+                    "id": "MBtoQsz0fuSb7cVd",
+                    "name": "Message Admin DB Credentials"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
+                    },
+                    "conditions": [
+                        {
+                            "id": "ff359306-8163-440c-8e3d-1b1a5c5c418d",
+                            "leftValue": "={{ $json }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "object",
+                                "operation": "notEmpty",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                320,
+                0
+            ],
+            "id": "c5d494c7-1ff9-4d47-93dd-cb997e06ec8d",
+            "name": "If1"
+        },
+        {
+            "parameters": {
+                "respondWith": "allIncomingItems",
+                "options": {
+                    "responseCode": 200
+                }
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                720,
+                240
+            ],
+            "id": "fe6d1ccf-d865-451b-ac02-26b5f0c974bf",
+            "name": "Respond to Webhook1"
+        },
+        {
+            "parameters": {
+                "jsCode": "const body = $('Telegram Trigger').first().json\nconst fileId = body.message.photo ? body.message.photo[2].file_id : null\nreturn {\n  userId : body.message.from.id,\n  message : body.message.text || body.message.caption,\n  fileId : fileId\n}"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                784,
+                -16
+            ],
+            "id": "b515dfb2-0bcb-4932-b144-4d148df46a38",
+            "name": "Code in JavaScript"
+        },
+        {
+            "parameters": {
+                "jsCode": "return {\n  \"user_id\":  $('Telegram Trigger').first().json.message.from.id ,\n  \"response_message\": \"You are unauthorized to use this bot\"\n}"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                432,
+                240
+            ],
+            "id": "4d126107-f765-4bf4-a0b9-6db05497ee60",
+            "name": "Code in JavaScript1"
+        },
+        {
+            "parameters": {
+                "updates": [
+                    "message"
+                ],
+                "additionalFields": {}
+            },
+            "type": "n8n-nodes-base.telegramTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                -144,
+                0
+            ],
+            "id": "76ac966d-2d6f-4fbc-b48e-65a76eb56aae",
+            "name": "Telegram Trigger",
+            "webhookId": "89aa21fe-f0ce-4310-a3be-1c844dab6bf7",
+            "credentials": {
+                "telegramApi": {
+                    "id": "td8a7Y8V7pDvKjeX",
+                    "name": "Admin Telegram Account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "chatId": "={{ $json.user_id }}",
+                "text": "={{ $json.response_message }}",
+                "additionalFields": {
+                    "appendAttribution": false
+                }
+            },
+            "type": "n8n-nodes-base.telegram",
+            "typeVersion": 1.2,
+            "position": [
+                1808,
+                0
+            ],
+            "id": "5b935376-1c66-4692-9d2e-45287fcf2f7a",
+            "name": "Send a text message",
+            "webhookId": "fb513f2d-ac09-4bfa-826a-64bcbb65a6bd",
+            "credentials": {
+                "telegramApi": {
+                    "id": "td8a7Y8V7pDvKjeX",
+                    "name": "Admin Telegram Account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "HTTP Request": {
+            "main": [
+                [
+                    {
+                        "node": "Send a text message",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get a file": {
+            "main": [
+                [
+                    {
+                        "node": "Read/Write Files from Disk",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If": {
+            "main": [
+                [
+                    {
+                        "node": "Get a file",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Edit Fields",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Edit Fields": {
+            "main": [
+                [
+                    {
+                        "node": "HTTP Request",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Read/Write Files from Disk": {
+            "main": [
+                [
+                    {
+                        "node": "Edit Fields",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Select rows from a table": {
+            "main": [
+                [
+                    {
+                        "node": "If1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If1": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Code in JavaScript1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript": {
+            "main": [
+                [
+                    {
+                        "node": "If",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript1": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Telegram Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Select rows from a table",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Send a text message": {
+            "main": [
+                []
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1",
+        "availableInMCP": false,
+        "timeSavedMode": "fixed",
+        "saveManualExecutions": false,
+        "callerPolicy": "workflowsFromSameOwner"
+    },
+    "staticData": null,
+    "meta": {
+        "templateCredsSetupCompleted": true
+    },
+    "pinData": {
+        "Telegram Trigger": [
+            {
+                "json": {
+                    "update_id": 564822032,
+                    "message": {
+                        "message_id": 7,
+                        "from": {
+                            "id": 8265615223,
+                            "is_bot": false,
+                            "first_name": "DB",
+                            "language_code": "en"
+                        },
+                        "chat": {
+                            "id": 8265615223,
+                            "first_name": "DB",
+                            "type": "private"
+                        },
+                        "date": 1772436970,
+                        "text": "Test"
+                    }
+                }
+            }
+        ]
+    },
+    "versionId": "1b7cd225-bf98-4ae0-b9b9-ca99adffbd2c",
+    "activeVersionId": "1b7cd225-bf98-4ae0-b9b9-ca99adffbd2c",
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+        {
+            "updatedAt": "2026-03-06T23:55:11.339Z",
+            "createdAt": "2026-03-06T23:55:11.339Z",
+            "role": "workflow:owner",
+            "workflowId": "hGjEA3zaZV-Boc3QPOYjr",
+            "projectId": "DEDiCUVz0XhDTMB5",
+            "project": {
+                "updatedAt": "2026-03-07T00:11:01.227Z",
+                "createdAt": "2026-03-06T23:55:03.070Z",
+                "id": "DEDiCUVz0XhDTMB5",
+                "name": "Damien Barnes <damie3@gmail.com>",
+                "type": "personal",
+                "icon": null,
+                "description": null,
+                "creatorId": "88077238-d0ce-499c-af04-a5b21dbbe3f1"
+            }
+        }
+    ],
+    "versionMetadata": {
+        "name": "Version 5356cc97",
+        "description": ""
+    }
 }

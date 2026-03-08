@@ -1,350 +1,338 @@
 {
-    "updatedAt":  "2026-03-07T13:15:53.689Z",
-    "createdAt":  "2026-02-08T07:59:22.572Z",
-    "id":  "lormcW54TTA7oi5QsMQod",
-    "name":  "User: Authenticate",
-    "description":  null,
-    "active":  true,
-    "isArchived":  false,
-    "nodes":  [
-                  {
-                      "parameters":  {
-                                         "path":  "admin/authenticate",
-                                         "responseMode":  "responseNode",
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.webhook",
-                      "typeVersion":  2.1,
-                      "position":  [
-                                       320,
-                                       160
-                                   ],
-                      "id":  "af516cf4-3523-49c5-b9f4-1588f979b04a",
-                      "name":  "Webhook",
-                      "webhookId":  "b91dfbb4-b952-4324-aa92-7c64d57a5810"
-                  },
-                  {
-                      "parameters":  {
-                                         "respondWith":  "allIncomingItems",
-                                         "options":  {
-                                                         "responseCode":  "={{ $json.statusCode }}"
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.respondToWebhook",
-                      "typeVersion":  1.5,
-                      "position":  [
-                                       1664,
-                                       256
-                                   ],
-                      "id":  "d1ef8419-ab9d-49c3-b8f8-d2bd2d509bf6",
-                      "name":  "Respond to Webhook"
-                  },
-                  {
-                      "parameters":  {
-                                         "jsCode":  "const authHeader = $json[\"headers\"][\"authorization\"];\nif (!authHeader || !authHeader.startsWith(\"Basic \")) {\n    return [{ statusCode: 401, body: \"Unauthorized\" }];\n}\n\n// Decode Base64\nconst base64Credentials = authHeader.split(\" \")[1];\nconst decoded = Buffer.from(base64Credentials, \"base64\").toString();\nconst [username, password] = decoded.split(\":\");\n\nreturn [{ json: { username, password } }];"
-                                     },
-                      "type":  "n8n-nodes-base.code",
-                      "typeVersion":  2,
-                      "position":  [
-                                       544,
-                                       160
-                                   ],
-                      "id":  "8a9baa96-077c-4970-b8ae-4dfc3d9bb72b",
-                      "name":  "Code in JavaScript"
-                  },
-                  {
-                      "parameters":  {
-                                         "conditions":  {
-                                                            "options":  {
-                                                                            "caseSensitive":  true,
-                                                                            "leftValue":  "",
-                                                                            "typeValidation":  "strict",
-                                                                            "version":  3
-                                                                        },
-                                                            "conditions":  [
-                                                                               {
-                                                                                   "id":  "fb3262da-bae0-4f49-935e-7594fa83abf8",
-                                                                                   "leftValue":  "={{ $json.statusCode }}",
-                                                                                   "rightValue":  0,
-                                                                                   "operator":  {
-                                                                                                    "type":  "number",
-                                                                                                    "operation":  "notExists",
-                                                                                                    "singleValue":  true
-                                                                                                }
-                                                                               },
-                                                                               {
-                                                                                   "id":  "b04d2fab-0947-4d63-91dc-f843103034b7",
-                                                                                   "leftValue":  "={{ $json.username }}",
-                                                                                   "rightValue":  "",
-                                                                                   "operator":  {
-                                                                                                    "type":  "string",
-                                                                                                    "operation":  "exists",
-                                                                                                    "singleValue":  true
-                                                                                                }
-                                                                               },
-                                                                               {
-                                                                                   "id":  "709cfd86-8ce9-4177-af88-cb42c38f878d",
-                                                                                   "leftValue":  "={{ $json.username }}",
-                                                                                   "rightValue":  "",
-                                                                                   "operator":  {
-                                                                                                    "type":  "string",
-                                                                                                    "operation":  "notEmpty",
-                                                                                                    "singleValue":  true
-                                                                                                }
-                                                                               }
-                                                                           ],
-                                                            "combinator":  "and"
-                                                        },
-                                         "options":  {
-
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.if",
-                      "typeVersion":  2.3,
-                      "position":  [
-                                       768,
-                                       160
-                                   ],
-                      "id":  "9d8c66f3-f6ed-4015-8bfd-5ac653d1c27e",
-                      "name":  "If"
-                  },
-                  {
-                      "parameters":  {
-                                         "operation":  "executeQuery",
-                                         "query":  "SELECT password_hash \nFROM users \nWHERE username = $1 \n  AND is_active = TRUE",
-                                         "options":  {
-                                                         "queryReplacement":  "={{ $(\u0027Code in JavaScript\u0027).item.json.username }}"
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.postgres",
-                      "typeVersion":  2.6,
-                      "position":  [
-                                       992,
-                                       256
-                                   ],
-                      "id":  "49918f50-b939-4494-9f59-748fca2b9b20",
-                      "name":  "Execute a SQL query",
-                      "alwaysOutputData":  true,
-                      "credentials":  {
-                                          "postgres":  {
-                                                           "id":  "MBtoQsz0fuSb7cVd",
-                                                           "name":  "Message Admin DB Credentials"
-                                                       }
-                                      }
-                  },
-                  {
-                      "parameters":  {
-                                         "jsCode":  "if (!$input.first().json.valid) {\n    return [{ statusCode: 401, body: \"Unauthorized\" }];\n}\n\nreturn [{ statusCode: 200, body: \"OK\" }];"
-                                     },
-                      "type":  "n8n-nodes-base.code",
-                      "typeVersion":  2,
-                      "position":  [
-                                       1440,
-                                       256
-                                   ],
-                      "id":  "9cf64fe7-bbc7-4b46-9a4a-c131eb48c282",
-                      "name":  "Code in JavaScript1"
-                  },
-                  {
-                      "parameters":  {
-                                         "respondWith":  "noData",
-                                         "options":  {
-                                                         "responseCode":  401,
-                                                         "responseHeaders":  {
-                                                                                 "entries":  [
-                                                                                                 {
-                                                                                                     "name":  "WWW-Authenticate",
-                                                                                                     "value":  "Basic realm=\"Login\""
-                                                                                                 }
-                                                                                             ]
-                                                                             }
-                                                     }
-                                     },
-                      "type":  "n8n-nodes-base.respondToWebhook",
-                      "typeVersion":  1.5,
-                      "position":  [
-                                       992,
-                                       64
-                                   ],
-                      "id":  "0eba178d-4507-4be3-a011-e76da1b071f1",
-                      "name":  "Respond to Webhook1"
-                  },
-                  {
-                      "parameters":  {
-                                         "jsCode":  "const crypto = require(\u0027crypto\u0027);\nconst password = $(\u0027If\u0027).first().json.password;\nconst storedHash = $input.first().json.password_hash\n\nif (!password || !storedHash){\n  return [{ json: { valid: false } }];\n}\n\n// Split the stored \"salt:hash\"\nconst [salt, hash] = storedHash?.split(\u0027:\u0027) || \u0027\u0027;\n\nconst hashToVerify = crypto.scryptSync(password, salt, 64).toString(\u0027hex\u0027);\n\nreturn [{ json: { valid: hashToVerify === hash } }];"
-                                     },
-                      "type":  "n8n-nodes-base.code",
-                      "typeVersion":  2,
-                      "position":  [
-                                       1216,
-                                       256
-                                   ],
-                      "id":  "151e4cd7-9be8-4be7-8ef1-042b35a3e56f",
-                      "name":  "Code in JavaScript2"
-                  }
-              ],
-    "connections":  {
-                        "Webhook":  {
-                                        "main":  [
-                                                     [
-                                                         {
-                                                             "node":  "Code in JavaScript",
-                                                             "type":  "main",
-                                                             "index":  0
-                                                         }
-                                                     ]
-                                                 ]
-                                    },
-                        "Code in JavaScript":  {
-                                                   "main":  [
-                                                                [
-                                                                    {
-                                                                        "node":  "If",
-                                                                        "type":  "main",
-                                                                        "index":  0
-                                                                    }
-                                                                ]
-                                                            ]
-                                               },
-                        "If":  {
-                                   "main":  [
-                                                [
-                                                    {
-                                                        "node":  "Execute a SQL query",
-                                                        "type":  "main",
-                                                        "index":  0
-                                                    }
-                                                ],
-                                                [
-                                                    {
-                                                        "node":  "Respond to Webhook1",
-                                                        "type":  "main",
-                                                        "index":  0
-                                                    }
-                                                ]
-                                            ]
-                               },
-                        "Execute a SQL query":  {
-                                                    "main":  [
-                                                                 [
-                                                                     {
-                                                                         "node":  "Code in JavaScript2",
-                                                                         "type":  "main",
-                                                                         "index":  0
-                                                                     }
-                                                                 ]
-                                                             ]
-                                                },
-                        "Code in JavaScript1":  {
-                                                    "main":  [
-                                                                 [
-                                                                     {
-                                                                         "node":  "Respond to Webhook",
-                                                                         "type":  "main",
-                                                                         "index":  0
-                                                                     }
-                                                                 ]
-                                                             ]
-                                                },
-                        "Code in JavaScript2":  {
-                                                    "main":  [
-                                                                 [
-                                                                     {
-                                                                         "node":  "Code in JavaScript1",
-                                                                         "type":  "main",
-                                                                         "index":  0
-                                                                     }
-                                                                 ]
-                                                             ]
-                                                }
+    "updatedAt": "2026-03-07T13:15:53.689Z",
+    "createdAt": "2026-02-08T07:59:22.572Z",
+    "id": "lormcW54TTA7oi5QsMQod",
+    "name": "User: Authenticate",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+        {
+            "parameters": {
+                "path": "admin/authenticate",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                320,
+                160
+            ],
+            "id": "af516cf4-3523-49c5-b9f4-1588f979b04a",
+            "name": "Webhook",
+            "webhookId": "b91dfbb4-b952-4324-aa92-7c64d57a5810"
+        },
+        {
+            "parameters": {
+                "respondWith": "allIncomingItems",
+                "options": {
+                    "responseCode": "={{ $json.statusCode }}"
+                }
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                1664,
+                256
+            ],
+            "id": "d1ef8419-ab9d-49c3-b8f8-d2bd2d509bf6",
+            "name": "Respond to Webhook"
+        },
+        {
+            "parameters": {
+                "jsCode": "const authHeader = $json[\"headers\"][\"authorization\"];\nif (!authHeader || !authHeader.startsWith(\"Basic \")) {\n    return [{ statusCode: 401, body: \"Unauthorized\" }];\n}\n\n// Decode Base64\nconst base64Credentials = authHeader.split(\" \")[1];\nconst decoded = Buffer.from(base64Credentials, \"base64\").toString();\nconst [username, password] = decoded.split(\":\");\n\nreturn [{ json: { username, password } }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                544,
+                160
+            ],
+            "id": "8a9baa96-077c-4970-b8ae-4dfc3d9bb72b",
+            "name": "Code in JavaScript"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
                     },
-    "settings":  {
-                     "executionOrder":  "v1",
-                     "availableInMCP":  false
-                 },
-    "staticData":  null,
-    "meta":  {
-                 "templateCredsSetupCompleted":  true
-             },
-    "pinData":  {
-                    "Webhook":  [
-                                    {
-                                        "json":  {
-                                                     "headers":  {
-                                                                     "host":  "n8n_app:5678",
-                                                                     "user-agent":  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
-                                                                     "accept":  "application/json, text/plain, */*",
-                                                                     "accept-encoding":  "gzip, br",
-                                                                     "accept-language":  "en-US,en;q=0.9",
-                                                                     "authorization":  "Basic Og==",
-                                                                     "cdn-loop":  "cloudflare; loops=1",
-                                                                     "cf-connecting-ip":  "113.187.45.30",
-                                                                     "cf-ipcountry":  "VN",
-                                                                     "cf-ray":  "9d89d886f9e7e2e8-HKG",
-                                                                     "cf-visitor":  "{\"scheme\":\"https\"}",
-                                                                     "cookie":  "cf_clearance=9ZhnkU4vr8ZletcWw3flcu05WoqJviDRX8Oasy4W2FY-1772889083-1.2.1.1-VXEQIHRgE4Fdp.75CR6mJs1mMp6B0ubpMBGpUbbGOJYudnowWp_ThV2Mg99ZtUjn6IEwK9nCUE8XYgvT2D2j5XDdDkPDVjcZjOYTPZv8AsFcrZsRottzdN.uR.IVSYinlzUeFiK1nYiV5iyH.qweAq64dkv6fFdIA2MqNOHmGa3tSsRR39A46bujMZPWUIv85BWHJ1Drd0uf1Oi1UXTyS0WjZ1zPqEuRfGp6IkFyD5o",
-                                                                     "dnt":  "1",
-                                                                     "priority":  "u=1, i",
-                                                                     "referer":  "https://staging.preciousplaceanu.com/pos/",
-                                                                     "sec-ch-ua":  "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
-                                                                     "sec-ch-ua-mobile":  "?0",
-                                                                     "sec-ch-ua-platform":  "\"Windows\"",
-                                                                     "sec-fetch-dest":  "empty",
-                                                                     "sec-fetch-mode":  "cors",
-                                                                     "sec-fetch-site":  "same-origin",
-                                                                     "x-forwarded-for":  "172.71.215.27",
-                                                                     "x-forwarded-host":  "staging.preciousplaceanu.com",
-                                                                     "x-forwarded-method":  "GET",
-                                                                     "x-forwarded-port":  "443",
-                                                                     "x-forwarded-proto":  "https",
-                                                                     "x-forwarded-server":  "64b6278011c4",
-                                                                     "x-forwarded-uri":  "/webhook/pos/products",
-                                                                     "x-real-ip":  "172.71.215.27"
-                                                                 },
-                                                     "params":  {
-
-                                                                },
-                                                     "query":  {
-
-                                                               },
-                                                     "body":  {
-
-                                                              },
-                                                     "webhookUrl":  "https://staging.preciousplaceanu.com/webhook/admin/authenticate",
-                                                     "executionMode":  "production"
-                                                 }
-                                    }
-                                ]
-                },
-    "versionId":  "402b22ad-ecc8-4fb1-bdeb-bba0c153d7aa",
-    "activeVersionId":  "402b22ad-ecc8-4fb1-bdeb-bba0c153d7aa",
-    "triggerCount":  1,
-    "tags":  [
-
-             ],
-    "shared":  [
-                   {
-                       "updatedAt":  "2026-03-06T23:55:08.671Z",
-                       "createdAt":  "2026-03-06T23:55:08.671Z",
-                       "role":  "workflow:owner",
-                       "workflowId":  "lormcW54TTA7oi5QsMQod",
-                       "projectId":  "DEDiCUVz0XhDTMB5",
-                       "project":  {
-                                       "updatedAt":  "2026-03-07T00:11:01.227Z",
-                                       "createdAt":  "2026-03-06T23:55:03.070Z",
-                                       "id":  "DEDiCUVz0XhDTMB5",
-                                       "name":  "Damien Barnes \u003cdamie3@gmail.com\u003e",
-                                       "type":  "personal",
-                                       "icon":  null,
-                                       "description":  null,
-                                       "creatorId":  "88077238-d0ce-499c-af04-a5b21dbbe3f1"
-                                   }
-                   }
-               ],
-    "versionMetadata":  {
-                            "name":  "Version 402b22ad",
-                            "description":  ""
+                    "conditions": [
+                        {
+                            "id": "fb3262da-bae0-4f49-935e-7594fa83abf8",
+                            "leftValue": "={{ $json.statusCode }}",
+                            "rightValue": 0,
+                            "operator": {
+                                "type": "number",
+                                "operation": "notExists",
+                                "singleValue": true
+                            }
+                        },
+                        {
+                            "id": "b04d2fab-0947-4d63-91dc-f843103034b7",
+                            "leftValue": "={{ $json.username }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "exists",
+                                "singleValue": true
+                            }
+                        },
+                        {
+                            "id": "709cfd86-8ce9-4177-af88-cb42c38f878d",
+                            "leftValue": "={{ $json.username }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "string",
+                                "operation": "notEmpty",
+                                "singleValue": true
+                            }
                         }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                768,
+                160
+            ],
+            "id": "9d8c66f3-f6ed-4015-8bfd-5ac653d1c27e",
+            "name": "If"
+        },
+        {
+            "parameters": {
+                "operation": "executeQuery",
+                "query": "SELECT password_hash \nFROM users \nWHERE username = $1 \n  AND is_active = TRUE",
+                "options": {
+                    "queryReplacement": "={{ $('Code in JavaScript').item.json.username }}"
+                }
+            },
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 2.6,
+            "position": [
+                992,
+                256
+            ],
+            "id": "49918f50-b939-4494-9f59-748fca2b9b20",
+            "name": "Execute a SQL query",
+            "alwaysOutputData": true,
+            "credentials": {
+                "postgres": {
+                    "id": "MBtoQsz0fuSb7cVd",
+                    "name": "Message Admin DB Credentials"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "if (!$input.first().json.valid) {\n    return [{ statusCode: 401, body: \"Unauthorized\" }];\n}\n\nreturn [{ statusCode: 200, body: \"OK\" }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1440,
+                256
+            ],
+            "id": "9cf64fe7-bbc7-4b46-9a4a-c131eb48c282",
+            "name": "Code in JavaScript1"
+        },
+        {
+            "parameters": {
+                "respondWith": "noData",
+                "options": {
+                    "responseCode": 401,
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "WWW-Authenticate",
+                                "value": "Basic realm=\"Login\""
+                            }
+                        ]
+                    }
+                }
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                992,
+                64
+            ],
+            "id": "0eba178d-4507-4be3-a011-e76da1b071f1",
+            "name": "Respond to Webhook1"
+        },
+        {
+            "parameters": {
+                "jsCode": "const crypto = require('crypto');\nconst password = $('If').first().json.password;\nconst storedHash = $input.first().json.password_hash\n\nif (!password || !storedHash){\n  return [{ json: { valid: false } }];\n}\n\n// Split the stored \"salt:hash\"\nconst [salt, hash] = storedHash?.split(':') || '';\n\nconst hashToVerify = crypto.scryptSync(password, salt, 64).toString('hex');\n\nreturn [{ json: { valid: hashToVerify === hash } }];"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1216,
+                256
+            ],
+            "id": "151e4cd7-9be8-4be7-8ef1-042b35a3e56f",
+            "name": "Code in JavaScript2"
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript": {
+            "main": [
+                [
+                    {
+                        "node": "If",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If": {
+            "main": [
+                [
+                    {
+                        "node": "Execute a SQL query",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Respond to Webhook1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Execute a SQL query": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript1": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript2": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1",
+        "availableInMCP": false
+    },
+    "staticData": null,
+    "meta": {
+        "templateCredsSetupCompleted": true
+    },
+    "pinData": {
+        "Webhook": [
+            {
+                "json": {
+                    "headers": {
+                        "host": "n8n_app:5678",
+                        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+                        "accept": "application/json, text/plain, */*",
+                        "accept-encoding": "gzip, br",
+                        "accept-language": "en-US,en;q=0.9",
+                        "authorization": "Basic Og==",
+                        "cdn-loop": "cloudflare; loops=1",
+                        "cf-connecting-ip": "113.187.45.30",
+                        "cf-ipcountry": "VN",
+                        "cf-ray": "9d89d886f9e7e2e8-HKG",
+                        "cf-visitor": "{\"scheme\":\"https\"}",
+                        "cookie": "cf_clearance=9ZhnkU4vr8ZletcWw3flcu05WoqJviDRX8Oasy4W2FY-1772889083-1.2.1.1-VXEQIHRgE4Fdp.75CR6mJs1mMp6B0ubpMBGpUbbGOJYudnowWp_ThV2Mg99ZtUjn6IEwK9nCUE8XYgvT2D2j5XDdDkPDVjcZjOYTPZv8AsFcrZsRottzdN.uR.IVSYinlzUeFiK1nYiV5iyH.qweAq64dkv6fFdIA2MqNOHmGa3tSsRR39A46bujMZPWUIv85BWHJ1Drd0uf1Oi1UXTyS0WjZ1zPqEuRfGp6IkFyD5o",
+                        "dnt": "1",
+                        "priority": "u=1, i",
+                        "referer": "https://staging.preciousplaceanu.com/pos/",
+                        "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+                        "sec-ch-ua-mobile": "?0",
+                        "sec-ch-ua-platform": "\"Windows\"",
+                        "sec-fetch-dest": "empty",
+                        "sec-fetch-mode": "cors",
+                        "sec-fetch-site": "same-origin",
+                        "x-forwarded-for": "172.71.215.27",
+                        "x-forwarded-host": "staging.preciousplaceanu.com",
+                        "x-forwarded-method": "GET",
+                        "x-forwarded-port": "443",
+                        "x-forwarded-proto": "https",
+                        "x-forwarded-server": "64b6278011c4",
+                        "x-forwarded-uri": "/webhook/pos/products",
+                        "x-real-ip": "172.71.215.27"
+                    },
+                    "params": {},
+                    "query": {},
+                    "body": {},
+                    "webhookUrl": "https://staging.preciousplaceanu.com/webhook/admin/authenticate",
+                    "executionMode": "production"
+                }
+            }
+        ]
+    },
+    "versionId": "402b22ad-ecc8-4fb1-bdeb-bba0c153d7aa",
+    "activeVersionId": "402b22ad-ecc8-4fb1-bdeb-bba0c153d7aa",
+    "triggerCount": 1,
+    "tags": [],
+    "shared": [
+        {
+            "updatedAt": "2026-03-06T23:55:08.671Z",
+            "createdAt": "2026-03-06T23:55:08.671Z",
+            "role": "workflow:owner",
+            "workflowId": "lormcW54TTA7oi5QsMQod",
+            "projectId": "DEDiCUVz0XhDTMB5",
+            "project": {
+                "updatedAt": "2026-03-07T00:11:01.227Z",
+                "createdAt": "2026-03-06T23:55:03.070Z",
+                "id": "DEDiCUVz0XhDTMB5",
+                "name": "Damien Barnes <damie3@gmail.com>",
+                "type": "personal",
+                "icon": null,
+                "description": null,
+                "creatorId": "88077238-d0ce-499c-af04-a5b21dbbe3f1"
+            }
+        }
+    ],
+    "versionMetadata": {
+        "name": "Version 402b22ad",
+        "description": ""
+    }
 }
