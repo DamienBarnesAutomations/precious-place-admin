@@ -59,7 +59,10 @@ foreach ($wf in $workflows) {
 
   $wf.PSObject.Properties.Remove('versionCounter')
 
-  $safeName = $name -replace '[^\w\-]', '_'
+  # Remove characters that are unsafe for filenames, but preserve Unicode letters/numbers/emojis
+  $safeName = $name -replace '[\\/:*?"<>|]', '_'   # strip actual illegal filename chars
+  $safeName = $safeName.Trim()                       # trim leading/trailing whitespace
+  $safeName = $safeName -replace '\s+', '_'          # replace whitespace runs with underscore
   $outFile  = Join-Path $SplitDir "$safeName.json"
 
   # Convert to JSON, replace CRLF with LF, write with UTF8 no BOM
