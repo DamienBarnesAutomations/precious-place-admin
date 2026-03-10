@@ -1,5 +1,5 @@
 {
-    "updatedAt": "2026-03-07T09:09:18.663Z",
+    "updatedAt": "2026-03-10T10:27:59.621Z",
     "createdAt": "2026-02-09T05:11:23.737Z",
     "id": "2z7eQG4OSzb02Evky3m3R",
     "name": "Acccounting: Income Report",
@@ -95,26 +95,26 @@
         "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "cd6c1671-d1c1-4072-82d9-16ea1fdaaa3f",
-    "activeVersionId": "cd6c1671-d1c1-4072-82d9-16ea1fdaaa3f",
+    "versionId": "9b185aa2-dd67-4203-9edd-5b30fddd74b1",
+    "activeVersionId": "9b185aa2-dd67-4203-9edd-5b30fddd74b1",
     "triggerCount": 1,
     "tags": [],
     "shared": [
         {
-            "updatedAt": "2026-03-06T23:55:11.339Z",
-            "createdAt": "2026-03-06T23:55:11.339Z",
+            "updatedAt": "2026-03-10T10:23:04.524Z",
+            "createdAt": "2026-03-10T10:23:04.524Z",
             "role": "workflow:owner",
             "workflowId": "2z7eQG4OSzb02Evky3m3R",
-            "projectId": "DEDiCUVz0XhDTMB5",
+            "projectId": "brDHcV0bMPfghQsA",
             "project": {
-                "updatedAt": "2026-03-07T00:11:01.227Z",
-                "createdAt": "2026-03-06T23:55:03.070Z",
-                "id": "DEDiCUVz0XhDTMB5",
-                "name": "Damien Barnes <damie3@gmail.com>",
+                "updatedAt": "2026-03-10T10:22:46.299Z",
+                "createdAt": "2026-03-10T10:22:46.299Z",
+                "id": "brDHcV0bMPfghQsA",
+                "name": "Unnamed Project",
                 "type": "personal",
                 "icon": null,
                 "description": null,
-                "creatorId": "88077238-d0ce-499c-af04-a5b21dbbe3f1"
+                "creatorId": "0d62e3b6-b901-4161-bb96-de6cf146a115"
             }
         }
     ],

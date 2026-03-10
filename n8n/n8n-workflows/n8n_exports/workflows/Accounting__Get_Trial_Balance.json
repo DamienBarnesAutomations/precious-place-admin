@@ -1,5 +1,5 @@
 {
-    "updatedAt": "2026-03-07T09:10:51.706Z",
+    "updatedAt": "2026-03-10T10:32:18.616Z",
     "createdAt": "2026-02-05T14:56:02.593Z",
     "id": "v93sCRSbTat9SiUp",
     "name": "Accounting: Get Trial Balance",
@@ -97,26 +97,26 @@
         "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "aa191068-91c2-4f45-8207-36dcf990f00e",
-    "activeVersionId": "aa191068-91c2-4f45-8207-36dcf990f00e",
+    "versionId": "859a4660-ef49-4fc8-a0af-fce0f6f97922",
+    "activeVersionId": "859a4660-ef49-4fc8-a0af-fce0f6f97922",
     "triggerCount": 1,
     "tags": [],
     "shared": [
         {
-            "updatedAt": "2026-03-06T23:55:11.339Z",
-            "createdAt": "2026-03-06T23:55:11.339Z",
+            "updatedAt": "2026-03-10T10:23:46.110Z",
+            "createdAt": "2026-03-10T10:23:46.110Z",
             "role": "workflow:owner",
             "workflowId": "v93sCRSbTat9SiUp",
-            "projectId": "DEDiCUVz0XhDTMB5",
+            "projectId": "brDHcV0bMPfghQsA",
             "project": {
-                "updatedAt": "2026-03-07T00:11:01.227Z",
-                "createdAt": "2026-03-06T23:55:03.070Z",
-                "id": "DEDiCUVz0XhDTMB5",
-                "name": "Damien Barnes <damie3@gmail.com>",
+                "updatedAt": "2026-03-10T10:22:46.299Z",
+                "createdAt": "2026-03-10T10:22:46.299Z",
+                "id": "brDHcV0bMPfghQsA",
+                "name": "Unnamed Project",
                 "type": "personal",
                 "icon": null,
                 "description": null,
-                "creatorId": "88077238-d0ce-499c-af04-a5b21dbbe3f1"
+                "creatorId": "0d62e3b6-b901-4161-bb96-de6cf146a115"
             }
         }
     ],

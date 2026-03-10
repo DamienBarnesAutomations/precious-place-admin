@@ -48,13 +48,13 @@ services:
     restart: always
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.n8n.rule=Host(`${N8N_DOMAIN}`)"
+      - "traefik.http.routers.n8n.rule=Host(`${N8N_DOMAIN}`) && !PathPrefix(`/webhook`) && !PathPrefix(`/webhook-test`) && !PathPrefix(`/webhook-waiting`) && !PathPrefix(`/form`)"
       - "traefik.http.routers.n8n.entrypoints=websecure"
       - "traefik.http.routers.n8n.tls.certresolver=myresolver"
       - "traefik.http.routers.n8n.tls.domains[0].main=${BASE_DOMAIN}"
       - "traefik.http.routers.n8n.tls.domains[0].sans=*.${BASE_DOMAIN}"
       - "traefik.http.routers.n8n.service=n8n-service"
-      - "traefik.http.routers.n8n-webhook.rule=Host(`${DOMAIN_OR_IP}`) && (PathPrefix(`/webhook`) || PathPrefix(`/webhook-test`) || PathPrefix(`/webhook-waiting`))"
+      - "traefik.http.routers.n8n-webhook.rule=Host(`${DOMAIN_OR_IP}`) && (PathPrefix(`/webhook`) || PathPrefix(`/webhook-test`) || PathPrefix(`/webhook-waiting`) || PathPrefix(`/form`))"
       - "traefik.http.routers.n8n-webhook.entrypoints=websecure"
       - "traefik.http.routers.n8n-webhook.tls.certresolver=myresolver"
       - "traefik.http.routers.n8n-webhook.priority=100"
@@ -68,6 +68,12 @@ services:
       - "traefik.http.services.n8n-service.loadbalancer.server.port=5678"
       - "traefik.http.middlewares.n8n-auth.forwardauth.address=http://n8n_app:5678/webhook/admin/authenticate"
       - "traefik.http.middlewares.n8n-auth.forwardauth.trustForwardHeader=true"
+      - "traefik.http.routers.n8n-forms.rule=Host(`${N8N_DOMAIN}`) && PathPrefix(`/form`)"
+      - "traefik.http.routers.n8n-forms.entrypoints=websecure"
+      - "traefik.http.routers.n8n-forms.tls.certresolver=myresolver"
+      - "traefik.http.routers.n8n-forms.priority=100"
+      - "traefik.http.routers.n8n-forms.service=n8n-service"
+      - "traefik.http.routers.n8n-forms.middlewares=n8n-auth"
     environment:
       - DB_TYPE=postgresdb
       - DB_POSTGRESDB_HOST=db
@@ -91,6 +97,7 @@ services:
       - SITE_ADMIN_PASSWORD=${SITE_ADMIN_PASSWORD}
       - N8N_HOST=${N8N_DOMAIN}
       - WEBHOOK_URL=https://${DOMAIN_OR_IP}
+      - N8N_FORM_WEBHOOK_URL=https://${DOMAIN_OR_IP}/form
       - N8N_CORS_ENABLED=true
       - CAKE_ORDER_TELEGRAM_BOT_TOKEN=${CAKE_ORDER_TELEGRAM_BOT_TOKEN}
       - CAKE_ORDER_WHATSAPP_BOT_TOKEN=${CAKE_ORDER_WHATSAPP_BOT_TOKEN}

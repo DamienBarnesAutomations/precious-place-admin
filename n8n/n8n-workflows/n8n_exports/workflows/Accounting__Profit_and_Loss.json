@@ -1,5 +1,5 @@
 {
-    "updatedAt": "2026-03-07T09:09:15.903Z",
+    "updatedAt": "2026-03-10T10:32:24.843Z",
     "createdAt": "2026-02-06T02:15:45.478Z",
     "id": "4SOgOWzc3dLl3Zic",
     "name": "Accounting: Profit and Loss",
@@ -96,26 +96,26 @@
         "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "624f071d-5e75-41df-9a2c-6fb6c4c177a4",
-    "activeVersionId": "624f071d-5e75-41df-9a2c-6fb6c4c177a4",
+    "versionId": "b428c36c-7d62-46cb-9b8a-f043d57ca6b9",
+    "activeVersionId": "b428c36c-7d62-46cb-9b8a-f043d57ca6b9",
     "triggerCount": 1,
     "tags": [],
     "shared": [
         {
-            "updatedAt": "2026-03-06T23:55:11.339Z",
-            "createdAt": "2026-03-06T23:55:11.339Z",
+            "updatedAt": "2026-03-10T10:23:52.443Z",
+            "createdAt": "2026-03-10T10:23:52.443Z",
             "role": "workflow:owner",
             "workflowId": "4SOgOWzc3dLl3Zic",
-            "projectId": "DEDiCUVz0XhDTMB5",
+            "projectId": "brDHcV0bMPfghQsA",
             "project": {
-                "updatedAt": "2026-03-07T00:11:01.227Z",
-                "createdAt": "2026-03-06T23:55:03.070Z",
-                "id": "DEDiCUVz0XhDTMB5",
-                "name": "Damien Barnes <damie3@gmail.com>",
+                "updatedAt": "2026-03-10T10:22:46.299Z",
+                "createdAt": "2026-03-10T10:22:46.299Z",
+                "id": "brDHcV0bMPfghQsA",
+                "name": "Unnamed Project",
                 "type": "personal",
                 "icon": null,
                 "description": null,
-                "creatorId": "88077238-d0ce-499c-af04-a5b21dbbe3f1"
+                "creatorId": "0d62e3b6-b901-4161-bb96-de6cf146a115"
             }
         }
     ],

@@ -1,5 +1,5 @@
 {
-    "updatedAt": "2026-03-07T09:10:20.530Z",
+    "updatedAt": "2026-03-10T10:31:59.116Z",
     "createdAt": "2026-02-05T02:16:53.608Z",
     "id": "WzGThX3JT4-3P0tfg00QX",
     "name": "Accounting: Get Accounts",
@@ -97,26 +97,26 @@
         "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "98989c73-5ad7-473f-91ff-ef891c09e43e",
-    "activeVersionId": "98989c73-5ad7-473f-91ff-ef891c09e43e",
+    "versionId": "2bb44f47-cc9a-4d64-aac9-e8fd65b23ed8",
+    "activeVersionId": "2bb44f47-cc9a-4d64-aac9-e8fd65b23ed8",
     "triggerCount": 1,
     "tags": [],
     "shared": [
         {
-            "updatedAt": "2026-03-06T23:55:11.339Z",
-            "createdAt": "2026-03-06T23:55:11.339Z",
+            "updatedAt": "2026-03-10T10:23:27.957Z",
+            "createdAt": "2026-03-10T10:23:27.957Z",
             "role": "workflow:owner",
             "workflowId": "WzGThX3JT4-3P0tfg00QX",
-            "projectId": "DEDiCUVz0XhDTMB5",
+            "projectId": "brDHcV0bMPfghQsA",
             "project": {
-                "updatedAt": "2026-03-07T00:11:01.227Z",
-                "createdAt": "2026-03-06T23:55:03.070Z",
-                "id": "DEDiCUVz0XhDTMB5",
-                "name": "Damien Barnes <damie3@gmail.com>",
+                "updatedAt": "2026-03-10T10:22:46.299Z",
+                "createdAt": "2026-03-10T10:22:46.299Z",
+                "id": "brDHcV0bMPfghQsA",
+                "name": "Unnamed Project",
                 "type": "personal",
                 "icon": null,
                 "description": null,
-                "creatorId": "88077238-d0ce-499c-af04-a5b21dbbe3f1"
+                "creatorId": "0d62e3b6-b901-4161-bb96-de6cf146a115"
             }
         }
     ],

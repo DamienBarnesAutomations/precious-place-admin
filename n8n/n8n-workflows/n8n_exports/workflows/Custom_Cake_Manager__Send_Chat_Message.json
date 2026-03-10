@@ -1,8 +1,8 @@
 {
-    "updatedAt": "2026-03-10T10:33:46.984Z",
-    "createdAt": "2025-12-31T17:13:54.522Z",
-    "id": "2W8lhT0JP3YVbVK0",
-    "name": "POS: Record Sales",
+    "updatedAt": "2026-03-10T10:35:56.119Z",
+    "createdAt": "2026-02-17T05:32:40.278Z",
+    "id": "oK9pd7Wl8HdteSgV",
+    "name": "Custom Cake Manager: Send Chat Message",
     "description": null,
     "active": true,
     "isArchived": false,
@@ -10,32 +10,67 @@
         {
             "parameters": {
                 "httpMethod": "POST",
-                "path": "pos/recordSales",
+                "path": "cakeOrder/sendChatMessage",
                 "responseMode": "responseNode",
                 "options": {}
             },
             "type": "n8n-nodes-base.webhook",
             "typeVersion": 2.1,
             "position": [
-                0,
+                -192,
                 0
             ],
-            "id": "84a6321b-64ed-4fe9-b408-2e136b5e20c0",
+            "id": "375160e6-2e7b-4874-905b-990e15ca028f",
             "name": "Webhook",
-            "webhookId": "5f485ae4-b5fa-4f20-9868-2fb948d69025"
+            "webhookId": "0587db3d-2124-478b-96b2-9b596e018c8f"
         },
         {
             "parameters": {
-                "jsCode": "const items = $input.first().json.body;\nconst transactionId = Math.floor(Math.random() * 1000000); // Or use a UUID\nconst timestamp = new Date().toISOString();\n\nreturn items.map(item => ({\n  json: {\n    transaction_id: transactionId,\n    product_id: item.product_id,\n    quantity: item.quantity,\n    price_at_sale: item.price_at_sale,\n    total_price: item.quantity * item.price_at_sale,\n    created_at: timestamp\n  }\n}));"
+                "respondWith": "allIncomingItems",
+                "options": {
+                    "responseCode": 200
+                }
             },
-            "type": "n8n-nodes-base.code",
-            "typeVersion": 2,
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
             "position": [
-                208,
+                384,
                 0
             ],
-            "id": "28b5b20f-4ba8-468d-adcd-4d4476d6559f",
-            "name": "Code in JavaScript"
+            "id": "f4948c53-040b-43b2-836d-3f3149067296",
+            "name": "Respond to Webhook"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "http://localhost:5678/webhook/cakeOrder/sendResponse",
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "response_message",
+                            "value": "={{ $json.body.message }}"
+                        },
+                        {
+                            "name": "customer_id",
+                            "value": "={{ $json.body.customer_id }}"
+                        },
+                        {
+                            "name": "source",
+                            "value": "={{ $json.body.source }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.4,
+            "position": [
+                16,
+                0
+            ],
+            "id": "9128d9b1-7a45-4fa7-b7ce-92c9b8debb0f",
+            "name": "HTTP Request"
         },
         {
             "parameters": {
@@ -46,19 +81,17 @@
                 },
                 "table": {
                     "__rl": true,
-                    "value": "sales",
+                    "value": "chat_logs",
                     "mode": "list",
-                    "cachedResultName": "sales"
+                    "cachedResultName": "chat_logs"
                 },
                 "columns": {
                     "mappingMode": "defineBelow",
                     "value": {
-                        "transaction_id": "={{ $json.transaction_id }}",
-                        "product_id": "={{ $json.product_id }}",
-                        "quantity": "={{ $json.quantity }}",
-                        "price_at_sale": "={{ $json.total_price }}",
-                        "total_price": "={{ $json.total_price }}",
-                        "created_at": "={{ $json.created_at }}"
+                        "customer_id": "={{ $('Webhook').item.json.body.customer_id }}",
+                        "customer_message": "=",
+                        "response": "={{ $('Webhook').item.json.body.message }}",
+                        "created_at": "={{new Date()}}"
                     },
                     "matchingColumns": [
                         "id"
@@ -75,50 +108,31 @@
                             "removed": true
                         },
                         {
-                            "id": "transaction_id",
-                            "displayName": "transaction_id",
-                            "required": false,
-                            "defaultMatch": false,
-                            "display": true,
-                            "type": "number",
-                            "canBeUsedToMatch": true
-                        },
-                        {
-                            "id": "product_id",
-                            "displayName": "product_id",
-                            "required": false,
-                            "defaultMatch": false,
-                            "display": true,
-                            "type": "number",
-                            "canBeUsedToMatch": true
-                        },
-                        {
-                            "id": "quantity",
-                            "displayName": "quantity",
-                            "required": false,
-                            "defaultMatch": false,
-                            "display": true,
-                            "type": "number",
-                            "canBeUsedToMatch": true
-                        },
-                        {
-                            "id": "price_at_sale",
-                            "displayName": "price_at_sale",
+                            "id": "customer_id",
+                            "displayName": "customer_id",
                             "required": true,
                             "defaultMatch": false,
                             "display": true,
-                            "type": "number",
+                            "type": "string",
                             "canBeUsedToMatch": true
                         },
                         {
-                            "id": "total_price",
-                            "displayName": "total_price",
+                            "id": "customer_message",
+                            "displayName": "customer_message",
                             "required": true,
                             "defaultMatch": false,
                             "display": true,
-                            "type": "number",
-                            "canBeUsedToMatch": true,
-                            "removed": false
+                            "type": "string",
+                            "canBeUsedToMatch": true
+                        },
+                        {
+                            "id": "response",
+                            "displayName": "response",
+                            "required": true,
+                            "defaultMatch": false,
+                            "display": true,
+                            "type": "string",
+                            "canBeUsedToMatch": true
                         },
                         {
                             "id": "created_at",
@@ -138,34 +152,18 @@
             "type": "n8n-nodes-base.postgres",
             "typeVersion": 2.6,
             "position": [
-                416,
+                224,
                 0
             ],
-            "id": "3501f5df-fa15-4a66-95a4-2be878f70ec5",
+            "id": "02bb959d-a419-48b0-aee6-bd3843d38a35",
             "name": "Insert rows in a table",
             "alwaysOutputData": true,
             "credentials": {
                 "postgres": {
-                    "id": "LleDUwLucS7vZHjv",
-                    "name": "POS DB Credentials"
+                    "id": "1lBfXhbGIpsvL7vQ",
+                    "name": "Custom Order DB Credentials"
                 }
             }
-        },
-        {
-            "parameters": {
-                "respondWith": "allIncomingItems",
-                "options": {
-                    "responseCode": 200
-                }
-            },
-            "type": "n8n-nodes-base.respondToWebhook",
-            "typeVersion": 1.5,
-            "position": [
-                624,
-                0
-            ],
-            "id": "c39c53de-2fd8-4fbf-a4c4-5da792fcaba0",
-            "name": "Respond to Webhook"
         }
     ],
     "connections": {
@@ -173,14 +171,14 @@
             "main": [
                 [
                     {
-                        "node": "Code in JavaScript",
+                        "node": "HTTP Request",
                         "type": "main",
                         "index": 0
                     }
                 ]
             ]
         },
-        "Code in JavaScript": {
+        "HTTP Request": {
             "main": [
                 [
                     {
@@ -205,23 +203,49 @@
     },
     "settings": {
         "executionOrder": "v1",
+        "binaryMode": "separate",
         "availableInMCP": false
     },
     "staticData": null,
     "meta": {
         "templateCredsSetupCompleted": true
     },
-    "pinData": {},
-    "versionId": "53bd262c-88e0-467c-aaa0-5ce77ada7984",
-    "activeVersionId": "53bd262c-88e0-467c-aaa0-5ce77ada7984",
+    "pinData": {
+        "Webhook": [
+            {
+                "json": {
+                    "headers": {
+                        "host": "n8n_app:5678",
+                        "accept": "*/*",
+                        "accept-encoding": "gzip, deflate",
+                        "connection": "keep-alive",
+                        "user-agent": "python-httpx/0.28.1",
+                        "content-length": "70",
+                        "content-type": "application/json"
+                    },
+                    "params": {},
+                    "query": {},
+                    "body": {
+                        "customer_id": "8265615223",
+                        "message": "asdasdasd",
+                        "source": "Telegram"
+                    },
+                    "webhookUrl": "http://localhost:5678/webhook/cakeOrder/sendChatMessage",
+                    "executionMode": "production"
+                }
+            }
+        ]
+    },
+    "versionId": "2c3b18c1-1342-4bd3-b0c8-eb4fcb38e993",
+    "activeVersionId": "2c3b18c1-1342-4bd3-b0c8-eb4fcb38e993",
     "triggerCount": 1,
     "tags": [],
     "shared": [
         {
-            "updatedAt": "2026-03-10T10:24:46.993Z",
-            "createdAt": "2026-03-10T10:24:46.993Z",
+            "updatedAt": "2026-03-10T10:27:30.828Z",
+            "createdAt": "2026-03-10T10:27:30.828Z",
             "role": "workflow:owner",
-            "workflowId": "2W8lhT0JP3YVbVK0",
+            "workflowId": "oK9pd7Wl8HdteSgV",
             "projectId": "brDHcV0bMPfghQsA",
             "project": {
                 "updatedAt": "2026-03-10T10:22:46.299Z",

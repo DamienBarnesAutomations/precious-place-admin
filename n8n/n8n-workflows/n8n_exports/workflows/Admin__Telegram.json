@@ -1,5 +1,5 @@
 {
-    "updatedAt": "2026-03-07T09:10:27.973Z",
+    "updatedAt": "2026-03-10T10:33:12.159Z",
     "createdAt": "2026-02-06T14:14:50.830Z",
     "id": "hGjEA3zaZV-Boc3QPOYjr",
     "name": "Admin: Telegram",
@@ -472,26 +472,26 @@
             }
         ]
     },
-    "versionId": "1b7cd225-bf98-4ae0-b9b9-ca99adffbd2c",
-    "activeVersionId": "1b7cd225-bf98-4ae0-b9b9-ca99adffbd2c",
+    "versionId": "c0087d6b-3632-496b-a37d-6376aad31ab2",
+    "activeVersionId": "c0087d6b-3632-496b-a37d-6376aad31ab2",
     "triggerCount": 1,
     "tags": [],
     "shared": [
         {
-            "updatedAt": "2026-03-06T23:55:11.339Z",
-            "createdAt": "2026-03-06T23:55:11.339Z",
+            "updatedAt": "2026-03-10T10:24:23.130Z",
+            "createdAt": "2026-03-10T10:24:23.130Z",
             "role": "workflow:owner",
             "workflowId": "hGjEA3zaZV-Boc3QPOYjr",
-            "projectId": "DEDiCUVz0XhDTMB5",
+            "projectId": "brDHcV0bMPfghQsA",
             "project": {
-                "updatedAt": "2026-03-07T00:11:01.227Z",
-                "createdAt": "2026-03-06T23:55:03.070Z",
-                "id": "DEDiCUVz0XhDTMB5",
-                "name": "Damien Barnes <damie3@gmail.com>",
+                "updatedAt": "2026-03-10T10:22:46.299Z",
+                "createdAt": "2026-03-10T10:22:46.299Z",
+                "id": "brDHcV0bMPfghQsA",
+                "name": "Unnamed Project",
                 "type": "personal",
                 "icon": null,
                 "description": null,
-                "creatorId": "88077238-d0ce-499c-af04-a5b21dbbe3f1"
+                "creatorId": "0d62e3b6-b901-4161-bb96-de6cf146a115"
             }
         }
     ],

@@ -1,5 +1,5 @@
 {
-    "updatedAt": "2026-03-07T09:09:33.784Z",
+    "updatedAt": "2026-03-10T10:33:35.444Z",
     "createdAt": "2026-01-01T00:12:42.551Z",
     "id": "8X3efQclrNcIFsTB",
     "name": "POS: Daily Total Sales",
@@ -95,26 +95,26 @@
         "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "fb32c080-53f5-4a2f-9a17-c88d56f87f67",
-    "activeVersionId": "fb32c080-53f5-4a2f-9a17-c88d56f87f67",
+    "versionId": "0e44872b-8cbb-490f-b7da-7d9cf9af51ba",
+    "activeVersionId": "0e44872b-8cbb-490f-b7da-7d9cf9af51ba",
     "triggerCount": 1,
     "tags": [],
     "shared": [
         {
-            "updatedAt": "2026-03-06T23:55:11.339Z",
-            "createdAt": "2026-03-06T23:55:11.339Z",
+            "updatedAt": "2026-03-10T10:24:35.349Z",
+            "createdAt": "2026-03-10T10:24:35.349Z",
             "role": "workflow:owner",
             "workflowId": "8X3efQclrNcIFsTB",
-            "projectId": "DEDiCUVz0XhDTMB5",
+            "projectId": "brDHcV0bMPfghQsA",
             "project": {
-                "updatedAt": "2026-03-07T00:11:01.227Z",
-                "createdAt": "2026-03-06T23:55:03.070Z",
-                "id": "DEDiCUVz0XhDTMB5",
-                "name": "Damien Barnes <damie3@gmail.com>",
+                "updatedAt": "2026-03-10T10:22:46.299Z",
+                "createdAt": "2026-03-10T10:22:46.299Z",
+                "id": "brDHcV0bMPfghQsA",
+                "name": "Unnamed Project",
                 "type": "personal",
                 "icon": null,
                 "description": null,
-                "creatorId": "88077238-d0ce-499c-af04-a5b21dbbe3f1"
+                "creatorId": "0d62e3b6-b901-4161-bb96-de6cf146a115"
             }
         }
     ],

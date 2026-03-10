@@ -3,8 +3,18 @@ import { onMounted, ref, computed } from 'vue'
 import { usePosStore } from './stores/posStore'
 
 const store = usePosStore()
+alert(JSON.stringify(store.appTitle)) // Debugging line to check if the URL is loaded correctly
+alert(JSON.stringify(store.createAdminUserUrl))
 const isMobileCartOpen = ref(false)
 const searchQuery = ref('')
+const openCreateUser = () => {
+  if (store.createAdminUserUrl) {
+    window.open(store.createAdminUserUrl, '_blank');
+  } else {
+    console.error('VITE_CREATE_ADMIN_USER_URL is not defined');
+    alert('Admin user creation URL is not configured.');
+  }
+}
 
 const filteredProducts = computed(() => {
   if (!searchQuery.value.trim()) return store.products
@@ -40,6 +50,13 @@ onMounted(() => {
             <span v-if="store.cartCount > 0" class="absolute -top-2 -right-2 bg-emerald-500 text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-lg">
               {{ store.cartCount }}
             </span>
+          </button>
+
+          <!-- Create User Link -->
+          <button @click="openCreateUser" class="p-2 hover:bg-zinc-800 rounded-full transition-colors group">
+            <svg class="w-6 h-6 text-zinc-500 group-hover:text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+            </svg>
           </button>
 
           <button @click="store.fetchDailySales()" class="p-2 hover:bg-zinc-800 rounded-full transition-colors group">

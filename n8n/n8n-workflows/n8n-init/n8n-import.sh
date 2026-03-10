@@ -2,7 +2,39 @@
 set -e
 
 if [ "$CURRENT_ENV" = "dev" ]; then
-  echo "Dev environment detected, skipping init..."
+  DEV_INIT_FLAG="/home/node/.n8n/hashes/.dev_initialized"
+
+  if [ ! -f "$DEV_INIT_FLAG" ]; then
+    echo "Dev environment: first run, importing workflows and credentials..."
+
+    [ -f "/home/node/.n8n-files/workflows/n8n_exports/all_credentials.json" ] && \
+      n8n import:credentials --input=/home/node/.n8n-files/workflows/n8n_exports/all_credentials.json
+
+    [ -f "/home/node/.n8n-files/cake-workflows/n8n_exports/all_credentials.json" ] && \
+      n8n import:credentials --input=/home/node/.n8n-files/cake-workflows/n8n_exports/all_credentials.json
+
+    for DIR in \
+      "/home/node/.n8n-files/workflows/n8n_exports/workflows" \
+      "/home/node/.n8n-files/cake-workflows/n8n_exports/workflows"; do
+      if [ -d "$DIR" ]; then
+        for FILE in "$DIR"/*.json; do
+          [ -f "$FILE" ] || continue
+          echo "  Importing: $(basename "$FILE")"
+          n8n import:workflow --input="$FILE"
+          WF_ID=$(grep -m1 '"id"' "$FILE" | awk -F'"' '{print $4}')
+          echo "  Activating: $(basename "$FILE") (ID: $WF_ID)"
+          n8n publish:workflow --id="$WF_ID"
+        done
+      fi
+    done
+
+    mkdir -p "/home/node/.n8n/hashes"
+    touch "$DEV_INIT_FLAG"
+    echo "Dev init complete."
+  else
+    echo "Dev environment: already initialized, skipping import."
+  fi
+
   exec n8n
 fi
 

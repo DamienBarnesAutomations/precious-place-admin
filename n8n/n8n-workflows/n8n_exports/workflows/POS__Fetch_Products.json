@@ -1,5 +1,5 @@
 {
-    "updatedAt": "2026-03-07T09:10:44.843Z",
+    "updatedAt": "2026-03-10T10:33:42.702Z",
     "createdAt": "2026-01-16T22:11:10.862Z",
     "id": "gbYJO9YcpQ6mctqKb65vf",
     "name": "POS: Fetch Products",
@@ -95,26 +95,26 @@
         "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "89499203-a457-43e8-b4f1-39f3d030fd6c",
-    "activeVersionId": "89499203-a457-43e8-b4f1-39f3d030fd6c",
+    "versionId": "083ed6c3-f10b-4789-918c-53a72a80cece",
+    "activeVersionId": "083ed6c3-f10b-4789-918c-53a72a80cece",
     "triggerCount": 1,
     "tags": [],
     "shared": [
         {
-            "updatedAt": "2026-03-06T23:55:11.339Z",
-            "createdAt": "2026-03-06T23:55:11.339Z",
+            "updatedAt": "2026-03-10T10:24:41.214Z",
+            "createdAt": "2026-03-10T10:24:41.214Z",
             "role": "workflow:owner",
             "workflowId": "gbYJO9YcpQ6mctqKb65vf",
-            "projectId": "DEDiCUVz0XhDTMB5",
+            "projectId": "brDHcV0bMPfghQsA",
             "project": {
-                "updatedAt": "2026-03-07T00:11:01.227Z",
-                "createdAt": "2026-03-06T23:55:03.070Z",
-                "id": "DEDiCUVz0XhDTMB5",
-                "name": "Damien Barnes <damie3@gmail.com>",
+                "updatedAt": "2026-03-10T10:22:46.299Z",
+                "createdAt": "2026-03-10T10:22:46.299Z",
+                "id": "brDHcV0bMPfghQsA",
+                "name": "Unnamed Project",
                 "type": "personal",
                 "icon": null,
                 "description": null,
-                "creatorId": "88077238-d0ce-499c-af04-a5b21dbbe3f1"
+                "creatorId": "0d62e3b6-b901-4161-bb96-de6cf146a115"
             }
         }
     ],

@@ -65,6 +65,7 @@ jobs:
             VITE_GET_PRODUCTS_WEBHOOK=${{ env.API_BASE_URL }}pos/products
             VITE_RECORD_SALES_WEBHOOK=${{ env.API_BASE_URL }}pos/recordSales
             VITE_DAILY_SALES_WEBHOOK=${{ env.API_BASE_URL }}pos/dailyTotalSales
+            VITE_CREATE_ADMIN_USER_URL=https://${{ env.N8N_DOMAIN }}/form/users/createAdminUser
 
       - name: Build and push Ledger Frontend
         uses: docker/build-push-action@v5
