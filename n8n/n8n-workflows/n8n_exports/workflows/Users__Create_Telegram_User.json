@@ -1,5 +1,5 @@
 {
-    "updatedAt": "2026-03-10T10:36:00.452Z",
+    "updatedAt": "2026-03-11T03:22:41.991Z",
     "createdAt": "2026-02-08T11:08:18.911Z",
     "id": "fztAPLyVbmxexeVi05_dn",
     "name": "Users: Create Telegram User",
@@ -7,17 +7,6 @@
     "active": true,
     "isArchived": false,
     "nodes": [
-        {
-            "parameters": {},
-            "type": "n8n-nodes-base.manualTrigger",
-            "typeVersion": 1,
-            "position": [
-                -320,
-                0
-            ],
-            "id": "4bfa2d37-ada7-44b7-9c25-5df543735a95",
-            "name": "When clicking ‘Execute workflow’"
-        },
         {
             "parameters": {
                 "assignments": {
@@ -158,20 +147,34 @@
             ],
             "id": "88d6773b-d8c2-45b1-a30d-7da885bba5e1",
             "name": "If"
+        },
+        {
+            "parameters": {
+                "formTitle": "Add Telegram Admin",
+                "formDescription": "Adds userId for telegram Admin User",
+                "formFields": {
+                    "values": [
+                        {
+                            "fieldLabel": "User Id"
+                        }
+                    ]
+                },
+                "options": {
+                    "path": "admin/addTelegramAdmin"
+                }
+            },
+            "type": "n8n-nodes-base.formTrigger",
+            "typeVersion": 2.5,
+            "position": [
+                -256,
+                0
+            ],
+            "id": "5c632696-443e-4e86-b400-47ed97f9843c",
+            "name": "On form submission",
+            "webhookId": "4aaebc8d-9fd8-4c77-8e55-94856d5dcbac"
         }
     ],
     "connections": {
-        "When clicking ‘Execute workflow’": {
-            "main": [
-                [
-                    {
-                        "node": "Edit Fields",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
-            ]
-        },
         "Edit Fields": {
             "main": [
                 [
@@ -193,6 +196,17 @@
                     }
                 ]
             ]
+        },
+        "On form submission": {
+            "main": [
+                [
+                    {
+                        "node": "Edit Fields",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
         }
     },
     "settings": {
@@ -204,9 +218,9 @@
         "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "5908b65f-c41e-4ebe-9cb8-004cf306a70f",
-    "activeVersionId": "5908b65f-c41e-4ebe-9cb8-004cf306a70f",
-    "triggerCount": 0,
+    "versionId": "589fba0a-a184-40e8-a2af-0833342fd6a4",
+    "activeVersionId": "589fba0a-a184-40e8-a2af-0833342fd6a4",
+    "triggerCount": 1,
     "tags": [],
     "shared": [
         {
@@ -216,10 +230,10 @@
             "workflowId": "fztAPLyVbmxexeVi05_dn",
             "projectId": "brDHcV0bMPfghQsA",
             "project": {
-                "updatedAt": "2026-03-10T10:22:46.299Z",
+                "updatedAt": "2026-03-11T03:18:04.042Z",
                 "createdAt": "2026-03-10T10:22:46.299Z",
                 "id": "brDHcV0bMPfghQsA",
-                "name": "Unnamed Project",
+                "name": "Damien Barnes <damie3@gmail.com>",
                 "type": "personal",
                 "icon": null,
                 "description": null,
@@ -228,7 +242,7 @@
         }
     ],
     "versionMetadata": {
-        "name": null,
-        "description": null
+        "name": "Version 589fba0a",
+        "description": ""
     }
 }

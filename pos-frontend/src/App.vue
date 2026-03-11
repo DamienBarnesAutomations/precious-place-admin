@@ -3,8 +3,6 @@ import { onMounted, ref, computed } from 'vue'
 import { usePosStore } from './stores/posStore'
 
 const store = usePosStore()
-alert(JSON.stringify(store.appTitle)) // Debugging line to check if the URL is loaded correctly
-alert(JSON.stringify(store.createAdminUserUrl))
 const isMobileCartOpen = ref(false)
 const searchQuery = ref('')
 const openCreateUser = () => {

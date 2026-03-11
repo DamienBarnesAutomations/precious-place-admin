@@ -1,5 +1,5 @@
 {
-    "updatedAt": "2026-03-10T10:33:55.461Z",
+    "updatedAt": "2026-03-11T03:53:35.927Z",
     "createdAt": "2026-02-08T10:21:02.475Z",
     "id": "bve7hur8eQHhxk2CEhfEc",
     "name": "User: Create User",
@@ -7,6 +7,94 @@
     "active": true,
     "isArchived": false,
     "nodes": [
+        {
+            "parameters": {
+                "formTitle": "Create Site Admin USer",
+                "formDescription": "Creates a site Admin User for Precious Place",
+                "formFields": {
+                    "values": [
+                        {
+                            "fieldLabel": "Username"
+                        },
+                        {
+                            "fieldLabel": "Password",
+                            "fieldType": "password"
+                        }
+                    ]
+                },
+                "options": {
+                    "appendAttribution": false,
+                    "path": "d57b6857-b73d-44fd-9801-81764b5472a0"
+                }
+            },
+            "type": "n8n-nodes-base.formTrigger",
+            "typeVersion": 2.5,
+            "position": [
+                160,
+                336
+            ],
+            "id": "f5bc33b5-0492-4588-8154-751f47f87ecc",
+            "name": "On form submission",
+            "webhookId": "d57b6857-b73d-44fd-9801-81764b5472a0"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "18b950d5-4355-4218-8fd2-0d8e2e7e1ca9",
+                            "name": "userName",
+                            "value": "",
+                            "type": "string"
+                        },
+                        {
+                            "id": "3ddf98c3-1104-46fb-9666-c50e111ef55e",
+                            "name": "password",
+                            "value": "",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                384,
+                336
+            ],
+            "id": "1aa6e5cc-cf04-4ace-b901-ec060d312c37",
+            "name": "Edit Fields1"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [
+                        {
+                            "id": "fe9c18b5-9060-491f-9116-1cd27ac69365",
+                            "name": "userName",
+                            "value": "={{ $json.userName }}",
+                            "type": "string"
+                        },
+                        {
+                            "id": "2d20d946-4c0f-42e3-947c-6d6d18d57c82",
+                            "name": "password",
+                            "value": "={{ $json.password }}",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                608,
+                432
+            ],
+            "id": "8c1867ac-66e2-44d9-a813-2e1617e2858a",
+            "name": "Edit Fields2"
+        },
         {
             "parameters": {
                 "assignments": {
@@ -30,11 +118,11 @@
             "type": "n8n-nodes-base.set",
             "typeVersion": 3.4,
             "position": [
-                528,
-                0
+                384,
+                528
             ],
-            "id": "d4c20a09-ae0e-437d-b691-bbc0a0b49278",
-            "name": "Edit Fields"
+            "id": "21a89055-da12-4c9d-8131-39eab7fa8e3a",
+            "name": "Edit Fields3"
         },
         {
             "parameters": {
@@ -74,28 +162,28 @@
             "type": "n8n-nodes-base.if",
             "typeVersion": 2.3,
             "position": [
-                752,
-                0
+                832,
+                432
             ],
-            "id": "b9a2f1e9-1072-4da7-81a7-c86e70cf0a63",
-            "name": "If"
+            "id": "a0b1f46e-579c-4bc8-aed0-3246911294ca",
+            "name": "If1"
         },
         {
             "parameters": {
                 "operation": "executeQuery",
                 "query": "INSERT INTO users (username, password_hash)\nvalues ($1, $2)\nON CONFLICT (username)\nDO NOTHING",
                 "options": {
-                    "queryReplacement": "={{[$('Edit Fields').item.json.userName, $json.hashed_password]}}"
+                    "queryReplacement": "={{[$('Edit Fields3').item.json.userName, $json.hashed_password]}}"
                 }
             },
             "type": "n8n-nodes-base.postgres",
             "typeVersion": 2.6,
             "position": [
-                1200,
-                0
+                1280,
+                432
             ],
-            "id": "be085225-2c8b-4190-9609-d23cc506e8f4",
-            "name": "Execute a SQL query",
+            "id": "e1c637c3-012e-4ef1-bad8-1cb308678f29",
+            "name": "Execute a SQL query1",
             "credentials": {
                 "postgres": {
                     "id": "MBtoQsz0fuSb7cVd",
@@ -112,11 +200,11 @@
             "type": "n8n-nodes-base.n8nTrigger",
             "typeVersion": 1,
             "position": [
-                304,
-                0
+                160,
+                528
             ],
-            "id": "c96c0f34-82cb-49d3-aa11-ba41afe62959",
-            "name": "n8n Trigger"
+            "id": "4cabf812-540f-465c-8de9-c7819fe65e9b",
+            "name": "n8n Trigger1"
         },
         {
             "parameters": {
@@ -125,52 +213,85 @@
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
             "position": [
-                976,
-                0
+                1056,
+                432
             ],
-            "id": "ccc84f49-a170-4c5d-aa5c-db19584c1d57",
-            "name": "Code in JavaScript"
+            "id": "7baf9e6d-2384-4cb5-a373-1cbab37484e0",
+            "name": "Code in JavaScript1"
         }
     ],
     "connections": {
-        "Edit Fields": {
+        "On form submission": {
             "main": [
                 [
                     {
-                        "node": "If",
+                        "node": "Edit Fields1",
                         "type": "main",
                         "index": 0
                     }
                 ]
             ]
         },
-        "If": {
+        "Edit Fields1": {
             "main": [
                 [
                     {
-                        "node": "Code in JavaScript",
+                        "node": "Edit Fields2",
                         "type": "main",
                         "index": 0
                     }
                 ]
             ]
         },
-        "n8n Trigger": {
+        "Edit Fields2": {
             "main": [
                 [
                     {
-                        "node": "Edit Fields",
+                        "node": "If1",
                         "type": "main",
                         "index": 0
                     }
                 ]
             ]
         },
-        "Code in JavaScript": {
+        "Edit Fields3": {
             "main": [
                 [
                     {
-                        "node": "Execute a SQL query",
+                        "node": "Edit Fields2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "If1": {
+            "main": [
+                [
+                    {
+                        "node": "Code in JavaScript1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "n8n Trigger1": {
+            "main": [
+                [
+                    {
+                        "node": "Edit Fields3",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Code in JavaScript1": {
+            "main": [
+                [
+                    {
+                        "node": "Execute a SQL query1",
                         "type": "main",
                         "index": 0
                     }
@@ -187,7 +308,7 @@
         "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "cf5960f5-9896-458d-b78c-d3e4666c61fb",
+    "versionId": "e2a42e55-76ee-4d78-8fed-3072ac6a9e35",
     "activeVersionId": "cf5960f5-9896-458d-b78c-d3e4666c61fb",
     "triggerCount": 1,
     "tags": [],
@@ -199,10 +320,10 @@
             "workflowId": "bve7hur8eQHhxk2CEhfEc",
             "projectId": "brDHcV0bMPfghQsA",
             "project": {
-                "updatedAt": "2026-03-10T10:22:46.299Z",
+                "updatedAt": "2026-03-11T03:18:04.042Z",
                 "createdAt": "2026-03-10T10:22:46.299Z",
                 "id": "brDHcV0bMPfghQsA",
-                "name": "Unnamed Project",
+                "name": "Damien Barnes <damie3@gmail.com>",
                 "type": "personal",
                 "icon": null,
                 "description": null,
@@ -211,7 +332,7 @@
         }
     ],
     "versionMetadata": {
-        "name": "Version 534ca32d",
-        "description": ""
+        "name": null,
+        "description": null
     }
 }

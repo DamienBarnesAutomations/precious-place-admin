@@ -24,7 +24,7 @@ services:
         - VITE_GET_PRODUCTS_WEBHOOK=${API_BASE_URL}pos/products
         - VITE_RECORD_SALES_WEBHOOK=${API_BASE_URL}pos/recordSales
         - VITE_DAILY_SALES_WEBHOOK=${API_BASE_URL}pos/dailyTotalSales
-        - VITE_CREATE_ADMIN_USER_URL=https://${N8N_DOMAIN}/form/users/createAdminUser
+        - VITE_CREATE_ADMIN_USER_URL=${API_BASE_URL}users/createAdminUser
 
   ledger_frontend:
     build:
