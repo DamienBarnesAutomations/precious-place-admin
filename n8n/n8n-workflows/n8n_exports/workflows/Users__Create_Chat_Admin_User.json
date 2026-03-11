@@ -1,8 +1,8 @@
 {
-    "updatedAt": "2026-03-11T03:22:41.991Z",
+    "updatedAt": "2026-03-11T09:19:39.225Z",
     "createdAt": "2026-02-08T11:08:18.911Z",
     "id": "fztAPLyVbmxexeVi05_dn",
-    "name": "Users: Create Telegram User",
+    "name": "Users: Create Chat Admin User",
     "description": null,
     "active": true,
     "isArchived": false,
@@ -14,7 +14,7 @@
                         {
                             "id": "c0ac5b27-8d8f-4148-a26e-0dbf7983c7a0",
                             "name": "userId",
-                            "value": "",
+                            "value": "={{ $json.body.userId }}",
                             "type": "string"
                         }
                     ]
@@ -25,7 +25,7 @@
             "typeVersion": 3.4,
             "position": [
                 0,
-                0
+                80
             ],
             "id": "9702d174-f0fb-4b3c-a3e9-d7836bd666c1",
             "name": "Edit Fields"
@@ -102,7 +102,7 @@
             "type": "n8n-nodes-base.postgres",
             "typeVersion": 2.6,
             "position": [
-                480,
+                448,
                 -16
             ],
             "id": "4ef3fb74-cc7f-4027-ae7e-bd23f6ef299a",
@@ -142,36 +142,59 @@
             "type": "n8n-nodes-base.if",
             "typeVersion": 2.3,
             "position": [
-                208,
-                0
+                224,
+                80
             ],
             "id": "88d6773b-d8c2-45b1-a30d-7da885bba5e1",
             "name": "If"
         },
         {
             "parameters": {
-                "formTitle": "Add Telegram Admin",
-                "formDescription": "Adds userId for telegram Admin User",
-                "formFields": {
-                    "values": [
-                        {
-                            "fieldLabel": "User Id"
-                        }
-                    ]
-                },
+                "httpMethod": "POST",
+                "path": "users/createChatAdminUser",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                -224,
+                80
+            ],
+            "id": "2dac7cf4-3c12-45e1-a535-069fb5d7a8bd",
+            "name": "Webhook",
+            "webhookId": "bf9a0444-87f8-4dc9-94fb-9bd082749c83"
+        },
+        {
+            "parameters": {
                 "options": {
-                    "path": "admin/addTelegramAdmin"
+                    "responseCode": 400
                 }
             },
-            "type": "n8n-nodes-base.formTrigger",
-            "typeVersion": 2.5,
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
             "position": [
-                -256,
-                0
+                448,
+                176
             ],
-            "id": "5c632696-443e-4e86-b400-47ed97f9843c",
-            "name": "On form submission",
-            "webhookId": "4aaebc8d-9fd8-4c77-8e55-94856d5dcbac"
+            "id": "19df89b5-8ce1-4c92-8235-8386cec3b8f7",
+            "name": "Respond to Webhook"
+        },
+        {
+            "parameters": {
+                "respondWith": "noData",
+                "options": {
+                    "responseCode": 200
+                }
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                672,
+                -16
+            ],
+            "id": "4e9e9237-40ec-4a11-aac7-bfcf5a4220a9",
+            "name": "Respond to Webhook1"
         }
     ],
     "connections": {
@@ -194,14 +217,32 @@
                         "type": "main",
                         "index": 0
                     }
+                ],
+                [
+                    {
+                        "node": "Respond to Webhook",
+                        "type": "main",
+                        "index": 0
+                    }
                 ]
             ]
         },
-        "On form submission": {
+        "Webhook": {
             "main": [
                 [
                     {
                         "node": "Edit Fields",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Insert or update rows in a table": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook1",
                         "type": "main",
                         "index": 0
                     }
@@ -217,9 +258,56 @@
     "meta": {
         "templateCredsSetupCompleted": true
     },
-    "pinData": {},
-    "versionId": "589fba0a-a184-40e8-a2af-0833342fd6a4",
-    "activeVersionId": "589fba0a-a184-40e8-a2af-0833342fd6a4",
+    "pinData": {
+        "Webhook": [
+            {
+                "json": {
+                    "headers": {
+                        "host": "dev.preciousplaceanu.com",
+                        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+                        "content-length": "23",
+                        "accept": "*/*",
+                        "accept-encoding": "gzip, br",
+                        "accept-language": "en-US,en-AG;q=0.9,en-GB;q=0.8,en;q=0.7",
+                        "authorization": "Basic cHJlY2lvdXNhZG1pbjpwcmVjaW91c2FkbWlucGFzc3dvcmQ=",
+                        "cdn-loop": "cloudflare; loops=1",
+                        "cf-connecting-ip": "103.176.152.43",
+                        "cf-ipcountry": "TH",
+                        "cf-ray": "9da979273c6a5888-SIN",
+                        "cf-visitor": "{\"scheme\":\"https\"}",
+                        "cf-warp-tag-id": "3916b3ae-3dfe-4ce6-9cc4-21550721c9fa",
+                        "content-type": "application/json",
+                        "cookie": "rl_page_init_referrer=RudderEncrypt%3AU2FsdGVkX1%2Bs2Doaye6dydXkmDjT8UwvdX1aNP9pOHA%3D; rl_page_init_referring_domain=RudderEncrypt%3AU2FsdGVkX1%2BWvK87vxe9gMfxiQaNezeoIGF%2FwclViDU%3D; cf_clearance=p6Rbc_bRdK90EPwTwR_qpROZoYriCUgXCvdA0.RM7P8-1773220651-1.2.1.1-JyQJKhl9GRTjmm2YZLLGW82VbtM1r6rac3kRA4rYpfcmKRUjrKJR85sX.3lN65fyXQO.08q4TBsKWrHoFl7qJ0JuEDEq5trLiMVHTFFCkxH6zoSFHsenjD.hufaPtgM8oMoTP29ujIRhaTfquvvhD2pfjinOFEue1JKcOqaRo4GUeC4Ek1Qcth.b.wXAGlh50DBU6GLpPYiHAwbIouwXYLzsLgyN.2.WOoho3AybRnM; rl_anonymous_id=RudderEncrypt%3AU2FsdGVkX1%2BrNGRgtC729EDlGcLJRWGMTZjp%2Bo83CfmXEILtcPEIkEuVLxO2XlUVyFt4kN2HSa8kPJVcLBTttg%3D%3D; rl_user_id=RudderEncrypt%3AU2FsdGVkX1%2BjMcE6YTrwGEwfvE5Q58wZ0VIsx4wFP93OAOwvX0rj6KXWHDLV%2BQ%2FU8Mx8QaDEJRGgfLNrIV79tiXmf0cY%2Fzh34k2q0tQ9hMO%2Fpe%2BT3PDnYC06WGqA1YLHBAck6POSG1EJUqhypB0nCwxllgZ8fFcvGqdXFYq9Sik%3D; rl_trait=RudderEncrypt%3AU2FsdGVkX1%2BXupBOvCNmdOvHvfR8dQuyrpvqIPF6hU2RkgEAL8jZfYtxZNJTujHclcpnyJGJaqfTWimQ%2FlFKzeI4lwy1%2B1URmJr4O8qta3tpdd1RO7vpv%2FZ5t%2F%2Bb5Ud6mJeL%2FKVECERPl8Jh6rwUPgPmFsRbaIlqQam2hO0wztw%3D; rl_session=RudderEncrypt%3AU2FsdGVkX19IAwLFVatmdxKBX%2FQGiV94TAVrNZeFu9Hcfu2nDjFxTqnQoFNbmGihIX2BrgrLRzLwvYt%2BYBOL%2B4r1ILd8aFFtEVsD%2B%2FmtHKz%2BR12g1eXbY918QQxJWgsDylEFziXOY3Tl9hvl%2BmU%2F1A%3D%3D; ph_phc_4URIAm1uYfJO7j8kWSe0J8lc8IqnstRLS7Jx8NcakHo_posthog=%7B%22%24device_id%22%3A%22019cc754-a111-7432-a950-42e62c7e5386%22%2C%22distinct_id%22%3A%22ed413a973990fae8e1f4795ccc2b69227d56345545dc09b478a2caa25cd9fe0c%230d62e3b6-b901-4161-bb96-de6cf146a115%22%2C%22%24sesid%22%3A%5B1773220716938%2C%22019cdc19-4dd1-7ea1-97e4-4d8a0e08ac0b%22%2C1773219171785%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22https%3A%2F%2Fn8n-staging.preciousplaceanu.com%2Fsetup%22%7D%2C%22%24user_state%22%3A%22identified%22%7D",
+                        "dnt": "1",
+                        "origin": "https://dev.preciousplaceanu.com",
+                        "priority": "u=1, i",
+                        "referer": "https://dev.preciousplaceanu.com/pos/",
+                        "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+                        "sec-ch-ua-mobile": "?0",
+                        "sec-ch-ua-platform": "\"Windows\"",
+                        "sec-fetch-dest": "empty",
+                        "sec-fetch-mode": "cors",
+                        "sec-fetch-site": "same-origin",
+                        "x-forwarded-for": "172.18.0.1",
+                        "x-forwarded-host": "dev.preciousplaceanu.com",
+                        "x-forwarded-port": "443",
+                        "x-forwarded-proto": "https",
+                        "x-forwarded-server": "c8fff81d682e",
+                        "x-real-ip": "172.18.0.1"
+                    },
+                    "params": {},
+                    "query": {},
+                    "body": {
+                        "userId": "8265615223"
+                    },
+                    "webhookUrl": "https://dev.preciousplaceanu.com/webhook/users/createChatAdminUser",
+                    "executionMode": "production"
+                }
+            }
+        ]
+    },
+    "versionId": "ac0098a5-467e-43a6-b454-fa991bd5c0eb",
+    "activeVersionId": "ac0098a5-467e-43a6-b454-fa991bd5c0eb",
     "triggerCount": 1,
     "tags": [],
     "shared": [
@@ -242,7 +330,7 @@
         }
     ],
     "versionMetadata": {
-        "name": "Version 589fba0a",
+        "name": "Version ac0098a5",
         "description": ""
     }
 }

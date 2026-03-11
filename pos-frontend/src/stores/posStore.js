@@ -9,6 +9,7 @@ const dailySalesWebhook = import.meta.env.VITE_DAILY_SALES_WEBHOOK;
 const currency = import.meta.env.VITE_CURRENCY;
 const appTitle = import.meta.env.VITE_APP_TITLE;
 const createAdminUserUrl = import.meta.env.VITE_CREATE_ADMIN_USER_URL;
+const createChatAdminUserUrl = import.meta.env.VITE_CREATE_CHAT_ADMIN_USER_URL;
 
 export const usePosStore = defineStore('pos', {
   state: () => ({
@@ -23,7 +24,8 @@ export const usePosStore = defineStore('pos', {
     expandedTransactions: [],
     todaySales: [],
     appTitle: appTitle,
-    createAdminUserUrl: createAdminUserUrl
+    createAdminUserUrl: createAdminUserUrl,
+    createChatAdminUserUrl: createChatAdminUserUrl
   }),
   
   getters: {
@@ -153,5 +155,7 @@ export const usePosStore = defineStore('pos', {
         }
     },
   },
-  persist: true // This magical line saves your cart to LocalStorage automatically!
+  persist: {
+        paths: ['cart', 'todaySales'] // Only persist data, not config
+  }
 })

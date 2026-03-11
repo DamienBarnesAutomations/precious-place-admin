@@ -167,6 +167,7 @@ services:
       - VITE_RECORD_SALES_WEBHOOK=${API_BASE_URL}pos/recordSales
       - VITE_DAILY_SALES_WEBHOOK=${API_BASE_URL}pos/dailyTotalSales
       - VITE_CREATE_ADMIN_USER_URL=${API_BASE_URL}users/createAdminUser
+      - VITE_CREATE_CHAT_ADMIN_USER_URL=${API_BASE_URL}users/createChatAdminUser
     expose:
       - "80"
     depends_on:
@@ -204,6 +205,8 @@ services:
       - VITE_CREATE_ACCOUNT_WEBHOOK=${API_BASE_URL}accounting/createAccount
       - VITE_GET_INCOME_WEBHOOK=${API_BASE_URL}accounting/incomeReport
       - VITE_GET_EXPENSE_WEBHOOK=${API_BASE_URL}accounting/expenseReport
+      - VITE_CREATE_ADMIN_USER_URL=${API_BASE_URL}users/createAdminUser
+      - VITE_CREATE_CHAT_ADMIN_USER_URL=${API_BASE_URL}users/createChatAdminUser
       - DOMAIN_OR_IP=${DOMAIN_OR_IP}
     depends_on:
       - n8n_app

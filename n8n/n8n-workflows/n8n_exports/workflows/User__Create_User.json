@@ -1,5 +1,5 @@
 {
-    "updatedAt": "2026-03-11T03:53:35.927Z",
+    "updatedAt": "2026-03-11T08:57:07.751Z",
     "createdAt": "2026-02-08T10:21:02.475Z",
     "id": "bve7hur8eQHhxk2CEhfEc",
     "name": "User: Create User",
@@ -9,48 +9,18 @@
     "nodes": [
         {
             "parameters": {
-                "formTitle": "Create Site Admin USer",
-                "formDescription": "Creates a site Admin User for Precious Place",
-                "formFields": {
-                    "values": [
-                        {
-                            "fieldLabel": "Username"
-                        },
-                        {
-                            "fieldLabel": "Password",
-                            "fieldType": "password"
-                        }
-                    ]
-                },
-                "options": {
-                    "appendAttribution": false,
-                    "path": "d57b6857-b73d-44fd-9801-81764b5472a0"
-                }
-            },
-            "type": "n8n-nodes-base.formTrigger",
-            "typeVersion": 2.5,
-            "position": [
-                160,
-                336
-            ],
-            "id": "f5bc33b5-0492-4588-8154-751f47f87ecc",
-            "name": "On form submission",
-            "webhookId": "d57b6857-b73d-44fd-9801-81764b5472a0"
-        },
-        {
-            "parameters": {
                 "assignments": {
                     "assignments": [
                         {
                             "id": "18b950d5-4355-4218-8fd2-0d8e2e7e1ca9",
                             "name": "userName",
-                            "value": "",
+                            "value": "={{ $json.body.username }}",
                             "type": "string"
                         },
                         {
                             "id": "3ddf98c3-1104-46fb-9666-c50e111ef55e",
                             "name": "password",
-                            "value": "",
+                            "value": "={{ $json.body.password }}",
                             "type": "string"
                         }
                     ]
@@ -60,7 +30,7 @@
             "type": "n8n-nodes-base.set",
             "typeVersion": 3.4,
             "position": [
-                384,
+                368,
                 336
             ],
             "id": "1aa6e5cc-cf04-4ace-b901-ec060d312c37",
@@ -89,7 +59,7 @@
             "type": "n8n-nodes-base.set",
             "typeVersion": 3.4,
             "position": [
-                608,
+                592,
                 432
             ],
             "id": "8c1867ac-66e2-44d9-a813-2e1617e2858a",
@@ -118,7 +88,7 @@
             "type": "n8n-nodes-base.set",
             "typeVersion": 3.4,
             "position": [
-                384,
+                368,
                 528
             ],
             "id": "21a89055-da12-4c9d-8131-39eab7fa8e3a",
@@ -162,7 +132,7 @@
             "type": "n8n-nodes-base.if",
             "typeVersion": 2.3,
             "position": [
-                832,
+                816,
                 432
             ],
             "id": "a0b1f46e-579c-4bc8-aed0-3246911294ca",
@@ -179,8 +149,8 @@
             "type": "n8n-nodes-base.postgres",
             "typeVersion": 2.6,
             "position": [
-                1280,
-                432
+                1264,
+                336
             ],
             "id": "e1c637c3-012e-4ef1-bad8-1cb308678f29",
             "name": "Execute a SQL query1",
@@ -200,7 +170,7 @@
             "type": "n8n-nodes-base.n8nTrigger",
             "typeVersion": 1,
             "position": [
-                160,
+                144,
                 528
             ],
             "id": "4cabf812-540f-465c-8de9-c7819fe65e9b",
@@ -213,25 +183,48 @@
             "type": "n8n-nodes-base.code",
             "typeVersion": 2,
             "position": [
-                1056,
-                432
+                1040,
+                336
             ],
             "id": "7baf9e6d-2384-4cb5-a373-1cbab37484e0",
             "name": "Code in JavaScript1"
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "users/createAdminUser",
+                "responseMode": "lastNode",
+                "responseData": "noData",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                144,
+                336
+            ],
+            "id": "7aa79ca4-3175-4214-99d3-20216b161e21",
+            "name": "Webhook",
+            "webhookId": "95ffe54b-2c8b-41ed-9366-6a0f511bcf99"
+        },
+        {
+            "parameters": {
+                "respondWith": "noData",
+                "options": {
+                    "responseCode": 400
+                }
+            },
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1.5,
+            "position": [
+                1040,
+                528
+            ],
+            "id": "10a1a025-b186-4196-8761-8b20a695e8c9",
+            "name": "Respond to Webhook"
         }
     ],
     "connections": {
-        "On form submission": {
-            "main": [
-                [
-                    {
-                        "node": "Edit Fields1",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
-            ]
-        },
         "Edit Fields1": {
             "main": [
                 [
@@ -273,6 +266,13 @@
                         "type": "main",
                         "index": 0
                     }
+                ],
+                [
+                    {
+                        "node": "Respond to Webhook",
+                        "type": "main",
+                        "index": 0
+                    }
                 ]
             ]
         },
@@ -297,6 +297,17 @@
                     }
                 ]
             ]
+        },
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Edit Fields1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
         }
     },
     "settings": {
@@ -307,10 +318,58 @@
     "meta": {
         "templateCredsSetupCompleted": true
     },
-    "pinData": {},
-    "versionId": "e2a42e55-76ee-4d78-8fed-3072ac6a9e35",
-    "activeVersionId": "cf5960f5-9896-458d-b78c-d3e4666c61fb",
-    "triggerCount": 1,
+    "pinData": {
+        "Webhook": [
+            {
+                "json": {
+                    "headers": {
+                        "host": "dev.preciousplaceanu.com",
+                        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+                        "content-length": "44",
+                        "accept": "*/*",
+                        "accept-encoding": "gzip, br",
+                        "accept-language": "en-US,en-AG;q=0.9,en-GB;q=0.8,en;q=0.7",
+                        "authorization": "Basic cHJlY2lvdXNhZG1pbjpwcmVjaW91c2FkbWlucGFzc3dvcmQ=",
+                        "cdn-loop": "cloudflare; loops=1",
+                        "cf-connecting-ip": "103.176.152.43",
+                        "cf-ipcountry": "TH",
+                        "cf-ray": "9da953706aa9fd0f-SIN",
+                        "cf-visitor": "{\"scheme\":\"https\"}",
+                        "cf-warp-tag-id": "3916b3ae-3dfe-4ce6-9cc4-21550721c9fa",
+                        "content-type": "application/json",
+                        "cookie": "rl_page_init_referrer=RudderEncrypt%3AU2FsdGVkX1%2Bs2Doaye6dydXkmDjT8UwvdX1aNP9pOHA%3D; rl_page_init_referring_domain=RudderEncrypt%3AU2FsdGVkX1%2BWvK87vxe9gMfxiQaNezeoIGF%2FwclViDU%3D; cf_clearance=tUkSpdCXKWuq1WUBpieaH_BZEG.2VOoDrM7q8QwLPUk-1773219164-1.2.1.1-E6ChPuth.mWogluId7lYgUPRU1iKvEsPHtAJSj7lAEbXltpIrJP_8NlFkgjLgt2Y45nzEp_hVnC2TCw86x_h6_JckLbmmuU4S5YjwqFAqzz6sMUn_RwDk_PeWbd3pI_9q.B5sLfx1cAsQ3h_yKk2TbNjl_J4dqYX7YvmVok_2o2QR3XI.F_q0DAHlT731FhFbrIzst.DP9e6ln4io0KaKfpPvK2VQsuIXbE2pHFyACg; rl_anonymous_id=RudderEncrypt%3AU2FsdGVkX19uqfvSP88yBECbklEnffFPAkpUgIWycs3genD5I8m8kZADa%2FmBzgeA8RA7qIp7WPR22xdy%2Fq6pyQ%3D%3D; rl_user_id=RudderEncrypt%3AU2FsdGVkX19ePUN4YRIV7xbDfOMLyPTzs9hjOTtYSqUrYw4oHIIdlkKCxbZSC139hzMFIaeqcReAgv53tdGSHlQZ4O3YYRbFJAflBZQKL%2BBNxru5YlBIdxvINjgf8CK7b14hTqPkp4LpJbfppVJep4uJvKQqhH3haff4A1i5sIY%3D; rl_trait=RudderEncrypt%3AU2FsdGVkX1%2BVluCdwXMUF%2F3LILzbHlUBq8pN9m4npATqlYqOIhZodTUwiMNSYCFxn9oqjorJLHA%2FxKfSda5cIchOhTrpLkn4T7ywvI6NGQXD7ToR06zd8%2BhRagZlT0iGAryVo9ALQch37BcEf4pkj3KiuKYew9%2B8Mtf2NBEkkRc%3D; rl_session=RudderEncrypt%3AU2FsdGVkX1%2Bd4N1y0rjj00v5cSz3ahofoRRn8hrNBqRQFKwF5QrkAruMOBpz0XKvqDEcZC8Zjpm%2BeekRZtPWrSYQqnjuy1fa8ImWAGQfSr3qmLdehAmXB5i4FiiAhUC%2BkHVk5wqE%2FGuMargk64jPrg%3D%3D; ph_phc_4URIAm1uYfJO7j8kWSe0J8lc8IqnstRLS7Jx8NcakHo_posthog=%7B%22%24device_id%22%3A%22019cc754-a111-7432-a950-42e62c7e5386%22%2C%22distinct_id%22%3A%22ed413a973990fae8e1f4795ccc2b69227d56345545dc09b478a2caa25cd9fe0c%230d62e3b6-b901-4161-bb96-de6cf146a115%22%2C%22%24sesid%22%3A%5B1773219171834%2C%22019cdc19-4dd1-7ea1-97e4-4d8a0e08ac0b%22%2C1773219171785%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22https%3A%2F%2Fn8n-staging.preciousplaceanu.com%2Fsetup%22%7D%2C%22%24user_state%22%3A%22identified%22%7D",
+                        "dnt": "1",
+                        "origin": "https://dev.preciousplaceanu.com",
+                        "priority": "u=1, i",
+                        "referer": "https://dev.preciousplaceanu.com/pos/",
+                        "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+                        "sec-ch-ua-mobile": "?0",
+                        "sec-ch-ua-platform": "\"Windows\"",
+                        "sec-fetch-dest": "empty",
+                        "sec-fetch-mode": "cors",
+                        "sec-fetch-site": "same-origin",
+                        "x-forwarded-for": "172.18.0.1",
+                        "x-forwarded-host": "dev.preciousplaceanu.com",
+                        "x-forwarded-port": "443",
+                        "x-forwarded-proto": "https",
+                        "x-forwarded-server": "c8fff81d682e",
+                        "x-real-ip": "172.18.0.1"
+                    },
+                    "params": {},
+                    "query": {},
+                    "body": {
+                        "username": "damie3",
+                        "password": "S)ng0t3n1"
+                    },
+                    "webhookUrl": "https://dev.preciousplaceanu.com/webhook/users/createAdminUser",
+                    "executionMode": "production"
+                }
+            }
+        ]
+    },
+    "versionId": "c9ae7de3-c8d1-4035-b669-e252de74ae8b",
+    "activeVersionId": "c9ae7de3-c8d1-4035-b669-e252de74ae8b",
+    "triggerCount": 2,
     "tags": [],
     "shared": [
         {
@@ -332,7 +391,7 @@
         }
     ],
     "versionMetadata": {
-        "name": null,
-        "description": null
+        "name": "Version c9ae7de3",
+        "description": ""
     }
 }

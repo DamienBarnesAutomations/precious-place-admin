@@ -1,16 +1,66 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, reactive } from 'vue'
 import { usePosStore } from './stores/posStore'
 
 const store = usePosStore()
 const isMobileCartOpen = ref(false)
 const searchQuery = ref('')
+const showUserDialog = ref(false)
+const showSelectionDialog = ref(false)
+const isSubmitting = ref(false)
+const userType = ref('site') // 'site' or 'chat'
+
+const userForm = reactive({
+  username: '',
+  password: '',
+  userId: ''
+})
+
 const openCreateUser = () => {
-  if (store.createAdminUserUrl) {
-    window.open(store.createAdminUserUrl, '_blank');
-  } else {
-    console.error('VITE_CREATE_ADMIN_USER_URL is not defined');
-    alert('Admin user creation URL is not configured.');
+  showSelectionDialog.value = true
+}
+
+const selectType = (type) => {
+  userType.value = type
+  showSelectionDialog.value = false
+  showUserDialog.value = true
+}
+
+const handleCreateUser = async () => {
+  const url = userType.value === 'site' ? store.createAdminUserUrl : store.createChatAdminUserUrl
+  
+  if (!url) {
+    alert('Request URL is not configured.')
+    return
+  }
+
+  isSubmitting.value = true
+  try {
+    const payload = userType.value === 'site' 
+      ? { username: userForm.username, password: userForm.password }
+      : { userId: userForm.userId }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+
+    if (response.ok) {
+      alert('User created successfully!')
+      showUserDialog.value = false
+      userForm.username = ''
+      userForm.password = ''
+      userForm.userId = ''
+    } else {
+      const errorData = await response.json().catch(() => ({}))
+      alert(`Failed to create user: ${errorData.message || response.statusText}`)
+    }
+  } catch (error) {
+    console.error('Error creating user:', error)
+    alert('An error occurred while creating the user.')
+  } finally {
+    isSubmitting.value = false
   }
 }
 
@@ -203,6 +253,99 @@ onMounted(() => {
           </div>
           <button @click="store.showSalesModal = false" class="px-8 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-bold text-sm transition-colors">CLOSE</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Selection Dialog -->
+    <div v-if="showSelectionDialog" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+      <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl">
+        <h3 class="text-xl font-bold mb-6 text-center">Add New User</h3>
+        <div class="space-y-3">
+          <button 
+            @click="selectType('site')" 
+            class="w-full py-4 bg-zinc-950 border border-zinc-800 hover:border-emerald-500/50 rounded-2xl font-bold text-zinc-100 transition-all flex items-center justify-between px-6 group"
+          >
+            <span>Add: Site Admin</span>
+            <svg class="w-5 h-5 text-zinc-600 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+          <button 
+            @click="selectType('chat')" 
+            class="w-full py-4 bg-zinc-950 border border-zinc-800 hover:border-emerald-500/50 rounded-2xl font-bold text-zinc-100 transition-all flex items-center justify-between px-6 group"
+          >
+            <span>Add: Chat Admin</span>
+            <svg class="w-5 h-5 text-zinc-600 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+          <button 
+            @click="showSelectionDialog = false" 
+            class="w-full py-3 text-zinc-500 hover:text-zinc-300 font-bold transition-colors mt-2"
+          >
+            CANCEL
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create User Dialog -->
+    <div v-if="showUserDialog" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+      <div class="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-3xl p-6 shadow-2xl">
+        <h3 class="text-xl font-bold mb-6">Add {{ userType === 'site' ? 'Site Admin' : 'Chat Admin' }}</h3>
+        <form @submit.prevent="handleCreateUser" class="space-y-4">
+          <template v-if="userType === 'site'">
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Username</label>
+              <input 
+                v-model="userForm.username" 
+                type="text" 
+                required 
+                placeholder="Enter username" 
+                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500/60 transition-colors"
+              />
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Password</label>
+              <input 
+                v-model="userForm.password" 
+                type="password" 
+                required 
+                placeholder="Enter password" 
+                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500/60 transition-colors"
+              />
+            </div>
+          </template>
+          <template v-else>
+            <div class="space-y-1.5">
+              <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">User Id</label>
+              <input 
+                v-model="userForm.userId" 
+                type="text" 
+                required 
+                placeholder="Enter Chat User ID" 
+                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500/60 transition-colors"
+              />
+            </div>
+          </template>
+          
+          <div class="flex gap-3 pt-4">
+            <button 
+              type="button" 
+              @click="showUserDialog = false" 
+              class="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-bold transition-colors"
+            >
+              CANCEL
+            </button>
+            <button 
+              type="submit" 
+              :disabled="isSubmitting"
+              class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl font-bold transition-colors"
+            >
+              {{ isSubmitting ? 'CREATING...' : 'SUBMIT' }}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
