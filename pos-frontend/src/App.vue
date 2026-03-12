@@ -1,6 +1,20 @@
 <script setup>
 import { onMounted, ref, computed, reactive } from 'vue'
 import { usePosStore } from './stores/posStore'
+import { 
+  ShoppingCart, 
+  Search, 
+  X, 
+  Plus, 
+  Trash2, 
+  TrendingUp, 
+  UserPlus, 
+  Users, 
+  ChevronDown,
+  ChevronRight,
+  Check,
+  Loader2
+} from 'lucide-vue-next'
 
 const store = usePosStore()
 const isMobileCartOpen = ref(false)
@@ -79,142 +93,215 @@ onMounted(() => {
 <template>
   <div class="flex flex-col lg:flex-row min-h-screen h-screen bg-zinc-950 text-zinc-100 overflow-hidden font-sans">
     
-    <main class="flex-1 flex flex-col p-4 overflow-hidden">
-      <header class="flex justify-between items-center mb-4">
-        <div class="flex items-center gap-3">
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col p-4 lg:p-6 overflow-hidden">
+      <!-- Header -->
+      <header class="flex justify-between items-center mb-4 lg:mb-6">
+        <div class="flex items-center gap-3 lg:gap-4">
           <img 
             :src="store.logo" 
             alt="Logo" 
-            class="w-10 h-10 lg:w-20 lg:h-20 object-contain brightness-0 invert" 
+            class="w-12 h-12 lg:w-16 lg:h-16 object-contain brightness-0 invert" 
           />
-          <h1 class="text-lg lg:text-2xl font-bold tracking-tight">{{store.appTitle}}</h1>
+          <div>
+            <h1 class="text-xl lg:text-2xl font-bold tracking-tight">{{store.appTitle}}</h1>
+            <p class="text-xs text-zinc-500 hidden sm:block">Point of Sale System</p>
+          </div>
         </div>
 
         <div class="flex items-center gap-2">
-          <button @click="isMobileCartOpen = true" class="lg:hidden relative p-2 bg-zinc-900 rounded-xl border border-zinc-800">
-            <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-            </svg>
-            <span v-if="store.cartCount > 0" class="absolute -top-2 -right-2 bg-emerald-500 text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-lg">
+          <!-- Mobile Cart Button -->
+          <button 
+            @click="isMobileCartOpen = true" 
+            class="lg:hidden relative p-2.5 bg-zinc-900 rounded-xl border border-zinc-800 hover:border-emerald-500/50"
+          >
+            <ShoppingCart class="w-5 h-5 text-emerald-500" />
+            <span v-if="store.cartCount > 0" class="absolute -top-1.5 -right-1.5 bg-emerald-500 text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-lg">
               {{ store.cartCount }}
             </span>
           </button>
 
-          <!-- Create User Link -->
-          <button @click="openCreateUser" class="p-2 hover:bg-zinc-800 rounded-full transition-colors group">
-            <svg class="w-6 h-6 text-zinc-500 group-hover:text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-            </svg>
+          <!-- Create User Button -->
+          <button 
+            @click="openCreateUser" 
+            class="p-2.5 hover:bg-zinc-800 rounded-xl border border-zinc-800 hover:border-emerald-500/30 transition-all"
+            title="Create User"
+          >
+            <UserPlus class="w-5 h-5 text-zinc-500 hover:text-emerald-500" />
           </button>
 
-          <button @click="store.fetchDailySales()" class="p-2 hover:bg-zinc-800 rounded-full transition-colors group">
-            <svg class="w-6 h-6 text-zinc-500 group-hover:text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-            </svg>
+          <!-- Daily Sales Button -->
+          <button 
+            @click="store.fetchDailySales()" 
+            class="p-2.5 hover:bg-zinc-800 rounded-xl border border-zinc-800 hover:border-emerald-500/30 transition-all"
+            title="View Daily Sales"
+          >
+            <TrendingUp class="w-5 h-5 text-zinc-500 hover:text-emerald-500" />
           </button>
         </div>
       </header>
 
       <!-- Search Bar -->
-      <div class="mb-4 relative">
-        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
-        </svg>
+      <div class="mb-4 lg:mb-6 relative">
+        <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
         <input
           v-model="searchQuery"
           type="text"
           placeholder="Search products..."
-          class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-10 pr-10 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
+          class="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-11 pr-10 py-3 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/20 transition-all"
         />
-        <button v-if="searchQuery" @click="searchQuery = ''" class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors text-lg leading-none">×</button>
+        <button 
+          v-if="searchQuery" 
+          @click="searchQuery = ''" 
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+        >
+          <X class="w-4 h-4" />
+        </button>
       </div>
       
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 overflow-y-auto pr-2 custom-scrollbar">
+      <!-- Products Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4 overflow-y-auto pr-2 custom-scrollbar pb-4">
         <div 
-          v-for="product in filteredProducts" :key="product.id"
+          v-for="product in filteredProducts" 
+          :key="product.id"
           @click="store.addToCart(product)"
-          class="bg-zinc-900 border border-zinc-800 p-2 sm:p-3 rounded-xl cursor-pointer hover:border-emerald-500/50 transition-all active:scale-95 group"
+          class="product-card bg-zinc-900 border border-zinc-800 p-3 lg:p-4 rounded-2xl cursor-pointer hover:border-emerald-500/50 transition-all duration-300 group"
         >
-          <div class="aspect-square bg-zinc-800 rounded-lg mb-2 overflow-hidden">
-            <img :src="store.imageBaseUrl + product.img_url" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+          <div class="aspect-square bg-zinc-800 rounded-xl mb-3 overflow-hidden relative">
+            <img 
+              :src="store.imageBaseUrl + product.img_url" 
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+            />
+            <!-- Quick add indicator -->
+            <div class="absolute inset-0 bg-emerald-500/0 group-hover:bg-emerald-500/10 transition-colors flex items-center justify-center">
+              <Plus class="w-6 h-6 text-emerald-500 opacity-0 group-hover:opacity-100 transform scale-50 group-hover:scale-100 transition-all" />
+            </div>
           </div>
-          <h3 class="font-bold text-xs sm:text-sm truncate">{{ product.name }}</h3>
-          <p class="text-emerald-400 font-mono text-xs sm:text-sm">{{store.currency}}{{ product.price }}</p>
+          <h3 class="font-bold text-xs sm:text-sm truncate mb-1">{{ product.name }}</h3>
+          <p class="text-emerald-400 font-mono text-sm font-semibold">{{store.currency}}{{ product.price }}</p>
         </div>
 
-        <div v-if="filteredProducts.length === 0 && searchQuery" class="col-span-full flex flex-col items-center justify-center h-40 text-zinc-600 italic">
+        <!-- Empty State -->
+        <div v-if="filteredProducts.length === 0 && searchQuery" class="col-span-full flex flex-col items-center justify-center h-40 text-zinc-600">
+          <Search class="w-12 h-12 mb-3 opacity-50" />
           <p>No products found for "{{ searchQuery }}"</p>
         </div>
       </div>
     </main>
 
+    <!-- Cart Sidebar -->
     <aside 
       :class="[
-        'fixed inset-y-0 right-0 z-50 w-full sm:w-96 bg-zinc-900 border-l border-zinc-800 flex flex-col shadow-2xl transition-transform duration-300 lg:relative lg:translate-x-0',
+        'fixed inset-y-0 right-0 z-50 w-full sm:w-[380px] lg:w-96 bg-zinc-900 border-l border-zinc-800 flex flex-col shadow-2xl transition-transform duration-300 lg:relative lg:translate-x-0',
         isMobileCartOpen ? 'translate-x-0' : 'translate-x-full'
       ]"
     >
-      <div class="p-6 border-b border-zinc-800 flex justify-between items-center">
-        <div class="flex items-center gap-2">
-          <button @click="isMobileCartOpen = false" class="lg:hidden text-zinc-400 pr-2">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <!-- Cart Header -->
+      <div class="p-5 lg:p-6 border-b border-zinc-800 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+          <button @click="isMobileCartOpen = false" class="lg:hidden text-zinc-400 hover:text-zinc-200">
+            <ChevronRight class="w-5 h-5 rotate-180" />
           </button>
-          <h2 class="text-xl font-bold">Order</h2>
+          <div class="flex items-center gap-2">
+            <ShoppingCart class="w-5 h-5 text-emerald-500" />
+            <h2 class="text-xl font-bold">Current Order</h2>
+          </div>
         </div>
-        <button @click="store.clearCart" class="text-xs text-zinc-500 hover:text-red-400 underline uppercase tracking-tighter">Clear All</button>
+        <button 
+          @click="store.clearCart" 
+          class="text-xs text-zinc-500 hover:text-red-400 underline uppercase tracking-tighter flex items-center gap-1"
+        >
+          <Trash2 class="w-3 h-3" />
+          Clear
+        </button>
       </div>
 
-      <div class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-        <div v-if="store.cart.length === 0" class="h-full flex flex-col items-center justify-center text-zinc-600 italic">
-          <p>Cart is empty</p>
+      <!-- Cart Items -->
+      <div class="flex-1 overflow-y-auto p-4 lg:p-5 space-y-3 custom-scrollbar">
+        <div v-if="store.cart.length === 0" class="h-full flex flex-col items-center justify-center text-zinc-600">
+          <ShoppingCart class="w-16 h-16 mb-4 opacity-30" />
+          <p class="font-medium">Cart is empty</p>
+          <p class="text-sm opacity-60">Click products to add them</p>
         </div>
         
-        <div v-for="(item, index) in store.cart" :key="index" class="flex items-center gap-3 bg-zinc-950 p-3 rounded-lg border border-zinc-800">
-          <div class="flex-1">
-            <h4 class="text-sm font-bold leading-tight">{{ item.name }}</h4>
-            <p class="text-xs text-zinc-500">{{store.currency}}{{ item.price }} x {{ item.quantity }}</p>
+        <TransitionGroup name="cart-item">
+          <div 
+            v-for="(item, index) in store.cart" 
+            :key="index" 
+            class="flex items-center gap-3 bg-zinc-950 p-3 lg:p-4 rounded-xl border border-zinc-800"
+          >
+            <div class="flex-1 min-w-0">
+              <h4 class="text-sm font-bold leading-tight truncate">{{ item.name }}</h4>
+              <p class="text-xs text-zinc-500 mt-0.5">{{store.currency}}{{ item.price }} × {{ item.quantity }}</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="font-mono text-emerald-400 font-semibold text-sm">{{store.currency}}{{ (item.price * item.quantity).toFixed(2) }}</span>
+              <button 
+                @click="store.removeFromCart(index)" 
+                class="w-8 h-8 flex items-center justify-center bg-zinc-900 rounded-lg text-zinc-500 hover:text-red-500 border border-zinc-700 hover:border-red-500/50 transition-all"
+              >
+                <Trash2 class="w-4 h-4" />
+              </button>
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="font-mono text-emerald-400">{{store.currency}}{{ (item.price * item.quantity).toFixed(2) }}</span>
-            <button @click="store.removeFromCart(index)" class="w-8 h-8 flex items-center justify-center bg-zinc-900 rounded-lg text-zinc-600 hover:text-red-500 border border-zinc-800 transition-colors">×</button>
-          </div>
-        </div>
+        </TransitionGroup>
       </div>
 
-      <div class="p-6 bg-zinc-950 border-t border-zinc-800 space-y-4">
-        <div class="flex justify-between text-2xl font-bold text-white">
-          <span>Total</span>
-          <span class="text-emerald-400">{{store.currency}}{{ store.cartTotal.toFixed(2) }}</span>
+      <!-- Cart Footer -->
+      <div class="p-5 lg:p-6 bg-zinc-950 border-t border-zinc-800 space-y-4">
+        <div class="flex justify-between items-end">
+          <span class="text-zinc-500 font-medium">Total</span>
+          <span class="text-3xl font-bold text-white">{{store.currency}}{{ store.cartTotal.toFixed(2) }}</span>
         </div>
         <button 
           @click="store.checkout(); isMobileCartOpen = false"
           :disabled="store.loading || store.cart.length === 0"
-          class="w-full py-4 rounded-xl font-bold text-lg transition-all active:translate-y-0.5 disabled:opacity-50"
-          :class="store.loading ? 'bg-zinc-700' : 'bg-emerald-600 hover:bg-emerald-500 text-white'"
+          class="w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          :class="store.loading ? 'bg-zinc-700 cursor-wait' : 'bg-emerald-600 hover:bg-emerald-500 text-white hover:shadow-lg hover:shadow-emerald-500/20'"
         >
+          <Loader2 v-if="store.loading" class="w-5 h-5 animate-spin" />
+          <Check v-else class="w-5 h-5" />
           {{ store.loading ? 'PROCESSING...' : 'CHECKOUT' }}
         </button>
       </div>
     </aside>
 
-    <div v-if="isMobileCartOpen" @click="isMobileCartOpen = false" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"></div>
+    <!-- Mobile Cart Overlay -->
+    <div 
+      v-if="isMobileCartOpen" 
+      @click="isMobileCartOpen = false" 
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+    ></div>
 
-    <Transition name="slide-fade">
-      <div v-if="store.showSuccessToast" class="fixed top-6 right-6 z-[100] bg-emerald-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-emerald-400">
-        <div class="bg-white/20 rounded-full p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>
+    <!-- Success Toast -->
+    <Transition name="toast">
+      <div 
+        v-if="store.showSuccessToast" 
+        class="fixed top-6 right-6 z-[100] bg-emerald-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-emerald-400"
+      >
+        <div class="bg-white/20 rounded-full p-1">
+          <Check class="w-5 h-5" />
+        </div>
         <p class="font-bold">Sale Recorded!</p>
       </div>
     </Transition>
 
+    <!-- Daily Sales Modal -->
     <div v-if="store.showSalesModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
       <div class="bg-zinc-900 border border-zinc-800 w-full max-w-2xl rounded-3xl flex flex-col max-h-[85vh] shadow-2xl">
-        <div class="p-6 border-b border-zinc-800 flex justify-between items-center">
-          <h2 class="text-xl font-bold">Daily Sales Activity</h2>
-          <button @click="store.showSalesModal = false" class="p-2 hover:bg-zinc-800 rounded-xl text-zinc-400">✕</button>
+        <div class="p-5 lg:p-6 border-b border-zinc-800 flex justify-between items-center">
+          <div class="flex items-center gap-3">
+            <TrendingUp class="w-5 h-5 text-emerald-500" />
+            <h2 class="text-xl font-bold">Daily Sales Activity</h2>
+          </div>
+          <button @click="store.showSalesModal = false" class="p-2 hover:bg-zinc-800 rounded-xl text-zinc-400 hover:text-zinc-200 transition-colors">
+            <X class="w-5 h-5" />
+          </button>
         </div>
         
-        <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 custom-scrollbar">
+        <div class="flex-1 overflow-y-auto p-4 lg:p-6 space-y-3 custom-scrollbar">
           <div v-if="!store.groupedSales || store.groupedSales.length === 0" class="flex flex-col items-center justify-center h-40 text-zinc-600 border-2 border-dashed border-zinc-800 rounded-2xl">
+            <TrendingUp class="w-12 h-12 mb-3 opacity-30" />
             <p>No transactions found for today.</p>
           </div>
 
@@ -226,18 +313,19 @@ onMounted(() => {
                 </span>
                 <span class="font-bold text-sm text-zinc-200">Order #{{ group.id }}</span>
               </div>
-              <div class="flex items-center gap-4">
+              <div class="flex items-center gap-3">
                 <span class="font-bold text-emerald-400 font-mono text-lg">{{ store.currency }}{{ group.total.toFixed(2) }}</span>
-                <svg :class="{'rotate-180': store.expandedTransactions?.includes(group.id)}" class="w-5 h-5 text-zinc-600 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M19 9l-7 7-7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <ChevronDown 
+                  class="w-5 h-5 text-zinc-600 transition-transform duration-300" 
+                  :class="{'rotate-180': store.expandedTransactions?.includes(group.id)}" 
+                />
               </div>
             </div>
 
             <div v-if="store.expandedTransactions?.includes(group.id)" class="bg-black/30 border-t border-zinc-800 p-4 space-y-2">
               <div v-for="item in group.items" :key="item.id" class="flex justify-between text-xs sm:text-sm">
                 <div class="flex gap-2 text-zinc-300">
-                  <span class="text-emerald-500 font-bold opacity-70">{{ item.quantity }}x</span>
+                  <span class="text-emerald-500 font-bold opacity-70">{{ item.quantity }}×</span>
                   <span>{{ item.name }}</span>
                 </div>
                 <span class="text-zinc-500 font-mono">{{ store.currency }}{{ Number(item.total_price).toFixed(2) }}</span>
@@ -246,12 +334,17 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="p-6 border-t border-zinc-800 bg-zinc-950/80 rounded-b-3xl flex justify-between items-center">
+        <div class="p-5 lg:p-6 border-t border-zinc-800 bg-zinc-950/80 rounded-b-3xl flex justify-between items-center">
           <div>
             <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-widest leading-none">Day Total</p>
             <p class="text-3xl font-black text-emerald-500 font-mono mt-1">{{ store.currency }}{{ store.dayTotal.toFixed(2) }}</p>
           </div>
-          <button @click="store.showSalesModal = false" class="px-8 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-bold text-sm transition-colors">CLOSE</button>
+          <button 
+            @click="store.showSalesModal = false" 
+            class="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-bold text-sm transition-colors"
+          >
+            CLOSE
+          </button>
         </div>
       </div>
     </div>
@@ -265,19 +358,21 @@ onMounted(() => {
             @click="selectType('site')" 
             class="w-full py-4 bg-zinc-950 border border-zinc-800 hover:border-emerald-500/50 rounded-2xl font-bold text-zinc-100 transition-all flex items-center justify-between px-6 group"
           >
-            <span>Add: Site Admin</span>
-            <svg class="w-5 h-5 text-zinc-600 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
+            <span class="flex items-center gap-3">
+              <Users class="w-5 h-5 text-zinc-500 group-hover:text-emerald-500" />
+              Add Site Admin
+            </span>
+            <ChevronRight class="w-5 h-5 text-zinc-600 group-hover:text-emerald-500 transition-colors" />
           </button>
           <button 
             @click="selectType('chat')" 
             class="w-full py-4 bg-zinc-950 border border-zinc-800 hover:border-emerald-500/50 rounded-2xl font-bold text-zinc-100 transition-all flex items-center justify-between px-6 group"
           >
-            <span>Add: Chat Admin</span>
-            <svg class="w-5 h-5 text-zinc-600 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
+            <span class="flex items-center gap-3">
+              <UserPlus class="w-5 h-5 text-zinc-500 group-hover:text-emerald-500" />
+              Add Chat Admin
+            </span>
+            <ChevronRight class="w-5 h-5 text-zinc-600 group-hover:text-emerald-500 transition-colors" />
           </button>
           <button 
             @click="showSelectionDialog = false" 
@@ -292,39 +387,42 @@ onMounted(() => {
     <!-- Create User Dialog -->
     <div v-if="showUserDialog" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
       <div class="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-3xl p-6 shadow-2xl">
-        <h3 class="text-xl font-bold mb-6">Add {{ userType === 'site' ? 'Site Admin' : 'Chat Admin' }}</h3>
+        <h3 class="text-xl font-bold mb-6 flex items-center gap-3">
+          <UserPlus class="w-5 h-5 text-emerald-500" />
+          Add {{ userType === 'site' ? 'Site Admin' : 'Chat Admin' }}
+        </h3>
         <form @submit.prevent="handleCreateUser" class="space-y-4">
           <template v-if="userType === 'site'">
-            <div class="space-y-1.5">
+            <div class="space-y-2">
               <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Username</label>
               <input 
                 v-model="userForm.username" 
                 type="text" 
                 required 
                 placeholder="Enter username" 
-                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500/60 transition-colors"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/20 transition-all"
               />
             </div>
-            <div class="space-y-1.5">
+            <div class="space-y-2">
               <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">Password</label>
               <input 
                 v-model="userForm.password" 
                 type="password" 
                 required 
                 placeholder="Enter password" 
-                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500/60 transition-colors"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/20 transition-all"
               />
             </div>
           </template>
           <template v-else>
-            <div class="space-y-1.5">
+            <div class="space-y-2">
               <label class="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1">User Id</label>
               <input 
                 v-model="userForm.userId" 
                 type="text" 
                 required 
                 placeholder="Enter Chat User ID" 
-                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500/60 transition-colors"
+                class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/20 transition-all"
               />
             </div>
           </template>
@@ -340,8 +438,9 @@ onMounted(() => {
             <button 
               type="submit" 
               :disabled="isSubmitting"
-              class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl font-bold transition-colors"
+              class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-wait text-white rounded-xl font-bold transition-colors flex items-center justify-center gap-2"
             >
+              <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
               {{ isSubmitting ? 'CREATING...' : 'SUBMIT' }}
             </button>
           </div>
@@ -350,12 +449,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<style>
-.custom-scrollbar::-webkit-scrollbar { width: 4px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
-
-.slide-fade-enter-active { transition: all 0.3s ease-out; }
-.slide-fade-leave-active { transition: all 0.2s cubic-bezier(1, 0.5, 0.8, 1); }
-.slide-fade-enter-from, .slide-fade-leave-to { transform: translateX(20px); opacity: 0; }
-</style>
