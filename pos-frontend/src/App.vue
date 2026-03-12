@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, computed, reactive } from 'vue'
+import { onMounted, ref, computed, reactive, watch } from 'vue'
 import { usePosStore } from './stores/posStore'
 import { 
   ShoppingCart, 
@@ -16,7 +16,9 @@ import {
   Loader2,
   Shield,
   MessageSquare,
-  PackageSearch
+  PackageSearch,
+  Sun,
+  Moon
 } from 'lucide-vue-next'
 
 const store = usePosStore()
@@ -26,6 +28,14 @@ const showUserDialog = ref(false)
 const showSelectionDialog = ref(false)
 const isSubmitting = ref(false)
 const userType = ref('site') // 'site' or 'chat'
+
+watch(() => store.theme, (theme) => {
+  if (theme === 'dark') {
+    document.documentElement.classList.add('dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+  }
+}, { immediate: true })
 
 const userForm = reactive({
   username: '',
@@ -94,7 +104,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col lg:flex-row h-screen bg-bg text-zinc-100 overflow-hidden font-sans select-none">
+  <div class="flex flex-col lg:flex-row h-screen bg-bg text-text overflow-hidden font-sans select-none transition-colors duration-500">
     
     <!-- Main Content Area -->
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -106,7 +116,7 @@ onMounted(() => {
             <img 
               :src="store.logo" 
               alt="Logo" 
-              class="relative w-10 h-10 lg:w-12 lg:h-12 object-contain brightness-0 invert transition-transform group-hover:scale-110 duration-500" 
+              class="relative w-10 h-10 lg:w-12 lg:h-12 object-contain brightness-0 dark:invert transition-transform group-hover:scale-110 duration-500" 
             />
           </div>
           <div class="hidden sm:block">
@@ -116,6 +126,12 @@ onMounted(() => {
         </div>
 
         <div class="flex items-center gap-2">
+          <!-- Theme Toggle -->
+          <button @click="store.toggleTheme()" class="btn-base bg-surface border border-border hover:border-primary/50 hover:text-primary h-10 w-10 p-0" :title="store.theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'">
+            <Sun v-if="store.theme === 'dark'" class="w-4 h-4" />
+            <Moon v-else class="w-4 h-4" />
+          </button>
+
           <!-- Create User -->
           <button @click="openCreateUser" class="btn-base bg-surface border border-border hover:border-primary/50 hover:text-primary h-10 w-10 p-0" title="Add Admin User">
             <UserPlus class="w-4 h-4" />
@@ -178,11 +194,11 @@ onMounted(() => {
             </div>
             
             <div class="flex-1 space-y-2">
-              <h3 class="font-black text-[10px] lg:text-[11px] uppercase tracking-[0.15em] text-zinc-400 group-hover:text-primary transition-colors truncate">
+              <h3 class="font-black text-[10px] lg:text-[11px] uppercase tracking-[0.15em] text-muted-dark group-hover:text-primary transition-colors truncate">
                 {{ product.name }}
               </h3>
               <div class="flex items-center justify-between">
-                <span class="text-xl font-black font-mono text-zinc-100 tracking-tighter leading-none">
+                <span class="text-xl font-black font-mono text-text tracking-tighter leading-none">
                   <span class="text-primary text-[10px] mr-0.5 opacity-70">{{store.currency}}</span>{{ product.price.toFixed(2) }}
                 </span>
               </div>
@@ -247,7 +263,7 @@ onMounted(() => {
             class="group flex items-center gap-4 bg-bg/40 p-3 rounded border border-border/50 hover:border-primary/30 transition-all duration-300"
           >
             <div class="flex-1 min-w-0">
-              <h4 class="text-[11px] font-black uppercase tracking-tight text-zinc-300 truncate">{{ item.name }}</h4>
+              <h4 class="text-[11px] font-black uppercase tracking-tight text-text-secondary truncate">{{ item.name }}</h4>
               <div class="flex items-center gap-2 mt-1.5">
                 <span class="text-[9px] font-bold font-mono text-muted uppercase">Qty: {{ item.quantity }}</span>
                 <span class="w-1 h-1 rounded-full bg-border"></span>
@@ -272,14 +288,14 @@ onMounted(() => {
         <div class="flex justify-between items-end">
           <div class="space-y-2">
             <span class="text-[9px] font-black text-muted uppercase tracking-[0.4em] block opacity-60">Total Amount</span>
-            <div class="flex items-baseline gap-1 relative">
+            <div class="flex items-baseline gap-1 relative text-text">
               <span class="text-xs font-black text-primary uppercase absolute -left-4 top-1">{{store.currency}}</span>
-              <span class="text-6xl font-black text-white font-mono tracking-tighter leading-none">{{ store.cartTotal.toFixed(2) }}</span>
+              <span class="text-6xl font-black font-mono tracking-tighter leading-none">{{ store.cartTotal.toFixed(2) }}</span>
             </div>
           </div>
           <div class="text-right flex flex-col items-end">
              <span class="text-[9px] font-black text-muted uppercase tracking-[0.4em] block mb-1 opacity-60">Total Items</span>
-             <span class="text-2xl font-black font-mono text-zinc-400 leading-none">{{ store.cartCount }}</span>
+             <span class="text-2xl font-black font-mono text-text-secondary leading-none">{{ store.cartCount }}</span>
           </div>
         </div>
         <button 
@@ -347,7 +363,7 @@ onMounted(() => {
                 <span class="font-mono text-[11px] font-black text-primary/60 bg-bg px-3 py-1.5 rounded border border-border uppercase tracking-tighter leading-none">
                   {{ new Date(group.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second: '2-digit'}) }}
                 </span>
-                <span class="text-[11px] font-black text-zinc-200 uppercase tracking-[0.2em] italic opacity-80 group-hover:opacity-100 transition-opacity">ORDER_{{ group.id }}</span>
+                <span class="text-[11px] font-black text-text uppercase tracking-[0.2em] italic opacity-80 group-hover:opacity-100 transition-opacity">ORDER_{{ group.id }}</span>
               </div>
               <div class="flex items-center gap-6">
                 <span class="font-black text-primary font-mono text-xl tracking-tighter leading-none">{{ store.currency }}{{ group.total.toFixed(2) }}</span>
@@ -365,7 +381,7 @@ onMounted(() => {
                 <div v-for="item in group.items" :key="item.id" class="flex justify-between items-center border-b border-border/20 pb-3 last:border-0 last:pb-0">
                   <div class="flex items-center gap-4">
                     <span class="text-[11px] font-black text-primary/40 font-mono w-10 shrink-0">{{ item.quantity }}x</span>
-                    <span class="text-[11px] font-black text-zinc-400 uppercase tracking-tight italic">{{ item.name }}</span>
+                    <span class="text-[11px] font-black text-muted-dark uppercase tracking-tight italic">{{ item.name }}</span>
                   </div>
                   <span class="text-[11px] font-black font-mono text-muted tracking-tighter leading-none">{{ store.currency }}{{ Number(item.total_price).toFixed(2) }}</span>
                 </div>
@@ -381,7 +397,7 @@ onMounted(() => {
           </div>
           <button 
             @click="store.showSalesModal = false" 
-            class="h-14 px-10 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded font-black text-[11px] tracking-[0.3em] transition-all uppercase active:scale-95 shadow-2xl"
+            class="h-14 px-10 bg-surface hover:bg-surface-elevated text-text rounded font-black text-[11px] tracking-[0.3em] transition-all uppercase active:scale-98 shadow-2xl"
           >
             Close Report
           </button>
@@ -396,7 +412,7 @@ onMounted(() => {
         <div class="space-y-4">
           <button 
             @click="selectType('site')" 
-            class="w-full h-16 bg-bg border border-border hover:border-primary/50 rounded font-black text-[10px] text-zinc-300 transition-all flex items-center justify-between px-8 group uppercase tracking-[0.2em]"
+            class="w-full h-16 bg-bg border border-border hover:border-primary/50 rounded font-black text-[10px] text-text-secondary transition-all flex items-center justify-between px-8 group uppercase tracking-[0.2em]"
           >
             <span class="flex items-center gap-5">
               <Shield class="w-5 h-5 text-muted group-hover:text-primary transition-colors" />
@@ -406,7 +422,7 @@ onMounted(() => {
           </button>
           <button 
             @click="selectType('chat')" 
-            class="w-full h-16 bg-bg border border-border hover:border-primary/50 rounded font-black text-[10px] text-zinc-300 transition-all flex items-center justify-between px-8 group uppercase tracking-[0.2em]"
+            class="w-full h-16 bg-bg border border-border hover:border-primary/50 rounded font-black text-[10px] text-text-secondary transition-all flex items-center justify-between px-8 group uppercase tracking-[0.2em]"
           >
             <span class="flex items-center gap-5">
               <MessageSquare class="w-5 h-5 text-muted group-hover:text-primary transition-colors" />

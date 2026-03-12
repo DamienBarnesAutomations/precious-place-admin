@@ -25,7 +25,8 @@ export const usePosStore = defineStore('pos', {
     todaySales: [],
     appTitle: appTitle,
     createAdminUserUrl: createAdminUserUrl,
-    createChatAdminUserUrl: createChatAdminUserUrl
+    createChatAdminUserUrl: createChatAdminUserUrl,
+    theme: 'dark'
   }),
   
   getters: {
@@ -60,6 +61,9 @@ export const usePosStore = defineStore('pos', {
   },
 
   actions: {
+    toggleTheme() {
+      this.theme = this.theme === 'dark' ? 'light' : 'dark'
+    },
     async fetchProducts() {
       this.loading = true
       try {
@@ -156,6 +160,6 @@ export const usePosStore = defineStore('pos', {
     },
   },
   persist: {
-        paths: ['cart', 'todaySales'] // Only persist data, not config
+        paths: ['cart', 'todaySales', 'theme'] // Only persist data, not config
   }
 })

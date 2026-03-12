@@ -116,16 +116,27 @@
             <p class="text-[9px] font-bold text-success uppercase tracking-widest">System Balanced</p>
           </div>
           <div class="h-8 w-[1px] bg-border mx-1 hidden md:block"></div>
-          <button 
-            @click="refreshData"
-            :class="[
-              'p-2 rounded-full transition-all duration-300 border border-transparent',
-              isRefreshing ? 'animate-spin text-primary bg-primary/10' : 'text-muted hover:text-text hover:bg-surface-hover hover:border-border-light'
-            ]"
-            title="Refresh Ledger"
-          >
-            <RefreshCw class="w-4 h-4" />
-          </button>
+          
+          <div class="flex items-center gap-1.5 bg-background/50 p-1 rounded-full border border-border">
+            <button 
+              @click="toggleTheme"
+              class="p-1.5 rounded-full transition-all duration-300 hover:bg-surface-hover text-muted hover:text-text"
+              :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+            >
+              <Sun v-if="isDark" class="w-3.5 h-3.5" />
+              <Moon v-else class="w-3.5 h-3.5" />
+            </button>
+            <button 
+              @click="refreshData"
+              :class="[
+                'p-1.5 rounded-full transition-all duration-300 border border-transparent',
+                isRefreshing ? 'animate-spin text-primary bg-primary/10' : 'text-muted hover:text-text hover:bg-surface-hover hover:border-border-light'
+              ]"
+              title="Refresh Ledger"
+            >
+              <RefreshCw class="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -279,7 +290,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { 
   BookOpen, 
@@ -302,7 +313,9 @@ import {
   DollarSign,
   Wallet,
   Users,
-  LayoutDashboard
+  LayoutDashboard,
+  Sun,
+  Moon
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -313,6 +326,20 @@ const showUserDialog = ref(false)
 const userType = ref('site')
 const isCreating = ref(false)
 const isRefreshing = ref(false)
+const isDark = ref(localStorage.getItem('ledger-theme') !== 'light')
+
+const toggleTheme = () => {
+  isDark.value = !isDark.value
+  localStorage.setItem('ledger-theme', isDark.value ? 'dark' : 'light')
+}
+
+watch(isDark, (val) => {
+  if (val) {
+    document.documentElement.classList.add('dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+  }
+}, { immediate: true })
 
 const userForm = reactive({
   username: '',
