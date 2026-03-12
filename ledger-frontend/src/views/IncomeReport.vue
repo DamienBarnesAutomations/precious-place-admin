@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { DollarSign, RefreshCw, Loader2 } from 'lucide-vue-next'
+import { DollarSign, RefreshCw, Loader2, TrendingUp, BarChart3 } from 'lucide-vue-next'
 
 const emit = defineEmits(['refresh'])
 
@@ -26,7 +26,7 @@ async function fetchIncome() {
   error.value = null
   try {
     const res = await fetch(INCOME_WEBHOOK)
-    if (!res.ok) throw new Error(`SERVER_ERROR: ${res.status}`)
+    if (!res.ok) throw new Error(`API_COMMUNICATION_ERROR: ${res.status}`)
     
     const data = await res.json()
     if (Array.isArray(data)) {
@@ -35,6 +35,7 @@ async function fetchIncome() {
       rawEntries.value = []
     }
   } catch (err) {
+    console.error('Income Fetch Failed:', err)
     error.value = err.message
     rawEntries.value = []
   } finally {
@@ -46,7 +47,7 @@ onMounted(fetchIncome)
 
 const fmt = (val) => {
   const n = Number(val)
-  return '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 const totalIncome = computed(() => {
@@ -60,69 +61,100 @@ const refresh = () => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 animate-fade-in pb-12">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-border pb-6">
       <div>
-        <h1 class="text-2xl font-bold text-text">Income Report</h1>
-        <p class="text-muted mt-1">Revenue breakdown by category</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <div class="px-4 py-2 rounded-lg bg-success/10 border border-success/30">
-          <span class="text-sm text-muted">Total:</span>
-          <span class="text-lg font-bold text-success ml-2">{{ fmt(totalIncome) }}</span>
+        <div class="flex items-center gap-2 mb-1">
+          <TrendingUp class="w-4 h-4 text-success" />
+          <span class="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Revenue Analysis</span>
         </div>
-        <button @click="refresh" class="btn btn-outline">
-          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+        <h1 class="text-3xl font-black text-text tracking-tighter uppercase">Income Statement</h1>
+      </div>
+      
+      <div class="flex items-center gap-4">
+        <div class="px-6 py-2 rounded bg-success/5 border border-success/20 text-right shadow-glow-success">
+          <span class="text-[9px] font-black text-success uppercase tracking-widest block mb-0.5 opacity-70">Total Aggregate Income</span>
+          <span class="text-2xl font-black font-mono text-success tracking-tighter">${{ fmt(totalIncome) }}</span>
+        </div>
+        <button @click="refresh" class="btn btn-outline h-10 px-4">
+          <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
+          <span class="text-[11px] font-black uppercase tracking-widest ml-1">Refresh</span>
         </button>
       </div>
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="card flex items-center justify-center py-20">
-      <Loader2 class="w-8 h-8 text-primary animate-spin" />
+    <div v-if="loading" class="card flex flex-col items-center justify-center py-24 gap-4 bg-background/20 border-dashed">
+      <Loader2 class="w-10 h-10 text-primary animate-spin" />
+      <p class="text-[10px] font-black text-muted uppercase tracking-[0.3em]">Auditing Revenue Streams...</p>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="Object.keys(groupedIncome).length === 0" class="card">
-      <div class="text-center py-12">
-        <DollarSign class="w-16 h-16 text-muted mx-auto mb-4" />
-        <h3 class="text-lg font-semibold text-text mb-2">No Income Recorded</h3>
-        <p class="text-muted">Revenue will appear here once transactions are recorded</p>
+    <div v-else-if="Object.keys(groupedIncome).length === 0" class="card py-24 border-dashed bg-background/20">
+      <div class="text-center max-w-xs mx-auto">
+        <BarChart3 class="w-12 h-12 text-muted-dark mx-auto mb-4 opacity-20" />
+        <h3 class="text-sm font-black text-text uppercase tracking-widest mb-1">No Revenue Data</h3>
+        <p class="text-[10px] text-muted font-bold uppercase tracking-tighter leading-tight">Income distributions will materialize here once transactions are reconciled.</p>
       </div>
     </div>
 
     <!-- Income Cards -->
     <template v-else>
-      <div v-for="(rows, category) in groupedIncome" :key="category" class="card p-0 overflow-hidden">
-        <div class="flex items-center gap-3 px-6 py-4 bg-success/10 border-b border-border">
-          <span class="px-2 py-1 bg-success text-white text-xs font-bold rounded">INC</span>
-          <h3 class="font-semibold text-text">{{ category }}</h3>
-        </div>
+      <div class="grid grid-cols-1 gap-8">
+        <div v-for="(rows, category) in groupedIncome" :key="category" class="card p-0 overflow-hidden border-border bg-surface shadow-lg group hover:border-success/20 transition-colors">
+          <div class="flex items-center justify-between px-6 py-3 bg-background/50 border-b border-border">
+            <div class="flex items-center gap-3">
+              <div class="w-7 h-7 rounded bg-success/10 flex items-center justify-center border border-success/20">
+                <DollarSign class="w-3.5 h-3.5 text-success" />
+              </div>
+              <h3 class="text-[12px] font-black text-text uppercase tracking-widest">{{ category }}</h3>
+            </div>
+            <div class="text-right">
+              <span class="text-[9px] font-black text-muted uppercase tracking-widest block leading-none mb-0.5">CATEGORY_TOTAL</span>
+              <span class="font-mono font-black text-success text-[14px] tracking-tighter">
+                ${{ fmt(rows.reduce((s, r) => s + Number(r.amount), 0)) }}
+              </span>
+            </div>
+          </div>
 
-        <div class="table-container">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th class="text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(row, i) in rows" :key="i">
-                <td class="font-mono text-sm">
-                  {{ new Date(row.created_at).toLocaleDateString('en-GB') }}
-                </td>
-                <td class="text-text">{{ row.description || 'Direct Sale' }}</td>
-                <td class="text-right">
-                  <span class="font-mono text-success font-medium">{{ fmt(row.amount) }}</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="table-container border-0 rounded-none">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="w-40">Entry Timestamp</th>
+                  <th>Ledger Description</th>
+                  <th class="text-right w-48">Credit Amount ($)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border/30">
+                <tr v-for="(row, i) in rows" :key="i" class="group/row hover:bg-success/5 transition-colors">
+                  <td class="font-mono text-[11px] font-bold text-muted uppercase tracking-tighter">
+                    {{ new Date(row.created_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}
+                  </td>
+                  <td class="font-bold text-text-secondary text-[12px] group-hover/row:text-text transition-colors uppercase tracking-tight">
+                    {{ row.description || 'Direct Revenue Realization' }}
+                  </td>
+                  <td class="text-right">
+                    <span class="font-mono text-[13px] font-black text-success tracking-tighter">{{ fmt(row.amount) }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </template>
   </div>
 </template>
+
+<style scoped>
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>

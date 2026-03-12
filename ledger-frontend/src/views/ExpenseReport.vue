@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Wallet, RefreshCw, Loader2 } from 'lucide-vue-next'
+import { Wallet, RefreshCw, Loader2, Receipt, PieChart } from 'lucide-vue-next'
 
 const emit = defineEmits(['refresh'])
 
@@ -26,7 +26,7 @@ async function fetchExpenses() {
   error.value = null
   try {
     const res = await fetch(EXPENSE_WEBHOOK)
-    if (!res.ok) throw new Error(`FETCH_ERROR: ${res.status}`)
+    if (!res.ok) throw new Error(`NETWORK_EXPENDITURE_ERROR: ${res.status}`)
     
     const data = await res.json()
     if (Array.isArray(data)) {
@@ -47,7 +47,7 @@ onMounted(fetchExpenses)
 
 const fmt = (val) => {
   const n = Number(val)
-  return '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 const totalExpenses = computed(() => {
@@ -61,69 +61,100 @@ const refresh = () => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 animate-fade-in pb-12">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-border pb-6">
       <div>
-        <h1 class="text-2xl font-bold text-text">Expense Report</h1>
-        <p class="text-muted mt-1">Expense breakdown by vendor</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <div class="px-4 py-2 rounded-lg bg-danger/10 border border-danger/30">
-          <span class="text-sm text-muted">Total:</span>
-          <span class="text-lg font-bold text-danger ml-2">{{ fmt(totalExpenses) }}</span>
+        <div class="flex items-center gap-2 mb-1">
+          <Receipt class="w-4 h-4 text-danger" />
+          <span class="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Expenditure Audit</span>
         </div>
-        <button @click="refresh" class="btn btn-outline">
-          <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+        <h1 class="text-3xl font-black text-text tracking-tighter uppercase">Expense Analysis</h1>
+      </div>
+      
+      <div class="flex items-center gap-4">
+        <div class="px-6 py-2 rounded bg-danger/5 border border-danger/20 text-right shadow-glow-danger text-danger">
+          <span class="text-[9px] font-black uppercase tracking-widest block mb-0.5 opacity-70">Total Aggregate Outflow</span>
+          <span class="text-2xl font-black font-mono tracking-tighter">${{ fmt(totalExpenses) }}</span>
+        </div>
+        <button @click="refresh" class="btn btn-outline h-10 px-4">
+          <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
+          <span class="text-[11px] font-black uppercase tracking-widest ml-1">Refresh</span>
         </button>
       </div>
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="card flex items-center justify-center py-20">
-      <Loader2 class="w-8 h-8 text-primary animate-spin" />
+    <div v-if="loading" class="card flex flex-col items-center justify-center py-24 gap-4 bg-background/20 border-dashed">
+      <Loader2 class="w-10 h-10 text-primary animate-spin" />
+      <p class="text-[10px] font-black text-muted uppercase tracking-[0.3em]">Auditing Distributions...</p>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="Object.keys(groupedExpenses).length === 0" class="card">
-      <div class="text-center py-12">
-        <Wallet class="w-16 h-16 text-muted mx-auto mb-4" />
-        <h3 class="text-lg font-semibold text-text mb-2">No Expenses Recorded</h3>
-        <p class="text-muted">Expenses will appear here once transactions are recorded</p>
+    <div v-else-if="Object.keys(groupedExpenses).length === 0" class="card py-24 border-dashed bg-background/20">
+      <div class="text-center max-w-xs mx-auto">
+        <PieChart class="w-12 h-12 text-muted-dark mx-auto mb-4 opacity-20" />
+        <h3 class="text-sm font-black text-text uppercase tracking-widest mb-1">Zero Outflow Recorded</h3>
+        <p class="text-[10px] text-muted font-bold uppercase tracking-tighter leading-tight">No expense allocations have been committed within the current audit scope.</p>
       </div>
     </div>
 
     <!-- Expense Cards -->
     <template v-else>
-      <div v-for="(rows, vendor) in groupedExpenses" :key="vendor" class="card p-0 overflow-hidden">
-        <div class="flex items-center gap-3 px-6 py-4 bg-danger/10 border-b border-border border-l-4 border-l-danger">
-          <span class="px-2 py-1 bg-danger text-white text-xs font-bold rounded">EXP</span>
-          <h3 class="font-semibold text-text">{{ vendor }}</h3>
-        </div>
+      <div class="grid grid-cols-1 gap-8">
+        <div v-for="(rows, vendor) in groupedExpenses" :key="vendor" class="card p-0 overflow-hidden border-border bg-surface shadow-lg group hover:border-danger/20 transition-colors">
+          <div class="flex items-center justify-between px-6 py-3 bg-background/50 border-b border-border">
+            <div class="flex items-center gap-3">
+              <div class="w-7 h-7 rounded bg-danger/10 flex items-center justify-center border border-danger/20">
+                <Wallet class="w-3.5 h-3.5 text-danger" />
+              </div>
+              <h3 class="text-[12px] font-black text-text uppercase tracking-widest">{{ vendor }}</h3>
+            </div>
+            <div class="text-right">
+              <span class="text-[9px] font-black text-muted uppercase tracking-widest block leading-none mb-0.5">VENDOR_TOTAL</span>
+              <span class="font-mono font-black text-danger text-[14px] tracking-tighter">
+                ${{ fmt(rows.reduce((s, r) => s + Number(r.amount), 0)) }}
+              </span>
+            </div>
+          </div>
 
-        <div class="table-container">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th class="text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(row, i) in rows" :key="i">
-                <td class="font-mono text-sm">
-                  {{ new Date(row.entry_date).toLocaleDateString('en-GB') }}
-                </td>
-                <td class="text-text">{{ row.description || 'Fixed Cost' }}</td>
-                <td class="text-right">
-                  <span class="font-mono text-danger font-medium">({{ fmt(row.amount) }})</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="table-container border-0 rounded-none">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="w-40">Post Date</th>
+                  <th>Distribution Specification</th>
+                  <th class="text-right w-48">Debit Amount ($)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border/30">
+                <tr v-for="(row, i) in rows" :key="i" class="group/row hover:bg-danger/5 transition-colors">
+                  <td class="font-mono text-[11px] font-bold text-muted uppercase tracking-tighter">
+                    {{ new Date(row.entry_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) }}
+                  </td>
+                  <td class="font-bold text-text-secondary text-[12px] group-hover/row:text-text transition-colors uppercase tracking-tight">
+                    {{ row.description || 'Administrative Operational Overhead' }}
+                  </td>
+                  <td class="text-right">
+                    <span class="font-mono text-[13px] font-black text-danger tracking-tighter">({{ fmt(row.amount) }})</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </template>
   </div>
 </template>
+
+<style scoped>
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>

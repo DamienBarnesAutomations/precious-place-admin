@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch, onMounted, computed } from 'vue'
-import { Users, RefreshCw, Loader2, CheckCircle, AlertCircle } from 'lucide-vue-next'
+import { Users, RefreshCw, Loader2, CheckCircle, AlertCircle, ShieldPlus, ArrowRight } from 'lucide-vue-next'
 
 const emit = defineEmits(['refresh'])
 
@@ -69,7 +69,7 @@ const submitAccount = async () => {
       body: JSON.stringify(payload)
     })
 
-    if (!res.ok) throw new Error('Failed to create account')
+    if (!res.ok) throw new Error('DATA_INITIALIZATION_ERROR')
 
     isSuccess.value = true
     code.value = ''
@@ -77,9 +77,9 @@ const submitAccount = async () => {
     
     setTimeout(() => {
       isSuccess.value = false
-    }, 3000)
+    }, 4000)
   } catch (err) {
-    alert(err.message)
+    alert('Failed to register new account in chart of accounts.')
   } finally {
     loading.value = false
   }
@@ -92,131 +92,188 @@ const refresh = () => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 animate-fade-in pb-12">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-border pb-6">
       <div>
-        <h1 class="text-2xl font-bold text-text">Create Account</h1>
-        <p class="text-muted mt-1">Add new accounts to your chart of accounts</p>
+        <div class="flex items-center gap-2 mb-1">
+          <ShieldPlus class="w-4 h-4 text-primary" />
+          <span class="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Chart of Accounts Setup</span>
+        </div>
+        <h1 class="text-3xl font-black text-text tracking-tighter uppercase">Initialize Account</h1>
       </div>
-      <button @click="refresh" class="btn btn-outline">
-        <RefreshCw class="w-4 h-4" />
+      <button @click="refresh" class="btn btn-outline h-9 px-4">
+        <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': fetchingMetadata }" />
+        <span class="text-[11px] font-black uppercase tracking-widest ml-1">Sync Meta</span>
       </button>
     </div>
 
     <!-- Success Message -->
     <Transition name="fade">
-      <div v-if="isSuccess" class="card bg-success/10 border-success/30 flex items-center gap-3">
-        <CheckCircle class="w-5 h-5 text-success" />
-        <span class="text-sm font-medium text-success">Account created successfully!</span>
+      <div v-if="isSuccess" class="card bg-success/5 border-success/30 flex items-center gap-4 p-6 shadow-glow-success">
+        <div class="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
+          <CheckCircle class="w-6 h-6 text-success" />
+        </div>
+        <div>
+          <p class="text-[11px] font-black text-success uppercase tracking-widest">Initialization Success</p>
+          <p class="text-xs text-muted-dark font-bold uppercase tracking-tighter mt-0.5">Account has been successfully registered in the master hierarchy.</p>
+        </div>
       </div>
     </Transition>
 
-    <!-- Form -->
-    <div class="card max-w-2xl">
-      <div class="flex items-center gap-3 mb-6 pb-4 border-b border-border">
-        <div class="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
-          <Users class="w-6 h-6 text-success" />
-        </div>
-        <div>
-          <h3 class="text-lg font-semibold text-text">Account Configuration</h3>
-          <p class="text-sm text-muted">Set up new account details</p>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <!-- Form -->
+      <div class="lg:col-span-7">
+        <div class="card bg-surface/50 p-8 space-y-8 shadow-2xl border-border">
+          <div class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-muted-dark uppercase tracking-widest">Account Code</label>
+                <input 
+                  v-model="code" 
+                  type="text" 
+                  placeholder="CODE_1XXX" 
+                  class="input font-mono uppercase font-black tracking-widest"
+                />
+              </div>
+              <div class="md:col-span-2 space-y-1.5">
+                <label class="text-[10px] font-black text-muted-dark uppercase tracking-widest">Operational Name</label>
+                <input 
+                  v-model="name" 
+                  type="text" 
+                  placeholder="e.g. Petty Cash Reserve" 
+                  class="input font-bold"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-muted-dark uppercase tracking-widest">Classification Type</label>
+                <select v-model="type" class="select font-bold uppercase tracking-tight">
+                  <option value="asset">Economic Asset</option>
+                  <option value="liability">Current Liability</option>
+                  <option value="equity">Shareholder Equity</option>
+                  <option value="income">Operational Revenue</option>
+                  <option value="expense">Administrative Expense</option>
+                </select>
+              </div>
+              <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-muted-dark uppercase tracking-widest">Reporting Category</label>
+                <select 
+                  v-model="categoryId" 
+                  class="select font-bold uppercase tracking-tight"
+                  :disabled="fetchingMetadata"
+                >
+                  <option v-if="fetchingMetadata" disabled>Querying Metadata...</option>
+                  <option v-else-if="filteredCategories.length === 0" disabled>No categories found</option>
+                  <option v-for="cat in filteredCategories" :key="cat.id" :value="cat.id">
+                    {{ cat.label.toUpperCase() }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div class="space-y-3 pt-4">
+              <label class="text-[10px] font-black text-muted-dark uppercase tracking-widest block">Primary Normal Balance</label>
+              <div class="flex gap-3">
+                <button 
+                  @click="normalBalance = 'debit'"
+                  :class="[
+                    'flex-1 py-3 px-4 rounded border font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-200',
+                    normalBalance === 'debit' 
+                      ? 'bg-success/10 border-success text-success shadow-glow-success' 
+                      : 'bg-background/50 border-border text-muted-dark hover:border-muted/50'
+                  ]"
+                >
+                  Debit (DR)
+                </button>
+                <button 
+                  @click="normalBalance = 'credit'"
+                  :class="[
+                    'flex-1 py-3 px-4 rounded border font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-200',
+                    normalBalance === 'credit' 
+                      ? 'bg-danger/10 border-danger text-danger shadow-glow-danger' 
+                      : 'bg-background/50 border-border text-muted-dark hover:border-muted/50'
+                  ]"
+                >
+                  Credit (CR)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-6 border-t border-border">
+            <button 
+              @click="submitAccount"
+              :disabled="loading || !code || !name || !categoryId"
+              class="btn btn-primary w-full h-12"
+            >
+              <Loader2 v-if="loading" class="w-4 h-4 animate-spin" />
+              <ShieldPlus v-else class="w-4 h-4" />
+              <span class="text-[11px] font-black uppercase tracking-[0.2em] ml-2">{{ loading ? 'Processing...' : 'Register Account' }}</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div class="space-y-6">
-        <!-- Account Code & Name -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-text-secondary mb-1.5">Account Code</label>
-            <input 
-              v-model="code" 
-              type="text" 
-              placeholder="e.g. 1001" 
-              class="input"
-            />
-          </div>
-          <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-text-secondary mb-1.5">Account Name</label>
-            <input 
-              v-model="name" 
-              type="text" 
-              placeholder="e.g. Petty Cash" 
-              class="input"
-            />
+      <!-- Preview / Helper -->
+      <div class="lg:col-span-5 space-y-6">
+        <div class="card bg-background/30 border-dashed p-6">
+          <h3 class="text-[10px] font-black text-muted-dark uppercase tracking-widest mb-4">Live Hierarchy Preview</h3>
+          <div class="space-y-4">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded bg-surface border border-border flex items-center justify-center font-mono font-black text-primary uppercase text-[10px]">
+                {{ code || '?' }}
+              </div>
+              <div>
+                <p class="text-[13px] font-bold text-text uppercase tracking-tight">{{ name || 'Specified Account Name' }}</p>
+                <p class="text-[9px] font-black text-muted uppercase tracking-widest mt-0.5">{{ type }} | {{ normalBalance }} balance</p>
+              </div>
+            </div>
+            <div class="h-[1px] bg-border/50"></div>
+            <p class="text-[10px] text-muted-dark font-bold uppercase tracking-tighter leading-relaxed">
+              Registering this account will update the general ledger distributions and available targets for journal entries.
+            </p>
           </div>
         </div>
 
-        <!-- Account Type & Category -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-text-secondary mb-1.5">Account Type</label>
-            <select v-model="type" class="select">
-              <option value="asset">Asset</option>
-              <option value="liability">Liability</option>
-              <option value="equity">Equity</option>
-              <option value="income">Income</option>
-              <option value="expense">Expense</option>
-            </select>
+        <div class="card bg-primary/5 border-primary/10 p-6">
+          <div class="flex items-start gap-4">
+            <div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <ArrowRight class="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <h4 class="text-[11px] font-black text-text uppercase tracking-widest">Configuration Rules</h4>
+              <ul class="mt-3 space-y-2">
+                <li class="text-[10px] text-muted-dark font-bold uppercase tracking-tighter flex items-center gap-2">
+                  <div class="w-1 h-1 rounded-full bg-primary"></div>
+                  Asset & Expense use Debit as normal
+                </li>
+                <li class="text-[10px] text-muted-dark font-bold uppercase tracking-tighter flex items-center gap-2">
+                  <div class="w-1 h-1 rounded-full bg-primary"></div>
+                  Liability & Equity use Credit as normal
+                </li>
+                <li class="text-[10px] text-muted-dark font-bold uppercase tracking-tighter flex items-center gap-2">
+                  <div class="w-1 h-1 rounded-full bg-primary"></div>
+                  Revenue uses Credit as normal
+                </li>
+              </ul>
+            </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-text-secondary mb-1.5">Account Category</label>
-            <select 
-              v-model="categoryId" 
-              class="select"
-              :disabled="fetchingMetadata"
-            >
-              <option v-if="fetchingMetadata" disabled>Loading...</option>
-              <option v-else-if="filteredCategories.length === 0" disabled>No categories</option>
-              <option v-for="cat in filteredCategories" :key="cat.id" :value="cat.id">
-                {{ cat.label }}
-              </option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Normal Balance Toggle -->
-        <div>
-          <label class="block text-sm font-medium text-text-secondary mb-1.5">Normal Balance</label>
-          <div class="flex gap-2">
-            <button 
-              @click="normalBalance = 'debit'"
-              :class="[
-                'flex-1 py-3 px-4 rounded-lg font-medium transition-all',
-                normalBalance === 'debit' 
-                  ? 'bg-success text-white shadow-glow-success' 
-                  : 'bg-background text-muted hover:text-text border border-border'
-              ]"
-            >
-              Debit
-            </button>
-            <button 
-              @click="normalBalance = 'credit'"
-              :class="[
-                'flex-1 py-3 px-4 rounded-lg font-medium transition-all',
-                normalBalance === 'credit' 
-                  ? 'bg-danger text-white shadow-lg' 
-                  : 'bg-background text-muted hover:text-text border border-border'
-              ]"
-            >
-              Credit
-            </button>
-          </div>
-        </div>
-
-        <!-- Submit Button -->
-        <div class="pt-4 border-t border-border">
-          <button 
-            @click="submitAccount"
-            :disabled="loading || !code || !name || !categoryId"
-            class="btn btn-success w-full"
-          >
-            <Loader2 v-if="loading" class="w-5 h-5 animate-spin" />
-            <CheckCircle v-else class="w-5 h-5" />
-            <span>{{ loading ? 'Creating...' : 'Create Account' }}</span>
-          </button>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>

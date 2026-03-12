@@ -7,7 +7,9 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  BookOpenCheck,
+  Search
 } from 'lucide-vue-next'
 
 const emit = defineEmits(['refresh'])
@@ -15,8 +17,9 @@ const emit = defineEmits(['refresh'])
 const rawEntries = ref([])
 const loading = ref(false)
 const error = ref(null)
+const searchQuery = ref('')
 const currentPage = ref(1)
-const itemsPerPage = ref(10)
+const itemsPerPage = ref(8)
 
 const LEDGER_WEBHOOK = import.meta.env.VITE_GET_GENERAL_LEDGER_WEBHOOK
 
@@ -30,7 +33,14 @@ const groupedLedger = computed(() => {
   }, {})
 })
 
-const accountKeys = computed(() => Object.keys(groupedLedger.value))
+const accountKeys = computed(() => {
+  let keys = Object.keys(groupedLedger.value)
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    keys = keys.filter(k => k.toLowerCase().includes(query))
+  }
+  return keys
+})
 
 const paginatedAccounts = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value
@@ -44,7 +54,7 @@ async function fetchLedger() {
   error.value = null
   try {
     const res = await fetch(LEDGER_WEBHOOK)
-    if (!res.ok) throw new Error('FETCH_ERROR')
+    if (!res.ok) throw new Error('DATA_RETRIEVAL_FAILURE')
     const data = await res.json()
     
     if (Array.isArray(data)) {
@@ -64,7 +74,12 @@ onMounted(fetchLedger)
 const fmt = (val) => {
   const n = Number(val)
   if (isNaN(n) || n === 0) return '—'
-  return '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+const getAccountBalance = (key) => {
+  const entries = groupedLedger.value[key]
+  return entries.reduce((sum, e) => sum + (Number(e.debit) || 0) - (Number(e.credit) || 0), 0)
 }
 
 const refresh = () => {
@@ -74,123 +89,155 @@ const refresh = () => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-6 animate-fade-in">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-border pb-6">
       <div>
-        <h1 class="text-2xl font-bold text-text">General Ledger</h1>
-        <p class="text-muted mt-1">View account transactions grouped by account</p>
+        <div class="flex items-center gap-2 mb-1">
+          <BookOpenCheck class="w-4 h-4 text-primary" />
+          <span class="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Master Ledger</span>
+        </div>
+        <h1 class="text-3xl font-black text-text tracking-tighter uppercase">General Ledger</h1>
       </div>
-      <button 
-        @click="refresh"
-        class="btn btn-outline"
-      >
-        <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
-        <span>Refresh</span>
-      </button>
+      
+      <div class="flex items-center gap-2">
+        <div class="relative hidden md:block">
+          <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted" />
+          <input 
+            v-model="searchQuery"
+            type="text" 
+            placeholder="SEARCH ACCOUNTS..."
+            class="input pl-9 h-9 w-48 text-[10px] font-bold uppercase tracking-widest bg-surface border-transparent focus:border-primary/30"
+          />
+        </div>
+        <button 
+          @click="refresh"
+          class="btn btn-outline h-9 px-4"
+        >
+          <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
+          <span class="text-[11px] font-black uppercase tracking-widest ml-1">Refresh</span>
+        </button>
+      </div>
     </div>
 
     <!-- Loading State -->
-    <div v-if="loading" class="card flex items-center justify-center py-20">
-      <Loader2 class="w-8 h-8 text-primary animate-spin" />
+    <div v-if="loading" class="card flex flex-col items-center justify-center py-24 gap-4 bg-background/20 border-dashed">
+      <Loader2 class="w-10 h-10 text-primary animate-spin" />
+      <p class="text-[10px] font-black text-muted uppercase tracking-[0.3em]">Processing Ledger Data...</p>
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error" class="card bg-danger/10 border-danger/30">
-      <span class="text-sm font-medium text-danger">Error: {{ error }}</span>
+    <div v-else-if="error" class="card bg-danger/5 border-danger/20 p-6 flex items-center gap-4">
+      <div class="w-10 h-10 rounded bg-danger/10 flex items-center justify-center">
+        <Library class="w-5 h-5 text-danger" />
+      </div>
+      <span class="text-[11px] font-black text-danger uppercase tracking-widest">Error: {{ error }}</span>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="accountKeys.length === 0" class="card">
-      <div class="text-center py-12">
-        <Library class="w-16 h-16 text-muted mx-auto mb-4" />
-        <h3 class="text-lg font-semibold text-text mb-2">No Ledger Data</h3>
-        <p class="text-muted">No general ledger entries found</p>
+    <div v-else-if="accountKeys.length === 0" class="card py-24 border-dashed bg-background/20">
+      <div class="text-center max-w-xs mx-auto">
+        <Library class="w-12 h-12 text-muted-dark mx-auto mb-4" />
+        <h3 class="text-sm font-black text-text uppercase tracking-widest mb-1">No Account Data</h3>
+        <p class="text-[10px] text-muted font-bold uppercase tracking-tighter">Specify a valid account range or initialize your chart of accounts.</p>
       </div>
     </div>
 
-    <!-- Ledger Cards -->
+    <!-- Ledger Cards Grid -->
     <template v-else>
-      <div 
-        v-for="accountKey in paginatedAccounts" 
-        :key="accountKey"
-        class="card p-0 overflow-hidden"
-      >
-        <!-- Account Header -->
-        <div class="flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-primary/10 to-transparent border-b border-border">
-          <span class="px-2 py-1 bg-primary text-white text-xs font-bold font-mono rounded">
-            {{ accountKey.split(' · ')[0] }}
-          </span>
-          <span class="text-sm font-semibold text-text uppercase tracking-wide">
-            {{ accountKey.split(' · ')[1] }}
-          </span>
-        </div>
+      <div class="grid grid-cols-1 gap-6">
+        <div 
+          v-for="accountKey in paginatedAccounts" 
+          :key="accountKey"
+          class="card p-0 overflow-hidden border-border bg-surface shadow-lg group hover:border-primary/20 transition-colors"
+        >
+          <!-- Account Header -->
+          <div class="flex items-center justify-between px-6 py-3 bg-background/50 border-b border-border">
+            <div class="flex items-center gap-3">
+              <span class="px-2 py-0.5 bg-primary/10 text-primary text-[11px] font-black font-mono rounded border border-primary/20">
+                {{ accountKey.split(' · ')[0] }}
+              </span>
+              <span class="text-[12px] font-black text-text uppercase tracking-widest">
+                {{ accountKey.split(' · ')[1] }}
+              </span>
+            </div>
+            <div class="flex items-center gap-4">
+              <div class="text-right">
+                <span class="text-[9px] font-black text-muted uppercase tracking-widest block leading-none mb-0.5">NET BALANCE</span>
+                <span :class="['font-mono font-black text-[14px] tracking-tighter', getAccountBalance(accountKey) >= 0 ? 'text-success' : 'text-danger']">
+                  ${{ Math.abs(getAccountBalance(accountKey)).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
+                  <span class="text-[10px] opacity-60 ml-0.5">{{ getAccountBalance(accountKey) >= 0 ? 'DR' : 'CR' }}</span>
+                </span>
+              </div>
+            </div>
+          </div>
 
-        <!-- Entries Table -->
-        <div class="table-container">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Reference</th>
-                <th>Description</th>
-                <th class="text-right">Debit</th>
-                <th class="text-right">Credit</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr 
-                v-for="(row, index) in groupedLedger[accountKey]" 
-                :key="index"
-                class="group"
-              >
-                <td class="font-mono text-sm">
-                  {{ new Date(row.entry_date).toLocaleDateString('en-GB') }}
-                </td>
-                <td>
-                  <span class="badge badge-muted">#{{ row.reference || '0000' }}</span>
-                </td>
-                <td class="font-medium" :class="row.description ? 'text-text' : 'text-muted'">
-                  {{ row.description || '—' }}
-                </td>
-                <td class="text-right">
-                  <div class="flex items-center justify-end gap-2">
-                    <ArrowDownRight class="w-4 h-4 text-success" />
-                    <span class="font-mono text-success">{{ fmt(row.debit) }}</span>
-                  </div>
-                </td>
-                <td class="text-right">
-                  <div class="flex items-center justify-end gap-2">
-                    <ArrowUpRight class="w-4 h-4 text-danger" />
-                    <span class="font-mono text-danger">{{ fmt(row.credit) }}</span>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <!-- Entries Table -->
+          <div class="table-container border-0 rounded-none">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="w-32">Post Date</th>
+                  <th class="w-32">Reference</th>
+                  <th>Description</th>
+                  <th class="text-right w-40">Debit</th>
+                  <th class="text-right w-40">Credit</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border/30">
+                <tr 
+                  v-for="(row, index) in groupedLedger[accountKey]" 
+                  :key="index"
+                  class="group/row hover:bg-primary/5 transition-colors"
+                >
+                  <td class="font-mono text-[11px] font-bold text-muted uppercase tracking-tighter">
+                    {{ new Date(row.entry_date).toLocaleDateString('en-GB') }}
+                  </td>
+                  <td>
+                    <span class="px-1.5 py-0.5 bg-background border border-border text-[9px] font-black text-muted uppercase tracking-tighter rounded">
+                      #{{ row.reference || '0000' }}
+                    </span>
+                  </td>
+                  <td class="font-bold text-text-secondary text-[12px] group-hover/row:text-text transition-colors">
+                    {{ row.description || 'N/A' }}
+                  </td>
+                  <td class="text-right">
+                    <div class="flex items-center justify-end gap-1.5 font-mono text-[13px]">
+                      <span :class="['font-bold', row.debit ? 'text-success' : 'text-muted-dark']">{{ fmt(row.debit) }}</span>
+                      <ArrowDownRight class="w-3 h-3 text-success opacity-30" v-if="row.debit" />
+                    </div>
+                  </td>
+                  <td class="text-right">
+                    <div class="flex items-center justify-end gap-1.5 font-mono text-[13px]">
+                      <span :class="['font-bold', row.credit ? 'text-danger' : 'text-muted-dark']">{{ fmt(row.credit) }}</span>
+                      <ArrowUpRight class="w-3 h-3 text-danger opacity-30" v-if="row.credit" />
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       <!-- Pagination -->
-      <div v-if="accountKeys.length > 0" class="flex items-center justify-between">
-        <p class="text-sm text-muted">
-          Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, accountKeys.length) }} of {{ accountKeys.length }} accounts
+      <div class="flex items-center justify-between px-2 pt-4">
+        <p class="text-[10px] font-black text-muted uppercase tracking-widest">
+          LEDSYNC: {{ accountKeys.length }} ACCOUNTS INDEXED <span class="mx-2 text-border">|</span>
+          PAGE {{ currentPage }} / {{ totalPages }}
         </p>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5">
           <button 
             @click="currentPage--"
             :disabled="currentPage === 1"
-            class="btn btn-outline btn-sm"
+            class="btn btn-outline w-8 h-8 p-0 disabled:opacity-20"
           >
             <ChevronLeft class="w-4 h-4" />
           </button>
-          <span class="px-3 py-1 text-sm font-medium text-text">
-            {{ currentPage }} / {{ totalPages }}
-          </span>
           <button 
             @click="currentPage++"
             :disabled="currentPage >= totalPages"
-            class="btn btn-outline btn-sm"
+            class="btn btn-outline w-8 h-8 p-0 disabled:opacity-20"
           >
             <ChevronRight class="w-4 h-4" />
           </button>
@@ -199,6 +246,17 @@ const refresh = () => {
     </template>
   </div>
 </template>
+
+<style scoped>
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
 
 <style scoped>
 .btn-sm {
