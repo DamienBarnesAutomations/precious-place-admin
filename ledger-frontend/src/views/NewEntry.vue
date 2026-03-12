@@ -1,11 +1,16 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { PlusCircle, Loader2, CheckCircle, AlertCircle, Plus, Trash2 } from 'lucide-vue-next'
+
+const emit = defineEmits(['refresh'])
 
 const entryDate = ref(new Date().toISOString().slice(0, 10))
 const reference = ref('')
 const description = ref('')
 const accounts = ref([])
 const loadingAccounts = ref(false)
+const isSubmitting = ref(false)
+const isSuccess = ref(false)
 
 const rows = ref([
   { account_id: '', debit: null, credit: null },
@@ -29,18 +34,16 @@ const totalCredit = computed(() => {
 });
 
 const balance = computed(() => {
-  // Subtracting two rounded numbers is safe
   return Math.round((totalDebit.value - totalCredit.value + Number.EPSILON) * 100) / 100;
 });
 
 const isBalanced = computed(() => {
-  // Check if exactly zero and that there is actually a transaction
   return Math.abs(balance.value) === 0 && totalDebit.value > 0;
 });
 
-
 const submitEntry = async () => {
   if (!isBalanced.value) return
+  
   const cleanedLines = rows.value
     .filter(r => r.account_id && (Number(r.debit) || Number(r.credit)))
     .map(r => ({
@@ -54,6 +57,7 @@ const submitEntry = async () => {
     return
   }
 
+  isSubmitting.value = true
   const payload = {
     date: entryDate.value,
     reference: reference.value,
@@ -69,6 +73,7 @@ const submitEntry = async () => {
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
+    isSuccess.value = true
     description.value = ''
     reference.value = ''
     rows.value = [
@@ -76,9 +81,16 @@ const submitEntry = async () => {
       { account_id: '', debit: null, credit: null }
     ]
     entryDate.value = new Date().toISOString().slice(0, 10)
-    alert('Entry posted successfully!')
+    
+    setTimeout(() => {
+      isSuccess.value = false
+    }, 3000)
+    
+    emit('refresh')
   } catch (err) {
     alert('Failed to save journal entry')
+  } finally {
+    isSubmitting.value = false
   }
 }
 
@@ -94,207 +106,152 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="ledger-container">
-    <header class="view-header">
-      <div class="title-meta">
-        <h1>New Journal Entry</h1>
-        <div class="pill">
-          <span class="pulse" :class="{ 'pulse-error': !isBalanced }"></span>
-          {{ isBalanced ? 'Ready to Post' : 'Out of Balance' }}
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-text">New Journal Entry</h1>
+        <p class="text-muted mt-1">Create a new journal transaction</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border" :class="isBalanced ? 'bg-success/10 border-success/30' : 'bg-danger/10 border-danger/30'">
+          <CheckCircle v-if="isBalanced" class="w-4 h-4 text-success" />
+          <AlertCircle v-else class="w-4 h-4 text-danger" />
+          <span class="text-sm font-medium" :class="isBalanced ? 'text-success' : 'text-danger'">
+            {{ isBalanced ? 'Ready to Post' : 'Out of Balance' }}
+          </span>
         </div>
       </div>
-      <div class="header-actions">
-        <button class="post-btn" :disabled="!isBalanced" @click="submitEntry">
-          Post Transaction
-        </button>
-      </div>
-    </header>
+    </div>
 
-    <div class="ledger-scroller">
-      <div class="acct-card meta-section compact-bar">
-        <div class="meta-grid">
-          <div class="input-group">
-            <label>Date</label>
-            <input type="date" v-model="entryDate" class="min-input" />
+    <!-- Success Message -->
+    <Transition name="fade">
+      <div v-if="isSuccess" class="card bg-success/10 border-success/30 flex items-center gap-3">
+        <CheckCircle class="w-5 h-5 text-success" />
+        <span class="text-sm font-medium text-success">Journal entry posted successfully!</span>
+      </div>
+    </Transition>
+
+    <!-- Entry Form -->
+    <div class="space-y-4">
+      <!-- Meta Section -->
+      <div class="card">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-text-secondary mb-1.5">Date</label>
+            <input type="date" v-model="entryDate" class="input" />
           </div>
-          <div class="input-group ref-width">
-            <label>Ref</label>
-            <input type="text" v-model="reference" placeholder="Ref #" class="min-input" />
+          <div>
+            <label class="block text-sm font-medium text-text-secondary mb-1.5">Reference</label>
+            <input type="text" v-model="reference" placeholder="Ref #" class="input" />
           </div>
-          <div class="input-group grow">
-            <label>Memo</label>
-            <input type="text" v-model="description" placeholder="Entry description..." class="min-input" />
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-text-secondary mb-1.5">Description</label>
+            <input type="text" v-model="description" placeholder="Entry description..." class="input" />
           </div>
         </div>
       </div>
 
-      <div class="acct-card">
-        <div class="acct-head">
-          <span class="acct-id">LINES</span>
-          <span class="acct-label">Account Distributions</span>
+      <!-- Lines Section -->
+      <div class="card p-0 overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-primary/10 to-transparent border-b border-border">
+          <h3 class="font-semibold text-text">Account Distributions</h3>
         </div>
 
-        <div class="acct-entries">
-          <div class="table-head">
-            <div class="col-main">Account Selection</div>
-            <div class="text-right">Debit</div>
-            <div class="text-right">Credit</div>
-            <div class="col-action"></div>
-          </div>
+        <!-- Table Header -->
+        <div class="hidden md:grid md:grid-cols-[1fr_160px_160px_50px] gap-4 px-6 py-3 bg-background border-b border-border text-xs font-semibold text-muted uppercase tracking-wider">
+          <div>Account</div>
+          <div class="text-right">Debit</div>
+          <div class="text-right">Credit</div>
+          <div></div>
+        </div>
 
-          <div v-for="(row, i) in rows" :key="i" class="entry-line">
-            <div class="col-main">
-              <select v-model="row.account_id" class="ledger-select">
-                <option disabled value="">Select Account...</option>
-                <option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.code }} - {{ a.name }}</option>
-              </select>
-            </div>
+        <!-- Lines -->
+        <div class="divide-y divide-border">
+          <div 
+            v-for="(row, i) in rows" 
+            :key="i"
+            class="grid grid-cols-1 md:grid-cols-[1fr_160px_160px_50px] gap-4 px-6 py-4 items-center"
+          >
+            <select v-model="row.account_id" class="select">
+              <option disabled value="">Select Account...</option>
+              <option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.code }} - {{ a.name }}</option>
+            </select>
             
-            <div class="col-val">
-              <input type="number" v-model.number="row.debit" @input="onDebitInput(row)" placeholder="0.00" class="amt-input dr-field" />
+            <div>
+              <input 
+                type="number" 
+                v-model.number="row.debit" 
+                @input="onDebitInput(row)" 
+                placeholder="0.00" 
+                class="input text-right font-mono"
+                :class="row.debit ? 'text-success' : ''"
+              />
             </div>
 
-            <div class="col-val">
-              <input type="number" v-model.number="row.credit" @input="onCreditInput(row)" placeholder="0.00" class="amt-input cr-field" />
+            <div>
+              <input 
+                type="number" 
+                v-model.number="row.credit" 
+                @input="onCreditInput(row)" 
+                placeholder="0.00" 
+                class="input text-right font-mono"
+                :class="row.credit ? 'text-danger' : ''"
+              />
             </div>
 
-            <div class="col-action">
-              <button @click="removeRow(i)" class="remove-btn" :disabled="rows.length <= 2">✕</button>
+            <div class="flex justify-end">
+              <button 
+                @click="removeRow(i)" 
+                class="p-2 rounded-lg text-muted hover:text-danger hover:bg-danger/10 transition-colors"
+                :disabled="rows.length <= 2"
+                :class="{ 'opacity-0': rows.length <= 2 }"
+              >
+                <Trash2 class="w-5 h-5" />
+              </button>
             </div>
           </div>
         </div>
 
-        <div class="card-footer">
-          <button @click="addRow" class="add-line-btn">
-            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="3" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Add Line
+        <!-- Add Line Button -->
+        <div class="px-6 py-4 border-t border-border">
+          <button @click="addRow" class="btn btn-outline">
+            <Plus class="w-4 h-4" />
+            <span>Add Line</span>
           </button>
-          
-          <div class="running-totals">
-            <div class="total-box dr">
-              <label>Total Debit</label>
-              <span>{{ totalDebit.toFixed(2) }}</span>
+        </div>
+
+        <!-- Totals -->
+        <div class="px-6 py-4 bg-background border-t border-border">
+          <div class="flex items-center justify-end gap-8">
+            <div class="text-right">
+              <p class="text-xs text-muted mb-1">Total Debit</p>
+              <p class="text-xl font-bold font-mono" :class="totalDebit > 0 ? 'text-success' : 'text-muted'">
+                ${{ totalDebit.toFixed(2) }}
+              </p>
             </div>
-            <div class="total-box cr">
-              <label>Total Credit</label>
-              <span>{{ totalCredit.toFixed(2) }}</span>
+            <div class="text-right">
+              <p class="text-xs text-muted mb-1">Total Credit</p>
+              <p class="text-xl font-bold font-mono" :class="totalCredit > 0 ? 'text-danger' : 'text-muted'">
+                ${{ totalCredit.toFixed(2) }}
+              </p>
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="flex justify-end">
+        <button 
+          @click="submitEntry"
+          :disabled="!isBalanced || isSubmitting"
+          class="btn btn-success"
+        >
+          <Loader2 v-if="isSubmitting" class="w-5 h-5 animate-spin" />
+          <CheckCircle v-else class="w-5 h-5" />
+          <span>{{ isSubmitting ? 'Posting...' : 'Post Transaction' }}</span>
+        </button>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.ledger-container {
-  --bg: #09090b;
-  --surface: #18181b;
-  --border: rgba(255,255,255,0.06);
-  --accent: #10b981;
-  --text-main: #fafafa;
-  --text-dim: #a1a1aa;
-  --dr: #4ade80;
-  --cr: #f87171;
-  background: var(--bg);
-  min-height: 100vh;
-  color: var(--text-main);
-  font-family: 'Inter', sans-serif;
-}
-
-.view-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-  background: rgba(9, 9, 11, 0.85);
-  backdrop-filter: blur(12px);
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-
-.title-meta h1 { font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
-.pill { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-dim); background: #27272a; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--border); margin-top: 4px; width: fit-content; }
-.pulse { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent); }
-.pulse-error { background: var(--cr); box-shadow: 0 0 8px var(--cr); }
-
-.post-btn {
-  background: var(--accent);
-  color: #022c22;
-  border: none;
-  padding: 8px 18px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
-}
-.post-btn:disabled { opacity: 0.15; cursor: not-allowed; filter: grayscale(1); }
-
-.ledger-scroller { padding: 1rem 1.5rem; width: 100%; box-sizing: border-box; }
-
-/* --- Compact Meta Bar --- */
-.meta-section.compact-bar { 
-  padding: 0.75rem 1.25rem; 
-  margin-bottom: 1rem;
-  background: rgba(24, 24, 27, 0.5);
-}
-
-.meta-grid { display: flex; gap: 1.5rem; align-items: center; }
-.input-group { display: flex; align-items: center; gap: 10px; }
-.ref-width { width: 180px; }
-.input-group.grow { flex: 1; }
-.input-group label { font-size: 9px; font-weight: 800; text-transform: uppercase; color: var(--text-dim); white-space: nowrap; }
-
-.min-input {
-  background: #09090b !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 4px !important;
-  height: 32px !important;
-  padding: 0 10px !important;
-  font-size: 13px !important;
-  color: white;
-  width: 100%;
-}
-
-/* --- Entry Table --- */
-.acct-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 1.5rem; overflow: hidden; }
-.acct-head { padding: 0.75rem 1.25rem; background: linear-gradient(to right, rgba(16, 185, 129, 0.1), transparent); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
-.acct-id { background: var(--accent); color: #000; font-family: 'JetBrains Mono', monospace; font-weight: 900; padding: 1px 6px; border-radius: 3px; font-size: 0.7rem; }
-.acct-label { font-weight: 700; text-transform: uppercase; font-size: 0.75rem; color: var(--text-dim); }
-
-.table-head, .entry-line { display: grid; grid-template-columns: 1fr 160px 160px 50px; padding: 0 1.25rem; }
-.table-head { height: 36px; align-items: center; background: rgba(0,0,0,0.2); font-size: 9px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; border-bottom: 1px solid var(--border); }
-.entry-line { height: 50px; align-items: center; border-bottom: 1px solid var(--border); }
-
-.ledger-select, .amt-input { width: 100%; background: #09090b; border: 1px solid var(--border); color: white; height: 36px; font-size: 14px; border-radius: 4px; padding: 0 8px; transition: border-color 0.2s; }
-.ledger-select:focus, .amt-input:focus { border-color: var(--accent); outline: none; }
-.amt-input { text-align: right; font-family: 'JetBrains Mono', monospace; }
-.dr-field { color: var(--dr); }
-.cr-field { color: var(--cr); }
-
-.remove-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; width: 30px; height: 30px; border-radius: 50%; transition: 0.2s; }
-.remove-btn:hover:not(:disabled) { background: rgba(248, 113, 113, 0.1); color: var(--cr); }
-.remove-btn:disabled { opacity: 0; }
-
-.card-footer { padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.15); }
-.add-line-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: white; padding: 6px 14px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-.add-line-btn:hover { background: var(--accent); color: #000; }
-
-.running-totals { display: flex; gap: 2rem; }
-.total-box { display: flex; flex-direction: column; align-items: flex-end; }
-.total-box label { font-size: 8px; text-transform: uppercase; color: var(--text-dim); font-weight: 800; }
-.total-box span { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 16px; }
-.total-box.dr span { color: var(--dr); }
-.total-box.cr span { color: var(--cr); }
-
-.text-right { text-align: right; }
-
-@media (max-width: 900px) {
-  .meta-grid { flex-direction: column; align-items: stretch; gap: 0.75rem; }
-  .table-head { display: none; }
-  .entry-line { grid-template-columns: 1fr 1fr 40px; height: auto; padding: 1rem; gap: 8px; }
-  .col-main { grid-column: span 3; }
-}
-</style>

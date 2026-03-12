@@ -1,9 +1,22 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { 
+  Library, 
+  RefreshCw, 
+  Loader2,
+  ArrowUpRight,
+  ArrowDownRight,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-vue-next'
+
+const emit = defineEmits(['refresh'])
 
 const rawEntries = ref([])
 const loading = ref(false)
 const error = ref(null)
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 const LEDGER_WEBHOOK = import.meta.env.VITE_GET_GENERAL_LEDGER_WEBHOOK
 
@@ -17,6 +30,15 @@ const groupedLedger = computed(() => {
   }, {})
 })
 
+const accountKeys = computed(() => Object.keys(groupedLedger.value))
+
+const paginatedAccounts = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  return accountKeys.value.slice(start, start + itemsPerPage.value)
+})
+
+const totalPages = computed(() => Math.ceil(accountKeys.value.length / itemsPerPage.value))
+
 async function fetchLedger() {
   loading.value = true
   error.value = null
@@ -25,16 +47,11 @@ async function fetchLedger() {
     if (!res.ok) throw new Error('FETCH_ERROR')
     const data = await res.json()
     
-    // Filter out empty objects [ {} ] so the array length becomes 0 if no real data exists
     if (Array.isArray(data)) {
-      rawEntries.value = data.filter(entry => 
-        entry && Object.keys(entry).length > 0
-      )
+      rawEntries.value = data.filter(entry => entry && Object.keys(entry).length > 0)
     } else {
       rawEntries.value = []
     }
-    
-    // This will now show an empty array [] instead of [{}]
   } catch (err) {
     error.value = err.message
   } finally {
@@ -46,202 +63,145 @@ onMounted(fetchLedger)
 
 const fmt = (val) => {
   const n = Number(val)
-  return n > 0 ? "$" + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'
+  if (isNaN(n) || n === 0) return '—'
+  return '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+const refresh = () => {
+  fetchLedger()
+  emit('refresh')
 }
 </script>
 
 <template>
-  <div class="ledger-container">
-    <header class="view-header">
-      <div class="title-meta">
-        <h1>General Ledger</h1>
-        <div class="pill">
-          <span class="pulse"></span>
-          {{ rawEntries.length }} Entries
-        </div>
+  <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-text">General Ledger</h1>
+        <p class="text-muted mt-1">View account transactions grouped by account</p>
       </div>
-      <button @click="fetchLedger" class="sync-btn" :class="{ spinning: loading }">
-        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+      <button 
+        @click="refresh"
+        class="btn btn-outline"
+      >
+        <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': loading }" />
+        <span>Refresh</span>
       </button>
-    </header>
+    </div>
 
-    <div v-if="loading" class="empty-state">Syncing Ledger Data...</div>
-    <div v-else-if="error" class="empty-state error">{{ error }}</div>
-    <div v-else-if="Object.keys(groupedLedger).length === 0" class="empty-state">No activity found.</div>
+    <!-- Loading State -->
+    <div v-if="loading" class="card flex items-center justify-center py-20">
+      <Loader2 class="w-8 h-8 text-primary animate-spin" />
+    </div>
 
-    <div v-else class="ledger-scroller">
-      <div v-for="(rows, account) in groupedLedger" :key="account" class="acct-card">
-        <div class="acct-head">
-          <span class="acct-id">{{ account.split(' · ')[0] }}</span>
-          <span class="acct-label">{{ account.split(' · ')[1] }}</span>
-        </div>
+    <!-- Error State -->
+    <div v-else-if="error" class="card bg-danger/10 border-danger/30">
+      <span class="text-sm font-medium text-danger">Error: {{ error }}</span>
+    </div>
 
-        <div class="acct-entries">
-          <div class="table-head">
-            <div>Date / Ref</div>
-            <div>Description</div>
-            <div class="text-right">Debit</div>
-            <div class="text-right">Credit</div>
-          </div>
-
-          <div v-for="(row, i) in rows" :key="i" class="entry-line">
-            <div class="entry-meta">
-              <span class="entry-date">{{ new Date(row.entry_date).toLocaleDateString('en-GB') }}</span>
-              <span class="entry-ref">#{{ row.reference || '0000' }}</span>
-            </div>
-
-            <div class="entry-desc" :class="{ 'dimmed': !row.description }">
-              {{ row.description || "—" }}
-            </div>
-
-            <div class="entry-values">
-              <div class="v-group dr text-right">
-                <span class="v-label">DR</span>
-                <span class="v-num">{{ fmt(row.debit) }}</span>
-              </div>
-              <div class="v-group cr text-right">
-                <span class="v-label">CR</span>
-                <span class="v-num">{{ fmt(row.credit) }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+    <!-- Empty State -->
+    <div v-else-if="accountKeys.length === 0" class="card">
+      <div class="text-center py-12">
+        <Library class="w-16 h-16 text-muted mx-auto mb-4" />
+        <h3 class="text-lg font-semibold text-text mb-2">No Ledger Data</h3>
+        <p class="text-muted">No general ledger entries found</p>
       </div>
     </div>
+
+    <!-- Ledger Cards -->
+    <template v-else>
+      <div 
+        v-for="accountKey in paginatedAccounts" 
+        :key="accountKey"
+        class="card p-0 overflow-hidden"
+      >
+        <!-- Account Header -->
+        <div class="flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-primary/10 to-transparent border-b border-border">
+          <span class="px-2 py-1 bg-primary text-white text-xs font-bold font-mono rounded">
+            {{ accountKey.split(' · ')[0] }}
+          </span>
+          <span class="text-sm font-semibold text-text uppercase tracking-wide">
+            {{ accountKey.split(' · ')[1] }}
+          </span>
+        </div>
+
+        <!-- Entries Table -->
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Reference</th>
+                <th>Description</th>
+                <th class="text-right">Debit</th>
+                <th class="text-right">Credit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr 
+                v-for="(row, index) in groupedLedger[accountKey]" 
+                :key="index"
+                class="group"
+              >
+                <td class="font-mono text-sm">
+                  {{ new Date(row.entry_date).toLocaleDateString('en-GB') }}
+                </td>
+                <td>
+                  <span class="badge badge-muted">#{{ row.reference || '0000' }}</span>
+                </td>
+                <td class="font-medium" :class="row.description ? 'text-text' : 'text-muted'">
+                  {{ row.description || '—' }}
+                </td>
+                <td class="text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <ArrowDownRight class="w-4 h-4 text-success" />
+                    <span class="font-mono text-success">{{ fmt(row.debit) }}</span>
+                  </div>
+                </td>
+                <td class="text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <ArrowUpRight class="w-4 h-4 text-danger" />
+                    <span class="font-mono text-danger">{{ fmt(row.credit) }}</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="accountKeys.length > 0" class="flex items-center justify-between">
+        <p class="text-sm text-muted">
+          Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, accountKeys.length) }} of {{ accountKeys.length }} accounts
+        </p>
+        <div class="flex items-center gap-2">
+          <button 
+            @click="currentPage--"
+            :disabled="currentPage === 1"
+            class="btn btn-outline btn-sm"
+          >
+            <ChevronLeft class="w-4 h-4" />
+          </button>
+          <span class="px-3 py-1 text-sm font-medium text-text">
+            {{ currentPage }} / {{ totalPages }}
+          </span>
+          <button 
+            @click="currentPage++"
+            :disabled="currentPage >= totalPages"
+            class="btn btn-outline btn-sm"
+          >
+            <ChevronRight class="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
 <style scoped>
-.ledger-container {
-  --bg: #09090b;
-  --surface: #18181b;
-  --border: rgba(255,255,255,0.06);
-  --accent: #22d3ee;
-  --text-main: #fafafa;
-  --text-dim: #a1a1aa;
-  --dr: #4ade80;
-  --cr: #f87171;
-  background: var(--bg);
-  min-height: 100vh;
-  color: var(--text-main);
-  font-family: 'Inter', -apple-system, sans-serif;
+.btn-sm {
+  @apply px-2.5 py-1.5 text-sm;
 }
-
-.view-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--border);
-  background: rgba(9, 9, 11, 0.8);
-  backdrop-filter: blur(12px);
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-
-.view-header h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
-.pill { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); background: #27272a; padding: 4px 10px; border-radius: 99px; margin-top: 4px; border: 1px solid var(--border); }
-.pulse { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent); }
-
-.sync-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; transition: 0.2s; }
-.sync-btn:hover { color: var(--text-main); }
-.spinning { animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.ledger-scroller { padding: 1rem; }
-.acct-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  margin-bottom: 2rem;
-  overflow: hidden;
-  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-}
-
-.acct-head {
-  padding: 1rem 1.25rem;
-  background: linear-gradient(to right, rgba(34, 211, 238, 0.1), transparent);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.acct-id { background: var(--accent); color: #000; font-family: 'JetBrains Mono', monospace; font-weight: 900; padding: 2px 8px; border-radius: 4px; font-size: 0.9rem; }
-.acct-label { font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.9rem; color: var(--text-main); }
-
-/* --- STRICT GRID SYNC --- */
-.table-head, .entry-line {
-  display: grid;
-  grid-template-columns: 140px 1fr 140px 140px;
-  padding: 0.75rem 1.25rem;
-  column-gap: 2.5rem;
-  align-items: center;
-}
-
-.table-head {
-  font-size: 10px;
-  font-weight: 800;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  background: rgba(0,0,0,0.2);
-  border-bottom: 1px solid var(--border);
-}
-
-.entry-line {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--border);
-  align-items: center;
-  transition: background 0.2s;
-}
-.entry-line:last-child { border-bottom: none; }
-.entry-line:hover { background: rgba(255,255,255,0.02); }
-
-.entry-meta { display: flex; flex-direction: column; gap: 2px; }
-.entry-date { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-main); }
-.entry-ref { font-size: 10px; color: var(--text-dim); font-weight: 600; }
-
-.entry-desc { font-size: 14px; color: #d4d4d8; line-height: 1.4; padding-right: 1.5rem; }
-
-/* The fix: display contents lets the children (dr/cr) jump into the 3rd and 4th columns */
-.entry-values { display: contents; } 
-
-.v-num { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 14px; }
-.dr .v-num { color: var(--dr); }
-.cr .v-num { color: var(--cr); }
-.text-right { text-align: right; }
-.v-label { display: none; }
-
-/* --- MOBILE UPGRADE --- */
-@media (max-width: 800px) {
-  .table-head { display: none; }
-  .entry-line {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 1.25rem;
-    gap: 12px;
-  }
-  .entry-meta { flex-direction: row; justify-content: space-between; width: 100%; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-  .entry-desc { font-size: 15px; font-weight: 500; color: #fff; padding-right: 0; }
-  .entry-values { display: flex; width: 100%; gap: 12px; }
-  .v-group {
-    flex: 1;
-    background: rgba(255,255,255,0.03);
-    padding: 10px;
-    border-radius: 6px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    text-align: left !important;
-  }
-  .v-label { display: block; font-size: 9px; font-weight: 900; color: var(--text-dim); }
-  .v-num { font-size: 16px; }
-  .dr { border-left: 3px solid var(--dr); }
-  .cr { border-left: 3px solid var(--cr); }
-}
-
-.empty-state { padding: 6rem 2rem; text-align: center; color: var(--text-dim); font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; }
-.error { color: var(--cr); }
 </style>

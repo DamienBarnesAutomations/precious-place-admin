@@ -1,111 +1,294 @@
 <template>
-  <div class="app-shell">
+  <div class="min-h-screen bg-background flex">
+    <!-- Mobile Backdrop -->
     <Transition name="fade">
-      <div v-if="mobileOpen" class="backdrop" @click="mobileOpen = false" />
+      <div 
+        v-if="sidebarOpen" 
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+        @click="sidebarOpen = false"
+      />
     </Transition>
 
-    <aside :class="['sidebar', { collapsed, 'mobile-open': mobileOpen }]">
-      <div class="sidebar-header">
-        <span class="logo" v-if="!collapsed || mobileOpen">Ledger</span>
-        <button class="icon-btn hide-mobile" @click="collapsed = !collapsed">☰</button>
-        <button class="icon-btn hide-desktop" @click="mobileOpen = false">✕</button>
+    <!-- Sidebar -->
+    <aside 
+      :class="[
+        'fixed lg:static inset-y-0 left-0 z-50 flex flex-col w-72 bg-surface border-r border-border transition-transform duration-300 ease-out',
+        'lg:translate-x-0',
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      ]"
+    >
+      <!-- Logo -->
+      <div class="h-16 flex items-center justify-between px-6 border-b border-border">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-glow-primary">
+            <BookOpen class="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h1 class="text-lg font-bold text-text">FinanceFlow</h1>
+            <p class="text-xs text-muted -mt-0.5">Accounting</p>
+          </div>
+        </div>
+        <button 
+          @click="sidebarOpen = false"
+          class="lg:hidden p-1.5 rounded-lg hover:bg-surface-hover text-muted hover:text-text transition-colors"
+        >
+          <X class="w-5 h-5" />
+        </button>
       </div>
 
-      <nav @click="onNavClick">
-        <RouterLink v-for="item in menu" :key="item.to" :to="item.to" class="nav-item">
-          <span class="icon">{{ item.icon }}</span>
-          <span class="label" v-if="!collapsed || mobileOpen">{{ item.label }}</span>
-        </RouterLink>
+      <!-- Navigation -->
+      <nav class="flex-1 overflow-y-auto py-4 px-3">
+        <div class="space-y-1">
+          <RouterLink 
+            v-for="(item, index) in navItems" 
+            :key="item.to"
+            :to="item.to"
+            :class="[
+              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group',
+              isActiveRoute(item.to) 
+                ? 'bg-primary/10 text-primary' 
+                : 'text-muted hover:text-text hover:bg-surface-hover'
+            ]"
+            @click="sidebarOpen = false"
+          >
+            <component 
+              :is="item.icon" 
+              :class="[
+                'w-5 h-5 transition-colors',
+                isActiveRoute(item.to) ? 'text-primary' : 'text-muted group-hover:text-text'
+              ]"
+            />
+            <span>{{ item.label }}</span>
+            <Transition name="fade">
+              <div 
+                v-if="isActiveRoute(item.to)" 
+                class="ml-auto w-1.5 h-1.5 rounded-full bg-primary"
+              />
+            </Transition>
+          </RouterLink>
+        </div>
       </nav>
+
+      <!-- User Section -->
+      <div class="p-4 border-t border-border">
+        <button 
+          @click="showUserDialog = true"
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-hover transition-colors"
+        >
+          <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-success to-success/70 flex items-center justify-center">
+            <UserPlus class="w-5 h-5 text-white" />
+          </div>
+          <div class="flex-1 text-left">
+            <p class="text-sm font-medium text-text">Add User</p>
+            <p class="text-xs text-muted">Create new admin</p>
+          </div>
+          <ChevronRight class="w-4 h-4 text-muted" />
+        </button>
+      </div>
     </aside>
 
-    <section class="main">
-      <header class="top-bar">
-        <div class="flex-row items-center gap-1">
-          <button class="icon-btn hide-desktop" @click="mobileOpen = true">☰</button>
-          <h2 class="title">Accounting</h2>
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col min-h-screen">
+      <!-- Top Header -->
+      <header class="h-16 flex items-center justify-between px-4 lg:px-6 border-b border-border bg-surface/50 backdrop-blur-sm sticky top-0 z-30">
+        <div class="flex items-center gap-3">
+          <button 
+            @click="sidebarOpen = true"
+            class="lg:hidden p-2 rounded-lg hover:bg-surface-hover text-muted hover:text-text transition-colors"
+          >
+            <Menu class="w-5 h-5" />
+          </button>
+          <div>
+            <h2 class="text-lg font-semibold text-text">{{ currentPageTitle }}</h2>
+            <p class="text-xs text-muted hidden sm:block">{{ currentDate }}</p>
+          </div>
         </div>
-        
-        <!-- Create User Icon -->
-        <button class="icon-btn user-create-btn" @click="showSelectionDialog = true" title="Add New User">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-            <circle cx="8.5" cy="7" r="4"></circle>
-            <line x1="20" y1="8" x2="20" y2="14"></line>
-            <line x1="23" y1="11" x2="17" y2="11"></line>
-          </svg>
-        </button>
-      </header>
-      <div class="content">
-        <RouterView />
-      </div>
-    </section>
 
-    <!-- Selection Dialog -->
-    <Transition name="fade">
-      <div v-if="showSelectionDialog" class="modal-overlay" @click.self="showSelectionDialog = false">
-        <div class="modal-content selection-modal">
-          <h3 class="modal-title">Add New User</h3>
-          <div class="selection-actions">
-            <button @click="selectType('site')" class="selection-btn">
-              <span>Add: Site Admin</span>
-              <span class="selection-arrow">→</span>
+        <div class="flex items-center gap-2">
+          <!-- Quick Actions -->
+          <button 
+            @click="refreshData"
+            :class="[
+              'p-2.5 rounded-lg transition-all duration-200',
+              isRefreshing ? 'animate-spin text-primary' : 'text-muted hover:text-text hover:bg-surface-hover'
+            ]"
+            title="Refresh data"
+          >
+            <RefreshCw class="w-5 h-5" />
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <main class="flex-1 p-4 lg:p-6 overflow-y-auto">
+        <RouterView v-slot="{ Component }">
+          <Transition name="page" mode="out-in">
+            <component :is="Component" @refresh="refreshData" />
+          </Transition>
+        </RouterView>
+      </main>
+    </div>
+
+    <!-- User Creation Dialog -->
+    <Transition name="modal">
+      <div 
+        v-if="showUserDialog" 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+      >
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" @click="showUserDialog = false" />
+        
+        <div class="relative w-full max-w-md bg-surface border border-border rounded-2xl shadow-2xl animate-scale-in">
+          <!-- Dialog Header -->
+          <div class="flex items-center justify-between p-6 border-b border-border">
+            <h3 class="text-lg font-semibold text-text">Create New User</h3>
+            <button 
+              @click="showUserDialog = false"
+              class="p-1.5 rounded-lg hover:bg-surface-hover text-muted hover:text-text transition-colors"
+            >
+              <X class="w-5 h-5" />
             </button>
-            <button @click="selectType('chat')" class="selection-btn">
-              <span>Add: Chat Admin</span>
-              <span class="selection-arrow">→</span>
+          </div>
+
+          <!-- Dialog Body -->
+          <div class="p-6 space-y-4">
+            <!-- User Type Selection -->
+            <div class="grid grid-cols-2 gap-3">
+              <button
+                @click="userType = 'site'"
+                :class="[
+                  'p-4 rounded-xl border-2 transition-all duration-200 text-left',
+                  userType === 'site' 
+                    ? 'border-primary bg-primary/10' 
+                    : 'border-border hover:border-border-light hover:bg-surface-hover'
+                ]"
+              >
+                <Shield class="w-6 h-6 mb-2" :class="userType === 'site' ? 'text-primary' : 'text-muted'" />
+                <p class="font-medium text-text">Site Admin</p>
+                <p class="text-xs text-muted mt-0.5">Full system access</p>
+              </button>
+              <button
+                @click="userType = 'chat'"
+                :class="[
+                  'p-4 rounded-xl border-2 transition-all duration-200 text-left',
+                  userType === 'chat' 
+                    ? 'border-success bg-success/10' 
+                    : 'border-border hover:border-border-light hover:bg-surface-hover'
+                ]"
+              >
+                <MessageSquare class="w-6 h-6 mb-2" :class="userType === 'chat' ? 'text-success' : 'text-muted'" />
+                <p class="font-medium text-text">Chat Admin</p>
+                <p class="text-xs text-muted mt-0.5">Chat management</p>
+              </button>
+            </div>
+
+            <!-- Form Fields -->
+            <Transition name="fade" mode="out-in">
+              <div v-if="userType === 'site'" key="site" class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-text-secondary mb-1.5">Username</label>
+                  <input 
+                    v-model="userForm.username"
+                    type="text" 
+                    class="input"
+                    placeholder="Enter username"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-text-secondary mb-1.5">Password</label>
+                  <input 
+                    v-model="userForm.password"
+                    type="password" 
+                    class="input"
+                    placeholder="Enter password"
+                  />
+                </div>
+              </div>
+              <div v-else key="chat" class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-text-secondary mb-1.5">User ID</label>
+                  <input 
+                    v-model="userForm.userId"
+                    type="text" 
+                    class="input"
+                    placeholder="Enter chat user ID"
+                  />
+                </div>
+              </div>
+            </Transition>
+          </div>
+
+          <!-- Dialog Footer -->
+          <div class="flex items-center justify-end gap-3 p-6 border-t border-border">
+            <button 
+              @click="showUserDialog = false"
+              class="btn btn-ghost"
+            >
+              Cancel
             </button>
-            <button @click="showSelectionDialog = false" class="btn btn-cancel full-width">Cancel</button>
+            <button 
+              @click="createUser"
+              :disabled="isCreating"
+              class="btn btn-primary"
+            >
+              <Loader2 v-if="isCreating" class="w-4 h-4 animate-spin" />
+              <span>{{ isCreating ? 'Creating...' : 'Create User' }}</span>
+            </button>
           </div>
         </div>
       </div>
     </Transition>
 
-    <!-- Create User Dialog -->
-    <Transition name="fade">
-      <div v-if="showUserDialog" class="modal-overlay" @click.self="showUserDialog = false">
-        <div class="modal-content">
-          <h3 class="modal-title">Add {{ userType === 'site' ? 'Site Admin' : 'Chat Admin' }}</h3>
-          <form @submit.prevent="handleCreateUser" class="user-form">
-            <template v-if="userType === 'site'">
-              <div class="form-group">
-                <label for="username">Username</label>
-                <input v-model="userForm.username" id="username" type="text" required placeholder="Enter username" />
-              </div>
-              <div class="form-group">
-                <label for="password">Password</label>
-                <input v-model="userForm.password" id="password" type="password" required placeholder="Enter password" />
-              </div>
-            </template>
-            <template v-else>
-              <div class="form-group">
-                <label for="userId">User Id</label>
-                <input v-model="userForm.userId" id="userId" type="text" required placeholder="Enter Chat User ID" />
-              </div>
-            </template>
-
-            <div class="modal-actions">
-              <button type="button" class="btn btn-cancel" @click="showUserDialog = false">Cancel</button>
-              <button type="submit" class="btn btn-submit" :disabled="isSubmitting">
-                {{ isSubmitting ? 'Creating...' : 'Submit' }}
-              </button>
-            </div>
-          </form>
-        </div>
+    <!-- Toast Notification -->
+    <Transition name="toast">
+      <div 
+        v-if="toast.show" 
+        :class="[
+          'fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border',
+          toast.type === 'success' ? 'bg-success/10 border-success/30 text-success' : 'bg-danger/10 border-danger/30 text-danger'
+        ]"
+      >
+        <CheckCircle v-if="toast.type === 'success'" class="w-5 h-5" />
+        <AlertCircle v-else class="w-5 h-5" />
+        <span class="text-sm font-medium">{{ toast.message }}</span>
       </div>
     </Transition>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, computed, reactive } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { 
+  BookOpen, 
+  Menu, 
+  X, 
+  ChevronRight,
+  UserPlus,
+  RefreshCw,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  Shield,
+  MessageSquare,
+  FileText,
+  PlusCircle,
+  Library,
+  Scale,
+  Building2,
+  TrendingUp,
+  DollarSign,
+  Wallet,
+  Users
+} from 'lucide-vue-next'
 
-const collapsed = ref(false)
-const mobileOpen = ref(false)
-const showSelectionDialog = ref(false)
+const route = useRoute()
+const router = useRouter()
+
+const sidebarOpen = ref(false)
 const showUserDialog = ref(false)
-const isSubmitting = ref(false)
-const userType = ref('site') // 'site' or 'chat'
+const userType = ref('site')
+const isCreating = ref(false)
+const isRefreshing = ref(false)
 
 const userForm = reactive({
   username: '',
@@ -113,36 +296,62 @@ const userForm = reactive({
   userId: ''
 })
 
+const toast = ref({
+  show: false,
+  message: '',
+  type: 'success'
+})
+
 const createAdminUserUrl = import.meta.env.VITE_CREATE_ADMIN_USER_URL
 const createChatAdminUserUrl = import.meta.env.VITE_CREATE_CHAT_ADMIN_USER_URL
 
-const menu = [
-  { to: '/accounting/journal', icon: '📒', label: 'Journal' },
-  { to: '/accounting/journal/new', icon: '➕', label: 'New Entry' },
-  { to: '/accounting/ledger', icon: '📊', label: 'Ledger' },
-  { to: '/accounting/trial-balance', icon: '⚖️', label: 'Trial Balance' },
-  { to: '/accounting/balance-sheet', icon: '🏛️', label: 'Balance Sheet' },
-  { to: '/accounting/profit-loss', icon: '📈', label: 'Profit & Loss' },
-  { to: '/accounting/income-report', icon: '💰', label: 'Income Report' },
-  { to: '/accounting/expense-report', icon: '💸', label: 'Expense Report' },
-  { to: '/accounting/create-account', icon: '🗂️', label: 'Create Account' }
+const navItems = [
+  { to: '/accounting/', icon: Library, label: 'Dashboard', isNew: true },
+  { to: '/accounting/journal', icon: FileText, label: 'Journal Entries' },
+  { to: '/accounting/journal/new', icon: PlusCircle, label: 'New Entry' },
+  { to: '/accounting/ledger', icon: Library, label: 'General Ledger' },
+  { to: '/accounting/trial-balance', icon: Scale, label: 'Trial Balance' },
+  { to: '/accounting/balance-sheet', icon: Building2, label: 'Balance Sheet' },
+  { to: '/accounting/profit-loss', icon: TrendingUp, label: 'Profit & Loss' },
+  { to: '/accounting/income-report', icon: DollarSign, label: 'Income Report' },
+  { to: '/accounting/expense-report', icon: Wallet, label: 'Expense Report' },
+  { to: '/accounting/create-account', icon: Users, label: 'Create Account' }
 ]
 
-const selectType = (type) => {
-  userType.value = type
-  showSelectionDialog.value = false
-  showUserDialog.value = true
+const currentPageTitle = computed(() => {
+  const currentItem = navItems.find(item => item.to === route.path)
+  return currentItem?.label || 'Accounting'
+})
+
+const currentDate = computed(() => {
+  return new Date().toLocaleDateString('en-US', { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  })
+})
+
+const isActiveRoute = (path) => {
+  return route.path === path || route.path.startsWith(path + '/')
 }
 
-const handleCreateUser = async () => {
+const showToast = (message, type = 'success') => {
+  toast.value = { show: true, message, type }
+  setTimeout(() => {
+    toast.value.show = false
+  }, 3000)
+}
+
+const createUser = async () => {
   const url = userType.value === 'site' ? createAdminUserUrl : createChatAdminUserUrl
   
   if (!url) {
-    alert('Request URL is not configured.')
+    showToast('Request URL is not configured.', 'error')
     return
   }
 
-  isSubmitting.value = true
+  isCreating.value = true
   try {
     const payload = userType.value === 'site' 
       ? { username: userForm.username, password: userForm.password }
@@ -155,261 +364,97 @@ const handleCreateUser = async () => {
     })
 
     if (response.ok) {
-      alert('User created successfully!')
+      showToast('User created successfully!')
       showUserDialog.value = false
       userForm.username = ''
       userForm.password = ''
       userForm.userId = ''
     } else {
       const errorData = await response.json().catch(() => ({}))
-      alert(`Failed to create user: ${errorData.message || response.statusText}`)
+      showToast(`Failed: ${errorData.message || response.statusText}`, 'error')
     }
   } catch (error) {
     console.error('Error creating user:', error)
-    alert('An error occurred while creating the user.')
+    showToast('An error occurred while creating the user.', 'error')
   } finally {
-    isSubmitting.value = false
+    isCreating.value = false
   }
 }
 
-const onNavClick = () => {
-  if (window.innerWidth <= 640) {
-    mobileOpen.value = false
-  }
+const refreshData = () => {
+  isRefreshing.value = true
+  // Emit refresh event to current component
+  const currentComponent = route.meta?.component
+  setTimeout(() => {
+    isRefreshing.value = false
+    showToast('Data refreshed')
+  }, 1000)
 }
 </script>
 
 <style scoped>
-.app-shell {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  height: 100vh;
-  width: 100vw;
-  background: var(--bg);
-  color: var(--text);
-  overflow: hidden;
+/* Page Transitions */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.sidebar {
-  width: 220px;
-  background: var(--panel);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 100;
-}
-.sidebar.collapsed { width: 64px; }
-
-.sidebar-header {
-  height: 60px;
-  padding: 0 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--border);
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
 }
 
-.logo { font-weight: 800; font-size: 1.1rem; color: var(--accent); letter-spacing: -0.03em; }
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1.25rem;
-  color: var(--muted);
-  text-decoration: none;
-  margin: 4px 8px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-.nav-item:hover { background: rgba(255,255,255,0.03); color: var(--text); }
-.router-link-active { color: var(--accent); background: rgba(16, 185, 129, 0.08); font-weight: 600; }
-
-.main { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-
-.top-bar { 
-  height: 60px; 
-  padding: 0 2rem; 
-  display: flex; 
-  align-items: center; 
-  justify-content: space-between;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 
-.flex-row { display: flex; align-items: center; }
-.gap-1 { gap: 0.5rem; }
-
-.title { font-size: 1rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-
-.content { 
-  flex: 1; 
-  overflow-y: auto; 
-  padding: 2rem; /* Consistent desktop padding */
+/* Modal Transitions */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.2s ease;
 }
 
-.user-create-btn {
-  color: var(--muted);
-  transition: color 0.2s ease;
-}
-.user-create-btn:hover {
-  color: var(--accent);
+.modal-enter-active .animate-scale-in,
+.modal-leave-active .animate-scale-in {
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-/* Modal Styles */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
 }
 
-.modal-content {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 2rem;
-  width: 100%;
-  max-width: 400px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+.modal-enter-from .animate-scale-in {
+  transform: scale(0.95);
+  opacity: 0;
 }
 
-.selection-modal {
-  max-width: 350px;
+.modal-leave-to .animate-scale-in {
+  transform: scale(0.95);
+  opacity: 0;
 }
 
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  color: var(--text);
-  text-align: center;
+/* Fade Transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
 }
 
-.selection-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
-.selection-btn {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border);
-  padding: 1.25rem;
-  border-radius: 12px;
-  color: var(--text);
-  font-weight: 700;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.selection-btn:hover {
-  border-color: var(--accent);
-  background: rgba(16, 185, 129, 0.05);
+/* Toast Transition */
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s ease;
 }
 
-.selection-arrow {
-  color: var(--muted);
-  font-size: 1.2rem;
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateY(20px);
 }
-.selection-btn:hover .selection-arrow {
-  color: var(--accent);
-  transform: translateX(4px);
-}
-
-.user-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.form-group label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-.form-group input {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.75rem;
-  color: var(--text);
-  font-size: 0.9rem;
-}
-.form-group input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.btn {
-  padding: 0.6rem 1.25rem;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-}
-
-.btn-cancel {
-  background: transparent;
-  color: var(--muted);
-}
-.btn-cancel:hover {
-  color: var(--text);
-  background: rgba(255,255,255,0.05);
-}
-
-.btn-submit {
-  background: var(--accent);
-  color: white;
-}
-.btn-submit:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-.btn-submit:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.full-width {
-  width: 100%;
-  margin-top: 0.5rem;
-}
-
-@media (max-width: 640px) {
-  .app-shell { grid-template-columns: 1fr; }
-  .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 280px; transform: translateX(-100%); }
-  .sidebar.mobile-open { transform: translateX(0); box-shadow: 20px 0 50px rgba(0,0,0,0.5); }
-  .sidebar.collapsed { width: 280px; }
-  .top-bar { padding: 0 1rem; }
-  .content { padding: 1rem; } /* Mobile breathing room */
-  .hide-mobile { display: none; }
-  .hide-desktop { display: block; }
-}
-
-.backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); z-index: 90; }
-.icon-btn { background: none; border: none; color: var(--text); font-size: 1.2rem; cursor: pointer; padding: 8px; display: flex; align-items: center; }
 </style>
