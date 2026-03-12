@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-background flex font-sans">
+  <div class="h-screen bg-background flex font-sans overflow-hidden">
     <!-- Mobile Backdrop -->
     <Transition name="fade">
       <div 
@@ -18,7 +18,7 @@
       ]"
     >
       <!-- Logo -->
-      <div class="h-14 flex items-center justify-between px-5 border-b border-border bg-background/20">
+      <div class="h-14 flex items-center justify-between px-5 border-b border-border bg-background/20 shrink-0">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded bg-primary flex items-center justify-center shadow-glow-primary">
             <BookOpen class="w-4 h-4 text-white" />
@@ -73,7 +73,7 @@
       </nav>
 
       <!-- Administration Section -->
-      <div class="p-3 bg-background/30 border-t border-border">
+      <div class="p-3 bg-background/30 border-t border-border shrink-0">
         <h3 class="px-3 mb-2 text-[10px] font-black text-muted-dark uppercase tracking-[0.2em]">
           Administration
         </h3>
@@ -93,9 +93,9 @@
     </aside>
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col min-h-screen min-w-0">
+    <div class="flex-1 flex flex-col h-screen min-w-0 overflow-hidden">
       <!-- Top Header -->
-      <header class="h-14 flex items-center justify-between px-4 lg:px-6 border-b border-border bg-surface/80 backdrop-blur-xl sticky top-0 z-30">
+      <header class="h-14 flex items-center justify-between px-4 lg:px-6 border-b border-border bg-surface/80 backdrop-blur-xl sticky top-0 z-30 shrink-0">
         <div class="flex items-center gap-4">
           <button 
             @click="sidebarOpen = true"
@@ -130,7 +130,7 @@
       </header>
 
       <!-- Page Content -->
-      <main class="flex-1 p-4 lg:p-8 overflow-y-auto">
+      <main class="flex-1 p-4 lg:p-6 overflow-y-auto custom-scrollbar">
         <div class="max-w-7xl mx-auto">
           <RouterView v-slot="{ Component }">
             <Transition name="page" mode="out-in">

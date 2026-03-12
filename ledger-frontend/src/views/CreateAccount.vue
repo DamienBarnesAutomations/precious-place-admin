@@ -92,65 +92,65 @@ const refresh = () => {
 </script>
 
 <template>
-  <div class="space-y-6 animate-fade-in pb-12">
+  <div class="space-y-4 animate-fade-in pb-8">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-border pb-6">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 border-b border-border pb-4">
       <div>
         <div class="flex items-center gap-2 mb-1">
           <ShieldPlus class="w-4 h-4 text-primary" />
           <span class="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Chart of Accounts Setup</span>
         </div>
-        <h1 class="text-3xl font-black text-text tracking-tighter uppercase">Initialize Account</h1>
+        <h1 class="text-2xl font-black text-text tracking-tighter uppercase">Initialize Account</h1>
       </div>
-      <button @click="refresh" class="btn btn-outline h-9 px-4">
-        <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': fetchingMetadata }" />
-        <span class="text-[11px] font-black uppercase tracking-widest ml-1">Sync Meta</span>
+      <button @click="refresh" class="btn btn-outline h-8 px-3">
+        <RefreshCw class="w-3 h-3" :class="{ 'animate-spin': fetchingMetadata }" />
+        <span class="text-[10px] font-black uppercase tracking-widest ml-1">Sync Meta</span>
       </button>
     </div>
 
     <!-- Success Message -->
     <Transition name="fade">
-      <div v-if="isSuccess" class="card bg-success/5 border-success/30 flex items-center gap-4 p-6 shadow-glow-success">
-        <div class="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
-          <CheckCircle class="w-6 h-6 text-success" />
+      <div v-if="isSuccess" class="card bg-success/5 border-success/30 flex items-center gap-3 p-4 shadow-glow-success">
+        <div class="w-8 h-8 rounded-full bg-success/20 flex items-center justify-center">
+          <CheckCircle class="w-5 h-5 text-success" />
         </div>
         <div>
-          <p class="text-[11px] font-black text-success uppercase tracking-widest">Initialization Success</p>
-          <p class="text-xs text-muted-dark font-bold uppercase tracking-tighter mt-0.5">Account has been successfully registered in the master hierarchy.</p>
+          <p class="text-[10px] font-black text-success uppercase tracking-widest">Initialization Success</p>
+          <p class="text-[11px] text-muted-dark font-bold uppercase tracking-tighter mt-0.5">Account registered in master hierarchy.</p>
         </div>
       </div>
     </Transition>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       <!-- Form -->
       <div class="lg:col-span-7">
-        <div class="card bg-surface/50 p-8 space-y-8 shadow-2xl border-border">
-          <div class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div class="space-y-1.5">
-                <label class="text-[10px] font-black text-muted-dark uppercase tracking-widest">Account Code</label>
+        <div class="card bg-surface/50 p-6 space-y-6 shadow-xl border-border">
+          <div class="space-y-5">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="space-y-1">
+                <label class="text-[9px] font-black text-muted-dark uppercase tracking-widest">Account Code</label>
                 <input 
                   v-model="code" 
                   type="text" 
                   placeholder="CODE_1XXX" 
-                  class="input font-mono uppercase font-black tracking-widest"
+                  class="input font-mono uppercase font-black tracking-widest h-9"
                 />
               </div>
-              <div class="md:col-span-2 space-y-1.5">
-                <label class="text-[10px] font-black text-muted-dark uppercase tracking-widest">Operational Name</label>
+              <div class="md:col-span-2 space-y-1">
+                <label class="text-[9px] font-black text-muted-dark uppercase tracking-widest">Operational Name</label>
                 <input 
                   v-model="name" 
                   type="text" 
                   placeholder="e.g. Petty Cash Reserve" 
-                  class="input font-bold"
+                  class="input font-bold h-9"
                 />
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="space-y-1.5">
-                <label class="text-[10px] font-black text-muted-dark uppercase tracking-widest">Classification Type</label>
-                <select v-model="type" class="select font-bold uppercase tracking-tight">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="space-y-1">
+                <label class="text-[9px] font-black text-muted-dark uppercase tracking-widest">Classification Type</label>
+                <select v-model="type" class="select font-bold uppercase tracking-tight h-9">
                   <option value="asset">Economic Asset</option>
                   <option value="liability">Current Liability</option>
                   <option value="equity">Shareholder Equity</option>
@@ -158,11 +158,11 @@ const refresh = () => {
                   <option value="expense">Administrative Expense</option>
                 </select>
               </div>
-              <div class="space-y-1.5">
-                <label class="text-[10px] font-black text-muted-dark uppercase tracking-widest">Reporting Category</label>
+              <div class="space-y-1">
+                <label class="text-[9px] font-black text-muted-dark uppercase tracking-widest">Reporting Category</label>
                 <select 
                   v-model="categoryId" 
-                  class="select font-bold uppercase tracking-tight"
+                  class="select font-bold uppercase tracking-tight h-9"
                   :disabled="fetchingMetadata"
                 >
                   <option v-if="fetchingMetadata" disabled>Querying Metadata...</option>
@@ -174,13 +174,13 @@ const refresh = () => {
               </div>
             </div>
 
-            <div class="space-y-3 pt-4">
-              <label class="text-[10px] font-black text-muted-dark uppercase tracking-widest block">Primary Normal Balance</label>
-              <div class="flex gap-3">
+            <div class="space-y-2 pt-2">
+              <label class="text-[9px] font-black text-muted-dark uppercase tracking-widest block">Primary Normal Balance</label>
+              <div class="flex gap-2">
                 <button 
                   @click="normalBalance = 'debit'"
                   :class="[
-                    'flex-1 py-3 px-4 rounded border font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-200',
+                    'flex-1 py-2 px-3 rounded border font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-200',
                     normalBalance === 'debit' 
                       ? 'bg-success/10 border-success text-success shadow-glow-success' 
                       : 'bg-background/50 border-border text-muted-dark hover:border-muted/50'
@@ -191,7 +191,7 @@ const refresh = () => {
                 <button 
                   @click="normalBalance = 'credit'"
                   :class="[
-                    'flex-1 py-3 px-4 rounded border font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-200',
+                    'flex-1 py-2 px-3 rounded border font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-200',
                     normalBalance === 'credit' 
                       ? 'bg-danger/10 border-danger text-danger shadow-glow-danger' 
                       : 'bg-background/50 border-border text-muted-dark hover:border-muted/50'
@@ -203,58 +203,58 @@ const refresh = () => {
             </div>
           </div>
 
-          <div class="pt-6 border-t border-border">
+          <div class="pt-4 border-t border-border">
             <button 
               @click="submitAccount"
               :disabled="loading || !code || !name || !categoryId"
-              class="btn btn-primary w-full h-12"
+              class="btn btn-primary w-full h-10"
             >
-              <Loader2 v-if="loading" class="w-4 h-4 animate-spin" />
-              <ShieldPlus v-else class="w-4 h-4" />
-              <span class="text-[11px] font-black uppercase tracking-[0.2em] ml-2">{{ loading ? 'Processing...' : 'Register Account' }}</span>
+              <Loader2 v-if="loading" class="w-3.5 h-3.5 animate-spin" />
+              <ShieldPlus v-else class="w-3.5 h-3.5" />
+              <span class="text-[10px] font-black uppercase tracking-[0.2em] ml-2">{{ loading ? 'Processing...' : 'Register Account' }}</span>
             </button>
           </div>
         </div>
       </div>
 
       <!-- Preview / Helper -->
-      <div class="lg:col-span-5 space-y-6">
-        <div class="card bg-background/30 border-dashed p-6">
-          <h3 class="text-[10px] font-black text-muted-dark uppercase tracking-widest mb-4">Live Hierarchy Preview</h3>
-          <div class="space-y-4">
-            <div class="flex items-center gap-4">
-              <div class="w-10 h-10 rounded bg-surface border border-border flex items-center justify-center font-mono font-black text-primary uppercase text-[10px]">
+      <div class="lg:col-span-5 space-y-4">
+        <div class="card bg-background/30 border-dashed p-5">
+          <h3 class="text-[9px] font-black text-muted-dark uppercase tracking-widest mb-3">Live Hierarchy Preview</h3>
+          <div class="space-y-3">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded bg-surface border border-border flex items-center justify-center font-mono font-black text-primary uppercase text-[9px]">
                 {{ code || '?' }}
               </div>
               <div>
-                <p class="text-[13px] font-bold text-text uppercase tracking-tight">{{ name || 'Specified Account Name' }}</p>
-                <p class="text-[9px] font-black text-muted uppercase tracking-widest mt-0.5">{{ type }} | {{ normalBalance }} balance</p>
+                <p class="text-[12px] font-bold text-text uppercase tracking-tight">{{ name || 'Specified Account Name' }}</p>
+                <p class="text-[8px] font-black text-muted uppercase tracking-widest mt-0.5">{{ type }} | {{ normalBalance }} balance</p>
               </div>
             </div>
             <div class="h-[1px] bg-border/50"></div>
-            <p class="text-[10px] text-muted-dark font-bold uppercase tracking-tighter leading-relaxed">
+            <p class="text-[9px] text-muted-dark font-bold uppercase tracking-tighter leading-tight">
               Registering this account will update the general ledger distributions and available targets for journal entries.
             </p>
           </div>
         </div>
 
-        <div class="card bg-primary/5 border-primary/10 p-6">
-          <div class="flex items-start gap-4">
-            <div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <ArrowRight class="w-4 h-4 text-primary" />
+        <div class="card bg-primary/5 border-primary/10 p-5">
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <ArrowRight class="w-3.5 h-3.5 text-primary" />
             </div>
             <div>
-              <h4 class="text-[11px] font-black text-text uppercase tracking-widest">Configuration Rules</h4>
-              <ul class="mt-3 space-y-2">
-                <li class="text-[10px] text-muted-dark font-bold uppercase tracking-tighter flex items-center gap-2">
+              <h4 class="text-[10px] font-black text-text uppercase tracking-widest">Configuration Rules</h4>
+              <ul class="mt-2 space-y-1.5">
+                <li class="text-[9px] text-muted-dark font-bold uppercase tracking-tighter flex items-center gap-2">
                   <div class="w-1 h-1 rounded-full bg-primary"></div>
                   Asset & Expense use Debit as normal
                 </li>
-                <li class="text-[10px] text-muted-dark font-bold uppercase tracking-tighter flex items-center gap-2">
+                <li class="text-[9px] text-muted-dark font-bold uppercase tracking-tighter flex items-center gap-2">
                   <div class="w-1 h-1 rounded-full bg-primary"></div>
                   Liability & Equity use Credit as normal
                 </li>
-                <li class="text-[10px] text-muted-dark font-bold uppercase tracking-tighter flex items-center gap-2">
+                <li class="text-[9px] text-muted-dark font-bold uppercase tracking-tighter flex items-center gap-2">
                   <div class="w-1 h-1 rounded-full bg-primary"></div>
                   Revenue uses Credit as normal
                 </li>
