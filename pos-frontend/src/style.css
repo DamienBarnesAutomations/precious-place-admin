@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #10b981;
-  --color-primary-hover: #059669;
+  /* Color Tokens - Modern Industrial Palette */
+  --color-primary: #10b981; /* Emerald-500 */
+  --color-primary-hover: #059669; /* Emerald-600 */
   --color-bg: #f8fafc;
   --color-surface: #ffffff;
   --color-surface-elevated: #f1f5f9;
@@ -13,16 +14,20 @@
   --color-warning: #f59e0b;
   --color-text: #0f172a;
   --color-text-secondary: #334155;
+  --color-text-muted: #94a3b8;
   
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
+  /* Typography */
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Roboto Mono", monospace;
 
+  /* Elevation */
   --shadow-terminal: 0 0 20px rgba(16, 185, 129, 0.05);
+  --shadow-receipt: 0 20px 50px rgba(0, 0, 0, 0.2);
 }
 
 .dark {
-  --color-bg: #020617;
-  --color-surface: #0f172a;
+  --color-bg: #020617; /* Deep Obsidian */
+  --color-surface: #0f172a; /* Slate Surface */
   --color-surface-elevated: #1e293b;
   --color-border: #1e293b;
   --color-border-light: #334155;
@@ -31,6 +36,7 @@
   --color-warning: #f59e0b;
   --color-text: #f8fafc;
   --color-text-secondary: #cbd5e1;
+  --color-text-muted: #475569;
 }
 
 @theme {
@@ -46,23 +52,25 @@
   --color-warning: var(--color-warning);
   --color-text: var(--color-text);
   --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
   
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
 
   --shadow-terminal: var(--shadow-terminal);
+  --shadow-receipt: var(--shadow-receipt);
 }
 
 @layer base {
   body {
-    @apply bg-bg text-text font-sans antialiased;
+    @apply bg-bg text-text font-sans antialiased select-none;
     font-size: 14px;
   }
 
-  /* Tighter, industrial scrollbars */
+  /* Industrial scrollbars */
   ::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
@@ -70,7 +78,7 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-border-light rounded-full;
+    @apply bg-border-light rounded-none;
   }
 
   ::-webkit-scrollbar-thumb:hover {
@@ -80,7 +88,7 @@
 
 @layer components {
   .btn-base {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-bold transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider text-xs;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-none font-black transition-all active:scale-95 disabled:opacity-20 disabled:cursor-not-allowed uppercase tracking-widest text-[10px];
   }
 
   .glass-panel {
@@ -88,24 +96,24 @@
   }
 
   .card-industrial {
-    @apply bg-surface border border-border rounded-xl p-4 transition-all duration-300 hover:border-primary/40 hover:shadow-terminal;
+    @apply bg-surface border border-border rounded-none p-4 transition-all duration-300 hover:border-primary/40 hover:shadow-terminal;
   }
 
   .input-industrial {
-    @apply bg-bg/50 border border-border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-muted;
+    @apply bg-bg/50 border border-border rounded-none px-4 py-2 text-xs font-mono focus:outline-none focus:border-primary/60 focus:ring-0 transition-all placeholder:text-muted uppercase;
   }
 }
 
-/* Animations */
+/* Transitions */
 .cart-item-enter-active,
 .cart-item-leave-active {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .cart-item-enter-from,
 .cart-item-leave-to {
   opacity: 0;
-  transform: translateX(20px);
+  transform: translateX(10px);
 }
 
 @keyframes toast-slide {

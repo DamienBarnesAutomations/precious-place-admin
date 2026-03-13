@@ -10,6 +10,15 @@ export default defineConfig(({ mode }) => {
   plugins: [
     vue(),
     tailwindcss(),
+    {
+      name: 'html-transform',
+      transformIndexHtml(html) {
+        return html.replace(
+          /%(.*?)%/g,
+          (match, p1) => env[p1] || match
+        )
+      }
+    }
   ],
   server: {
     allowedHosts: [
