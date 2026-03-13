@@ -1,18 +1,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { 
-  FileText, 
-  PlusCircle, 
-  RefreshCw, 
-  Search,
-  Filter,
-  Loader2,
-  ArrowUpRight,
-  ArrowDownRight,
-  ChevronLeft,
-  ChevronRight,
-  History,
-  Download
+  FileText, PlusCircle, RefreshCw, Search, Filter, Loader2, 
+  ArrowUpRight, ArrowDownRight, ChevronLeft, ChevronRight, History, Download 
 } from 'lucide-vue-next'
 
 const emit = defineEmits(['refresh'])
@@ -22,7 +12,7 @@ const loading = ref(false)
 const error = ref(null)
 const searchQuery = ref('')
 const currentPage = ref(1)
-const itemsPerPage = ref(15)
+const itemsPerPage = ref(20) // Increased density
 
 const JOURNAL_WEBHOOK = import.meta.env.VITE_GET_JOURNAL_ENTRIES_WEBHOOK
 
@@ -77,164 +67,111 @@ const refresh = () => {
 </script>
 
 <template>
-  <div class="space-y-6 animate-fade-in">
+  <div class="space-y-6">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-border pb-6">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-border pb-5">
       <div>
-        <div class="flex items-center gap-2 mb-1">
-          <History class="w-4 h-4 text-primary" />
-          <span class="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Transaction Audit</span>
+        <h1 class="text-xl font-bold text-text tracking-tight uppercase">Journal Records</h1>
+        <div class="flex items-center gap-2 mt-1">
+          <History class="w-3.5 h-3.5 text-muted" />
+          <p class="text-[11px] font-medium text-muted uppercase tracking-wider">Transaction Audit Trail</p>
         </div>
-        <h1 class="text-3xl font-black text-text tracking-tighter uppercase">Journal Records</h1>
       </div>
       
       <div class="flex items-center gap-2">
-        <button @click="refresh" class="btn btn-outline h-9 px-4">
+        <button @click="refresh" class="btn btn-outline h-9 px-3">
           <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
-          <span class="text-[11px] font-black uppercase tracking-widest ml-1">Re-Sync</span>
+          <span class="ml-1">Sync</span>
         </button>
         <RouterLink to="/accounting/journal/new" class="btn btn-primary h-9 px-4">
           <PlusCircle class="w-3.5 h-3.5" />
-          <span class="text-[11px] font-black uppercase tracking-widest ml-1">New Entry</span>
+          <span class="ml-1">New Entry</span>
         </RouterLink>
       </div>
     </div>
 
-    <!-- Filters & Search -->
-    <div class="flex flex-col sm:flex-row items-center gap-4 bg-surface/50 p-2 rounded-lg border border-border">
-      <div class="relative flex-1 group">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted group-focus-within:text-primary transition-colors" />
+    <!-- Filters -->
+    <div class="flex items-center gap-3 bg-white p-1 rounded border border-border">
+      <div class="relative flex-1">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
         <input 
           v-model="searchQuery"
           type="text" 
-          placeholder="FILTER BY DESCRIPTION OR REFERENCE..."
-          class="input pl-10 h-10 bg-background/50 border-transparent hover:border-border focus:bg-background uppercase font-bold tracking-tight text-xs"
+          placeholder="Filter by reference or description..."
+          class="block w-full rounded-sm border-0 py-1.5 pl-9 text-sm text-text placeholder:text-muted focus:ring-0"
         />
       </div>
-      <div class="flex items-center gap-2">
-        <button class="btn btn-outline h-10 px-4 group">
-          <Filter class="w-3.5 h-3.5 text-muted group-hover:text-text" />
-          <span class="text-[10px] font-black uppercase tracking-widest ml-1">Parameters</span>
-        </button>
-        <button class="btn btn-outline h-10 px-3 hover:bg-primary/5 hover:border-primary/30 group">
-          <Download class="w-3.5 h-3.5 text-muted group-hover:text-primary" />
-        </button>
-      </div>
+      <div class="h-4 w-px bg-border"></div>
+      <button class="px-3 py-1 text-xs font-medium text-muted hover:text-text">
+        Export CSV
+      </button>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="loading" class="card flex flex-col items-center justify-center py-24 gap-4 bg-background/20 border-dashed">
-      <div class="relative">
-        <Loader2 class="w-10 h-10 text-primary animate-spin" />
-        <div class="absolute inset-0 flex items-center justify-center">
-          <div class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></div>
-        </div>
-      </div>
-      <p class="text-[10px] font-black text-muted uppercase tracking-[0.3em]">Querying Ledger...</p>
-    </div>
-
-    <!-- Error State -->
-    <div v-else-if="error" class="card bg-danger/5 border-danger/20 flex items-center gap-4 p-6">
-      <div class="w-10 h-10 rounded bg-danger/10 flex items-center justify-center flex-shrink-0">
-        <AlertCircle class="w-5 h-5 text-danger" />
-      </div>
-      <div>
-        <p class="text-[11px] font-black text-danger uppercase tracking-widest">Data Synchronization Error</p>
-        <p class="text-xs text-muted-dark font-medium mt-0.5">{{ error }}</p>
-      </div>
-      <button @click="refresh" class="btn btn-outline btn-sm ml-auto border-danger/20 text-danger hover:bg-danger/10 uppercase font-black text-[9px]">Retry Request</button>
-    </div>
-
-    <!-- Empty State -->
-    <div v-else-if="entries.length === 0" class="card py-24 border-dashed bg-background/20">
-      <div class="text-center max-w-xs mx-auto">
-        <div class="w-16 h-16 bg-muted/5 rounded-full flex items-center justify-center mx-auto mb-6">
-          <FileText class="w-8 h-8 text-muted-dark" />
-        </div>
-        <h3 class="text-sm font-black text-text uppercase tracking-widest mb-2">Zero Records Found</h3>
-        <p class="text-[11px] text-muted-dark font-bold uppercase tracking-tighter leading-tight mb-8">No journal entries exist within the specified audit period.</p>
-        <RouterLink to="/accounting/journal/new" class="btn btn-primary w-full">
-          <PlusCircle class="w-4 h-4" />
-          <span class="text-[11px] font-black uppercase tracking-widest ml-1">Initialize Ledger</span>
-        </RouterLink>
-      </div>
-    </div>
-
-    <!-- Data Table -->
-    <div v-else class="space-y-4">
-      <div class="table-container shadow-2xl border-border overflow-hidden">
-        <table class="table">
-          <thead>
-            <tr>
-              <th class="w-32">Post Date</th>
-              <th class="w-32">Reference</th>
-              <th>Ledger Memo</th>
-              <th class="text-right w-40">Debit ($)</th>
-              <th class="text-right w-40">Credit ($)</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-border/30">
-            <tr 
-              v-for="entry in paginatedEntries" 
-              :key="entry.id"
-              class="group hover:bg-primary/5 transition-colors"
-            >
-              <td class="font-mono text-[12px] font-bold text-muted uppercase tracking-tighter">
-                {{ new Date(entry.entry_date).toLocaleDateString('en-GB') }}
-              </td>
-              <td class="px-2">
-                <span class="inline-block px-2 py-0.5 bg-background border border-border text-[10px] font-black text-text-secondary rounded font-mono uppercase tracking-tight">
-                  #{{ entry.reference || '0000' }}
-                </span>
-              </td>
-              <td class="font-bold text-text-secondary text-[13px] group-hover:text-text transition-colors">
-                {{ entry.description || 'N/A' }}
-              </td>
-              <td class="text-right">
-                <div class="flex items-center justify-end gap-1.5 font-mono text-sm">
-                  <span class="text-success font-black">{{ fmt(entry.total_debit) }}</span>
-                  <ArrowDownRight class="w-3 h-3 text-success opacity-40 group-hover:opacity-100 transition-opacity" />
-                </div>
-              </td>
-              <td class="text-right">
-                <div class="flex items-center justify-end gap-1.5 font-mono text-sm">
-                  <span class="text-danger font-black">{{ fmt(entry.total_credit) }}</span>
-                  <ArrowUpRight class="w-3 h-3 text-danger opacity-40 group-hover:opacity-100 transition-opacity" />
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- Table -->
+    <div class="card overflow-hidden shadow-sm p-0">
+      <div v-if="loading" class="p-12 flex flex-col items-center justify-center gap-3">
+        <Loader2 class="w-8 h-8 text-primary animate-spin" />
+        <p class="text-xs font-medium text-muted uppercase tracking-wider">Loading Ledger...</p>
       </div>
 
-      <!-- Pagination -->
-      <div class="flex items-center justify-between px-2">
-        <div class="flex items-center gap-4">
-          <p class="text-[10px] font-black text-muted uppercase tracking-widest">
-            Page {{ currentPage }} of {{ totalPages }} <span class="mx-2 text-border">|</span> 
-            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredEntries.length) }}
-          </p>
-        </div>
-        <div class="flex items-center gap-1.5">
+      <div v-else-if="entries.length === 0" class="p-12 text-center">
+        <p class="text-sm font-medium text-muted">No journal records found.</p>
+      </div>
+
+      <table v-else class="w-full">
+        <thead>
+          <tr>
+            <th class="w-32 pl-4">Date</th>
+            <th class="w-24">Ref</th>
+            <th>Description</th>
+            <th class="text-right w-32">Debit</th>
+            <th class="text-right w-32 pr-4">Credit</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border/50 bg-white">
+          <tr 
+            v-for="entry in paginatedEntries" 
+            :key="entry.id"
+            class="group hover:bg-slate-50 transition-colors"
+          >
+            <td class="pl-4 py-2 font-mono text-xs text-muted-dark">
+              {{ new Date(entry.entry_date).toLocaleDateString('en-GB') }}
+            </td>
+            <td class="py-2">
+              <span class="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-mono font-medium text-slate-600 border border-slate-200">
+                #{{ entry.reference || '---' }}
+              </span>
+            </td>
+            <td class="py-2 text-sm text-text font-medium">
+              {{ entry.description || 'Adjustment' }}
+            </td>
+            <td class="py-2 text-right font-mono text-xs tabular-nums text-text-secondary">
+              {{ fmt(entry.total_debit) }}
+            </td>
+            <td class="py-2 pr-4 text-right font-mono text-xs tabular-nums text-text-secondary">
+              {{ fmt(entry.total_credit) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination Footer -->
+      <div class="flex items-center justify-between px-4 py-3 bg-slate-50 border-t border-border">
+        <p class="text-xs text-muted">
+          Showing <span class="font-medium text-text">{{ (currentPage - 1) * itemsPerPage + 1 }}</span> to <span class="font-medium text-text">{{ Math.min(currentPage * itemsPerPage, filteredEntries.length) }}</span> of {{ filteredEntries.length }} results
+        </p>
+        <div class="flex gap-1">
           <button 
             @click="currentPage--"
             :disabled="currentPage === 1"
-            class="btn btn-outline w-8 h-8 p-0 disabled:opacity-20"
+            class="btn btn-outline px-2 py-1 h-8 w-8 disabled:opacity-30"
           >
             <ChevronLeft class="w-4 h-4" />
           </button>
-          
-          <div class="flex items-center gap-1 mx-2">
-            <span v-for="p in Math.min(totalPages, 5)" :key="p" 
-              class="w-1.5 h-1.5 rounded-full transition-all duration-300"
-              :class="p === currentPage ? 'bg-primary w-4' : 'bg-muted/30'"
-            ></span>
-          </div>
-
           <button 
             @click="currentPage++"
             :disabled="currentPage >= totalPages"
-            class="btn btn-outline w-8 h-8 p-0 disabled:opacity-20"
+            class="btn btn-outline px-2 py-1 h-8 w-8 disabled:opacity-30"
           >
             <ChevronRight class="w-4 h-4" />
           </button>
@@ -243,20 +180,3 @@ const refresh = () => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.animate-fade-in {
-  animation: fadeIn 0.4s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-</style>
-
-<style scoped>
-.btn-sm {
-  @apply px-2.5 py-1.5 text-sm;
-}
-</style>

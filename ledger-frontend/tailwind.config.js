@@ -8,60 +8,71 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#0a0a0f',
-        surface: '#12121a',
-        'surface-hover': '#1a1a24',
-        border: '#1e293b',
-        'border-light': '#2a3a4a',
-        primary: '#6366f1',
-        'primary-hover': '#818cf8',
-        success: '#10b981',
-        'success-light': '#34d399',
-        danger: '#ef4444',
-        'danger-light': '#f87171',
-        warning: '#f59e0b',
-        info: '#3b82f6',
-        muted: '#64748b',
-        'muted-dark': '#475569',
-        text: '#f3f4f6',
-        'text-secondary': '#cbd5e1',
+        // Semantic Roles
+        background: '#f8fafc', // slate-50
+        surface: '#ffffff',     // white
+        'surface-hover': '#f1f5f9', // slate-100
+        border: '#cbd5e1',      // slate-300 - higher contrast for financial grids
+        'border-light': '#e2e8f0', // slate-200
+        
+        // Brand
+        primary: {
+          DEFAULT: '#4f46e5', // indigo-600
+          hover: '#4338ca',   // indigo-700
+          light: '#e0e7ff',   // indigo-100
+        },
+
+        // Status
+        success: {
+          DEFAULT: '#059669', // emerald-600
+          light: '#d1fae5',   // emerald-100
+          text: '#065f46',    // emerald-800
+        },
+        danger: {
+          DEFAULT: '#e11d48', // rose-600
+          light: '#ffe4e6',   // rose-100
+          text: '#9f1239',    // rose-800
+        },
+        warning: {
+          DEFAULT: '#d97706', // amber-600
+          light: '#fef3c7',   // amber-100
+          text: '#92400e',    // amber-800
+        },
+        muted: {
+          DEFAULT: '#64748b', // slate-500
+          light: '#94a3b8',   // slate-400
+          dark: '#334155',    // slate-700
+        },
+
+        // Text
+        text: {
+          DEFAULT: '#0f172a', // slate-900
+          secondary: '#475569', // slate-600
+        }
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        mono: ['JetBrains Mono', 'Roboto Mono', 'monospace'],
+      },
+      fontSize: {
+        '2xs': '0.65rem',
+        'xs': '0.75rem',    // 12px
+        'sm': '0.8125rem',  // 13px - Standard Table Data
+        'base': '0.875rem', // 14px
+        'lg': '1rem',       // 16px
+        'xl': '1.125rem',   // 18px
+        '2xl': '1.5rem',    // 24px
+        '3xl': '1.875rem',  // 30px
+      },
+      spacing: {
+        '4.5': '1.125rem',
       },
       boxShadow: {
-        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.5)',
-        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.7)',
-        'glow-success': '0 0 15px rgba(16, 185, 129, 0.2)',
-        'glow-primary': '0 0 15px rgba(99, 102, 241, 0.2)',
-        'glow-danger': '0 0 15px rgba(239, 68, 68, 0.1)',
-      },
-      animation: {
-        'fade-in': 'fadeIn 0.3s ease-out',
-        'slide-up': 'slideUp 0.3s ease-out',
-        'slide-down': 'slideDown 0.3s ease-out',
-        'scale-in': 'scaleIn 0.2s ease-out',
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-      },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        slideUp: {
-          '0%': { opacity: '0', transform: 'translateY(10px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        slideDown: {
-          '0%': { opacity: '0', transform: 'translateY(-10px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        scaleIn: {
-          '0%': { opacity: '0', transform: 'scale(0.95)' },
-          '100%': { opacity: '1', transform: 'scale(1)' },
-        },
-      },
+        'card': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        'card-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        'glow-success': '0 0 0 1px rgba(5, 150, 105, 0.1), 0 0 4px rgba(5, 150, 105, 0.1)',
+        'glow-danger': '0 0 0 1px rgba(225, 29, 72, 0.1), 0 0 4px rgba(225, 29, 72, 0.1)',
+      }
     },
   },
   plugins: [],

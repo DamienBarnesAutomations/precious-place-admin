@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { PlusCircle, Loader2, CheckCircle, AlertCircle, Plus, Trash2, ArrowRight, ShieldCheck, FileSpreadsheet } from 'lucide-vue-next'
+import { PlusCircle, Loader2, CheckCircle, AlertCircle, Plus, Trash2, ArrowRight, ShieldCheck, FileSpreadsheet, Save } from 'lucide-vue-next'
 
 const emit = defineEmits(['refresh'])
 
@@ -13,7 +13,10 @@ const isSubmitting = ref(false)
 const isSuccess = ref(false)
 const isReviewing = ref(false)
 
+// Start with enough rows for a standard transaction
 const rows = ref([
+  { account_id: '', debit: null, credit: null },
+  { account_id: '', debit: null, credit: null },
   { account_id: '', debit: null, credit: null },
   { account_id: '', debit: null, credit: null }
 ])
@@ -21,26 +24,27 @@ const rows = ref([
 const addRow = () => rows.value.push({ account_id: '', debit: null, credit: null })
 const removeRow = (i) => rows.value.length > 2 && rows.value.splice(i, 1)
 
-const onDebitInput = (r) => { if (r.debit > 0) r.credit = null }
-const onCreditInput = (r) => { if (r.credit > 0) r.debit = null }
+// Auto-clear opposite field
+const onDebitInput = (r) => { if (r.debit) r.credit = null }
+const onCreditInput = (r) => { if (r.credit) r.debit = null }
 
 const totalDebit = computed(() => {
-  const sum = rows.value.reduce((s, r) => s + (Number(r.debit) || 0), 0);
-  return Math.round((sum + Number.EPSILON) * 100) / 100;
-});
+  const sum = rows.value.reduce((s, r) => s + (Number(r.debit) || 0), 0)
+  return Math.round((sum + Number.EPSILON) * 100) / 100
+})
 
 const totalCredit = computed(() => {
-  const sum = rows.value.reduce((s, r) => s + (Number(r.credit) || 0), 0);
-  return Math.round((sum + Number.EPSILON) * 100) / 100;
-});
+  const sum = rows.value.reduce((s, r) => s + (Number(r.credit) || 0), 0)
+  return Math.round((sum + Number.EPSILON) * 100) / 100
+})
 
 const balance = computed(() => {
-  return Math.round((totalDebit.value - totalCredit.value + Number.EPSILON) * 100) / 100;
-});
+  return Math.round((totalDebit.value - totalCredit.value + Number.EPSILON) * 100) / 100
+})
 
 const isBalanced = computed(() => {
-  return Math.abs(balance.value) === 0 && totalDebit.value > 0;
-});
+  return Math.abs(balance.value) === 0 && totalDebit.value > 0
+})
 
 const getAccountName = (id) => {
   const acc = accounts.value.find(a => a.id === id)
@@ -85,13 +89,15 @@ const submitEntry = async () => {
     reference.value = ''
     rows.value = [
       { account_id: '', debit: null, credit: null },
+      { account_id: '', debit: null, credit: null },
+      { account_id: '', debit: null, credit: null },
       { account_id: '', debit: null, credit: null }
     ]
     entryDate.value = new Date().toISOString().slice(0, 10)
     
     setTimeout(() => {
       isSuccess.value = false
-    }, 4000)
+    }, 3000)
     
     emit('refresh')
   } catch (err) {
@@ -113,308 +119,236 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="space-y-6 pb-24 relative min-h-full">
+  <div class="space-y-6 pb-32">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-b border-border pb-6">
+    <div class="flex items-center justify-between border-b border-border pb-5">
       <div>
-        <div class="flex items-center gap-2 mb-1">
-          <FileSpreadsheet class="w-4 h-4 text-primary" />
-          <span class="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Transaction Registry</span>
+        <h1 class="text-xl font-bold text-text tracking-tight uppercase">New Journal Entry</h1>
+        <div class="flex items-center gap-2 mt-1">
+          <FileSpreadsheet class="w-3.5 h-3.5 text-muted" />
+          <p class="text-[11px] font-medium text-muted uppercase tracking-wider">Manual Ledger Adjustment</p>
         </div>
-        <h1 class="text-3xl font-black text-text tracking-tighter uppercase">New Journal Entry</h1>
       </div>
       
       <div v-if="!isReviewing" class="flex items-center gap-3">
-        <div 
-          class="flex items-center gap-2 px-3 py-1.5 rounded border transition-colors duration-300" 
-          :class="isBalanced ? 'bg-success/5 border-success/30 text-success' : 'bg-danger/5 border-danger/30 text-danger'"
+        <button 
+          v-if="!isBalanced"
+          class="btn btn-outline text-muted cursor-default hover:bg-white hover:text-muted"
         >
-          <div :class="['p-0.5 rounded-full', isBalanced ? 'bg-success/20' : 'bg-danger/20']">
-            <CheckCircle v-if="isBalanced" class="w-3.5 h-3.5" />
-            <AlertCircle v-else class="w-3.5 h-3.5" />
-          </div>
-          <span class="text-[11px] font-black uppercase tracking-widest">
-            {{ isBalanced ? 'System Reconciled' : 'Unbalanced' }}
-          </span>
-        </div>
+           <span class="tabular-nums">Variance: ${{ balance.toFixed(2) }}</span>
+        </button>
       </div>
     </div>
 
-    <!-- Success Feedback Overlay -->
+    <!-- Success Overlay -->
     <Transition name="fade">
-      <div v-if="isSuccess" class="absolute inset-0 z-50 flex items-center justify-center p-6 backdrop-blur-md">
-        <div class="card max-w-sm w-full text-center p-12 border-success/30 shadow-glow-success animate-scale-in">
-          <div class="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <ShieldCheck class="w-8 h-8 text-success" />
+      <div v-if="isSuccess" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
+        <div class="bg-surface border border-success/30 shadow-2xl rounded-lg p-8 text-center max-w-sm w-full mx-4">
+          <div class="w-12 h-12 bg-success-light rounded-full flex items-center justify-center mx-auto mb-4 text-success-text">
+            <ShieldCheck class="w-6 h-6" />
           </div>
-          <h3 class="text-xl font-black text-text uppercase tracking-tighter mb-2">Entry Reconciled</h3>
-          <p class="text-xs text-muted font-bold uppercase tracking-widest leading-relaxed mb-8">
-            Transaction has been successfully committed to the General Ledger.
-          </p>
-          <button @click="isSuccess = false" class="btn btn-success w-full">
-            <span class="text-[11px] font-black uppercase tracking-widest">Create Another</span>
+          <h3 class="text-lg font-bold text-text uppercase tracking-wide mb-2">Posted Successfully</h3>
+          <p class="text-xs text-muted font-medium mb-6">Reference ID generated. Ledger updated.</p>
+          <button @click="isSuccess = false" class="btn btn-primary w-full justify-center">
+            Continue Working
           </button>
         </div>
       </div>
     </Transition>
 
-    <div v-if="!isReviewing" class="space-y-6 animate-fade-in">
-      <!-- Meta Section -->
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-        <div class="md:col-span-8 space-y-4">
-          <div class="card bg-background/30 p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="space-y-1.5">
-                <label class="text-[10px] font-black text-muted-dark uppercase tracking-widest">Transaction Date</label>
-                <input type="date" v-model="entryDate" class="input font-mono" />
-              </div>
-              <div class="space-y-1.5">
-                <label class="text-[10px] font-black text-muted-dark uppercase tracking-widest">External Reference</label>
-                <input type="text" v-model="reference" placeholder="REF_0000" class="input font-mono uppercase" />
-              </div>
-              <div class="md:col-span-2 space-y-1.5">
-                <label class="text-[10px] font-black text-muted-dark uppercase tracking-widest">Entry Memo / Description</label>
-                <input type="text" v-model="description" placeholder="Describe the transaction intent..." class="input" />
-              </div>
-            </div>
+    <div v-if="!isReviewing" class="space-y-6">
+      <!-- Meta Card -->
+      <div class="card p-5 bg-slate-50">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-muted-dark uppercase tracking-wider">Date</label>
+            <input type="date" v-model="entryDate" class="input input-mono" />
           </div>
-        </div>
-
-        <div class="md:col-span-4 flex flex-col">
-          <div class="card bg-primary/5 border-primary/20 flex-1 flex flex-col justify-center p-6 relative overflow-hidden">
-            <div class="absolute -right-4 -bottom-4 opacity-5 rotate-12">
-              <PlusCircle class="w-32 h-32 text-primary" />
-            </div>
-            <p class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-4">Verification Stats</p>
-            <div class="space-y-4">
-              <div class="flex justify-between items-end border-b border-primary/10 pb-2">
-                <span class="text-[10px] font-bold text-muted uppercase">Line Count</span>
-                <span class="text-lg font-black font-mono text-text tracking-tighter">{{ rows.length }}</span>
-              </div>
-              <div class="flex justify-between items-end border-b border-primary/10 pb-2">
-                <span class="text-[10px] font-bold text-muted uppercase">Variance</span>
-                <span :class="['text-lg font-black font-mono tracking-tighter', balance === 0 ? 'text-success' : 'text-danger']">
-                  {{ balance.toFixed(2) }}
-                </span>
-              </div>
-            </div>
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-muted-dark uppercase tracking-wider">Reference</label>
+            <input type="text" v-model="reference" placeholder="REF-001" class="input input-mono uppercase" />
+          </div>
+          <div class="md:col-span-2 space-y-1">
+             <label class="text-[10px] font-bold text-muted-dark uppercase tracking-wider">Memo / Description</label>
+            <input type="text" v-model="description" placeholder="Adjustment for..." class="input" />
           </div>
         </div>
       </div>
 
-      <!-- Distributions Table -->
-      <div class="card p-0 overflow-hidden border-border bg-surface shadow-lg">
-        <div class="px-6 py-3 bg-background/50 border-b border-border flex items-center justify-between">
-          <h3 class="text-[11px] font-black text-text uppercase tracking-widest">Account Distributions</h3>
-          <span class="text-[9px] font-bold text-muted uppercase tracking-tighter">Double-Entry Ledger</span>
+      <!-- Ledger Table -->
+      <div class="card p-0 overflow-hidden shadow-sm">
+        <div class="bg-slate-100 border-b border-border px-4 py-2 flex items-center gap-2">
+           <span class="text-[10px] font-bold text-muted-dark uppercase tracking-widest">Transaction Lines</span>
         </div>
-
-        <!-- Ledger Header -->
-        <div class="grid grid-cols-[1fr_150px_150px_48px] gap-0 text-[10px] font-black text-muted uppercase tracking-widest bg-background/80 border-b border-border text-center">
-          <div class="px-6 py-2 text-left border-r border-border">Account Specification</div>
-          <div class="px-4 py-2 border-r border-border">Debit</div>
-          <div class="px-4 py-2 border-r border-border">Credit</div>
-          <div class="px-2 py-2"></div>
-        </div>
-
-        <!-- Ledger Rows -->
-        <div class="divide-y divide-border">
-          <div 
-            v-for="(row, i) in rows" 
-            :key="i"
-            class="grid grid-cols-[1fr_150px_150px_48px] gap-0 items-stretch group hover:bg-surface-hover transition-colors"
-          >
-            <div class="px-6 py-3 border-r border-border flex items-center">
-              <select v-model="row.account_id" class="select bg-transparent border-transparent focus:ring-0 px-0 h-auto">
-                <option disabled value="">Select target account...</option>
-                <option v-for="a in accounts" :key="a.id" :value="a.id">{{ a.code }} — {{ a.name }}</option>
-              </select>
-            </div>
-            
-            <div class="border-r border-border">
-              <input 
-                type="number" 
-                v-model.number="row.debit" 
-                @input="onDebitInput(row)" 
-                placeholder="0.00" 
-                class="w-full h-full bg-transparent text-right font-mono px-4 focus:bg-background/40 focus:outline-none focus:ring-1 focus:ring-primary/20 text-success font-bold"
-              />
-            </div>
-
-            <div class="border-r border-border">
-              <input 
-                type="number" 
-                v-model.number="row.credit" 
-                @input="onCreditInput(row)" 
-                placeholder="0.00" 
-                class="w-full h-full bg-transparent text-right font-mono px-4 focus:bg-background/40 focus:outline-none focus:ring-1 focus:ring-primary/20 text-danger font-bold"
-              />
-            </div>
-
-            <div class="flex items-center justify-center bg-background/10">
-              <button 
-                @click="removeRow(i)" 
-                class="p-2 text-muted-dark hover:text-danger transition-colors disabled:opacity-0"
-                :disabled="rows.length <= 2"
-              >
-                <Trash2 class="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Add Line Footer -->
-        <div class="px-6 py-3 bg-background/20 border-t border-border">
-          <button @click="addRow" class="btn btn-outline border-dashed border-muted-dark/50 hover:border-primary/50 group">
-            <Plus class="w-3.5 h-3.5 group-hover:text-primary transition-colors" />
-            <span class="text-[11px] font-black uppercase tracking-widest">Insert Ledger Line</span>
-          </button>
-        </div>
+        
+        <table class="w-full">
+          <thead>
+            <tr>
+              <th class="w-8 pl-4 pr-2">#</th>
+              <th class="w-[40%]">Account</th>
+              <th class="text-right w-[20%]">Debit</th>
+              <th class="text-right w-[20%]">Credit</th>
+              <th class="w-10"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border/50 bg-white">
+            <tr v-for="(row, i) in rows" :key="i" class="group hover:bg-slate-50/80 transition-colors">
+              <td class="pl-4 pr-2 text-xs font-mono text-muted/50">{{ i + 1 }}</td>
+              <td class="py-1">
+                 <select v-model="row.account_id" class="input border-transparent bg-transparent shadow-none focus:ring-0 px-2 font-medium">
+                  <option value="" disabled>Select Account...</option>
+                  <option v-for="a in accounts" :key="a.id" :value="a.id">
+                    {{ a.code }} - {{ a.name }}
+                  </option>
+                </select>
+              </td>
+              <td class="py-1 border-l border-border/30">
+                <input 
+                  type="number" 
+                  v-model.number="row.debit" 
+                  @input="onDebitInput(row)"
+                  placeholder="0.00"
+                  class="input border-transparent bg-transparent shadow-none focus:ring-0 text-right font-mono tabular-nums placeholder:text-slate-200"
+                />
+              </td>
+              <td class="py-1 border-l border-border/30">
+                <input 
+                  type="number" 
+                  v-model.number="row.credit" 
+                  @input="onCreditInput(row)"
+                  placeholder="0.00"
+                  class="input border-transparent bg-transparent shadow-none focus:ring-0 text-right font-mono tabular-nums placeholder:text-slate-200"
+                />
+              </td>
+              <td class="text-center">
+                <button 
+                  @click="removeRow(i)"
+                  class="text-muted/30 hover:text-danger transition-colors p-1"
+                  tabindex="-1"
+                >
+                  <Trash2 class="w-3.5 h-3.5" />
+                </button>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="5" class="px-4 py-2 bg-slate-50 border-t border-border">
+                <button @click="addRow" class="text-xs font-bold text-primary hover:text-primary-hover uppercase tracking-wider flex items-center gap-1">
+                  <PlusCircle class="w-3.5 h-3.5" /> Add Line
+                </button>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
     </div>
 
-    <!-- Review State -->
-    <div v-else class="animate-scale-in">
-      <div class="card p-0 overflow-hidden border-primary/30 shadow-glow-primary">
-        <div class="px-6 py-4 bg-primary/10 border-b border-primary/20 flex items-center gap-3">
-          <ShieldCheck class="w-5 h-5 text-primary" />
+    <!-- Review Mode -->
+    <div v-else class="card max-w-2xl mx-auto p-0 overflow-hidden">
+      <div class="px-6 py-4 bg-slate-50 border-b border-border">
+        <h3 class="text-sm font-bold text-text uppercase tracking-wide">Confirm Posting</h3>
+      </div>
+      <div class="p-6 space-y-6">
+        <div class="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <h3 class="text-sm font-black text-text uppercase tracking-widest">Final Review Required</h3>
-            <p class="text-[10px] font-bold text-primary uppercase tracking-tighter">Please verify all accounting distributions before commitment</p>
+            <span class="block text-[10px] font-bold text-muted uppercase">Date</span>
+            <span class="font-mono">{{ entryDate }}</span>
+          </div>
+          <div>
+            <span class="block text-[10px] font-bold text-muted uppercase">Reference</span>
+            <span class="font-mono">{{ reference || 'N/A' }}</span>
+          </div>
+          <div class="col-span-2">
+            <span class="block text-[10px] font-bold text-muted uppercase">Memo</span>
+            <span>{{ description || 'No description' }}</span>
           </div>
         </div>
 
-        <div class="p-6 space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-            <div>
-              <p class="text-[10px] font-black text-muted-dark uppercase tracking-widest mb-1">Date</p>
-              <p class="font-mono font-bold text-text">{{ entryDate }}</p>
-            </div>
-            <div>
-              <p class="text-[10px] font-black text-muted-dark uppercase tracking-widest mb-1">Reference</p>
-              <p class="font-mono font-bold text-text">{{ reference || 'N/A' }}</p>
-            </div>
-            <div>
-              <p class="text-[10px] font-black text-muted-dark uppercase tracking-widest mb-1">Memo</p>
-              <p class="font-bold text-text truncate">{{ description || 'No Description provided' }}</p>
-            </div>
-          </div>
-
-          <div class="table-container border-primary/10">
-            <table class="table">
-              <thead>
-                <tr class="bg-primary/5">
-                  <th class="border-primary/10">Account Account</th>
-                  <th class="text-right border-primary/10">Debit</th>
-                  <th class="text-right border-primary/10">Credit</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(row, i) in rows.filter(r => r.account_id)" :key="i">
-                  <td>{{ getAccountName(row.account_id) }}</td>
-                  <td class="text-right font-mono font-bold" :class="row.debit ? 'text-success' : 'text-muted-dark'">
-                    {{ row.debit ? row.debit.toFixed(2) : '—' }}
-                  </td>
-                  <td class="text-right font-mono font-bold" :class="row.credit ? 'text-danger' : 'text-muted-dark'">
-                    {{ row.credit ? row.credit.toFixed(2) : '—' }}
-                  </td>
-                </tr>
-              </tbody>
-              <tfoot class="bg-primary/5 font-black">
-                <tr>
-                  <td class="text-right text-muted-dark uppercase tracking-widest">Verification Totals</td>
-                  <td class="text-right font-mono text-success text-base">${{ totalDebit.toFixed(2) }}</td>
-                  <td class="text-right font-mono text-danger text-base">${{ totalCredit.toFixed(2) }}</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
+        <div class="border rounded border-border overflow-hidden">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50">
+              <tr>
+                <th class="py-2 px-3 text-left text-xs font-bold text-muted uppercase">Account</th>
+                <th class="py-2 px-3 text-right text-xs font-bold text-muted uppercase">Debit</th>
+                <th class="py-2 px-3 text-right text-xs font-bold text-muted uppercase">Credit</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border/50">
+              <tr v-for="(row, i) in rows.filter(r => r.account_id)" :key="i">
+                <td class="py-2 px-3">{{ getAccountName(row.account_id) }}</td>
+                <td class="py-2 px-3 text-right font-mono text-muted-dark">{{ row.debit ? row.debit.toFixed(2) : '-' }}</td>
+                <td class="py-2 px-3 text-right font-mono text-muted-dark">{{ row.credit ? row.credit.toFixed(2) : '-' }}</td>
+              </tr>
+            </tbody>
+            <tfoot class="bg-slate-50 font-bold">
+              <tr>
+                <td class="py-2 px-3 text-right uppercase text-[10px]">Totals</td>
+                <td class="py-2 px-3 text-right font-mono">{{ totalDebit.toFixed(2) }}</td>
+                <td class="py-2 px-3 text-right font-mono">{{ totalCredit.toFixed(2) }}</td>
+              </tr>
+            </tfoot>
+          </table>
         </div>
-
-        <div class="px-6 py-4 bg-background/50 border-t border-border flex justify-end gap-3">
-          <button @click="isReviewing = false" class="btn btn-ghost">
-            <span class="text-[11px] font-black uppercase tracking-widest">Back to Editor</span>
-          </button>
-          <button @click="submitEntry" :disabled="isSubmitting" class="btn btn-primary px-8">
-            <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
-            <span class="text-[11px] font-black uppercase tracking-widest">{{ isSubmitting ? 'Committing...' : 'Commit Transaction' }}</span>
-          </button>
-        </div>
+      </div>
+      <div class="px-6 py-4 bg-slate-50 border-t border-border flex justify-end gap-3">
+        <button @click="isReviewing = false" class="btn btn-outline">Edit</button>
+        <button @click="submitEntry" :disabled="isSubmitting" class="btn btn-primary px-6">
+          <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
+          {{ isSubmitting ? 'Posting...' : 'Post Entry' }}
+        </button>
       </div>
     </div>
 
-    <!-- Sticky Live Balance Bar -->
+    <!-- Sticky Balance Footer -->
     <div 
-      class="fixed bottom-0 left-0 lg:left-64 right-0 bg-surface/90 backdrop-blur-xl border-t border-border shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.5)] z-40 px-6 py-3 transition-transform duration-300 translate-y-0"
-      v-if="!isSuccess"
+      class="fixed bottom-0 left-0 right-0 bg-white border-t border-border p-4 shadow-lg z-30 transition-transform duration-200 lg:pl-[240px]"
+      :class="{ 'translate-y-full': isReviewing }"
     >
       <div class="max-w-7xl mx-auto flex items-center justify-between">
         <div class="flex items-center gap-8">
-          <div class="hidden sm:block">
-            <p class="text-[9px] font-black text-muted uppercase tracking-widest">Reconciliation Status</p>
-            <div class="flex items-center gap-2 mt-0.5">
-              <div :class="['w-2 h-2 rounded-full', isBalanced ? 'bg-success animate-pulse' : 'bg-danger']"></div>
-              <span :class="['text-xs font-black uppercase tracking-tighter', isBalanced ? 'text-success' : 'text-danger']">
-                {{ isBalanced ? 'Balanced' : 'Out of Balance' }}
-              </span>
-            </div>
-          </div>
-          <div class="h-8 w-[1px] bg-border hidden sm:block"></div>
-          <div class="flex gap-6">
-            <div class="text-right">
-              <p class="text-[9px] font-black text-muted uppercase tracking-widest mb-0.5">Debit Sum</p>
-              <p class="text-sm font-black font-mono text-text">${{ totalDebit.toFixed(2) }}</p>
-            </div>
-            <div class="text-right">
-              <p class="text-[9px] font-black text-muted uppercase tracking-widest mb-0.5">Credit Sum</p>
-              <p class="text-sm font-black font-mono text-text">${{ totalCredit.toFixed(2) }}</p>
-            </div>
-          </div>
+           <div class="flex items-center gap-3">
+              <div :class="['w-3 h-3 rounded-full', isBalanced ? 'bg-success' : 'bg-danger animate-pulse']"></div>
+              <div>
+                <p class="text-[10px] font-bold uppercase tracking-widest text-muted">Status</p>
+                <p :class="['text-xs font-bold uppercase', isBalanced ? 'text-success-text' : 'text-danger-text']">
+                  {{ isBalanced ? 'Balanced' : 'Out of Balance' }}
+                </p>
+              </div>
+           </div>
+           <div class="h-8 w-px bg-border hidden sm:block"></div>
+           <div class="hidden sm:flex gap-8">
+             <div>
+               <span class="block text-[10px] font-bold text-muted uppercase">Total Debit</span>
+               <span class="font-mono text-sm font-bold">${{ totalDebit.toFixed(2) }}</span>
+             </div>
+             <div>
+               <span class="block text-[10px] font-bold text-muted uppercase">Total Credit</span>
+               <span class="font-mono text-sm font-bold">${{ totalCredit.toFixed(2) }}</span>
+             </div>
+           </div>
         </div>
-
-        <div class="flex items-center gap-3">
-          <button 
-            v-if="!isReviewing"
-            @click="isReviewing = true"
-            :disabled="!isBalanced"
-            class="btn btn-primary"
-          >
-            <span class="text-[11px] font-black uppercase tracking-widest">Review Record</span>
-            <ArrowRight class="w-3.5 h-3.5 ml-1" />
-          </button>
-        </div>
+        
+        <button 
+          @click="isReviewing = true"
+          :disabled="!isBalanced"
+          class="btn btn-primary px-6 h-10 shadow-lg shadow-primary/20"
+        >
+          <span>Review & Post</span>
+          <ArrowRight class="w-4 h-4" />
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Page Transitions */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
 }
-
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.4s ease-out;
-}
-
-.animate-scale-in {
-  animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
 }
 </style>

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { DollarSign, RefreshCw, Loader2, TrendingUp, BarChart3 } from 'lucide-vue-next'
+import { DollarSign, RefreshCw, Loader2, TrendingUp } from 'lucide-vue-next'
 
 const emit = defineEmits(['refresh'])
 
@@ -10,34 +10,17 @@ const error = ref(null)
 
 const INCOME_WEBHOOK = import.meta.env.VITE_GET_INCOME_WEBHOOK
 
-const groupedIncome = computed(() => {
-  if (!rawEntries.value.length) return {}
-  
-  return rawEntries.value.reduce((acc, entry) => {
-    const key = entry.category || 'Uncategorized Income'
-    if (!acc[key]) acc[key] = []
-    acc[key].push(entry)
-    return acc
-  }, {})
-})
-
 async function fetchIncome() {
   loading.value = true
   error.value = null
   try {
     const res = await fetch(INCOME_WEBHOOK)
     if (!res.ok) throw new Error(`API_COMMUNICATION_ERROR: ${res.status}`)
-    
     const data = await res.json()
-    if (Array.isArray(data)) {
-      rawEntries.value = data.filter(e => e && Object.keys(e).length > 0)
-    } else {
-      rawEntries.value = []
-    }
+    rawEntries.value = Array.isArray(data) ? data.filter(e => e && Object.keys(e).length > 0) : []
   } catch (err) {
     console.error('Income Fetch Failed:', err)
     error.value = err.message
-    rawEntries.value = []
   } finally {
     loading.value = false
   }
@@ -50,9 +33,7 @@ const fmt = (val) => {
   return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-const totalIncome = computed(() => {
-  return rawEntries.value.reduce((sum, e) => sum + Number(e.amount || 0), 0)
-})
+const totalIncome = computed(() => rawEntries.value.reduce((sum, e) => sum + Number(e.amount || 0), 0))
 
 const refresh = () => {
   fetchIncome()
@@ -61,100 +42,76 @@ const refresh = () => {
 </script>
 
 <template>
-  <div class="space-y-4 animate-fade-in pb-8">
+  <div class="space-y-6 pb-12">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 border-b border-border pb-4">
+    <div class="flex items-end justify-between border-b border-border pb-5">
       <div>
-        <div class="flex items-center gap-2 mb-1">
-          <TrendingUp class="w-4 h-4 text-success" />
-          <span class="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Revenue Analysis</span>
+        <h1 class="text-xl font-bold text-text tracking-tight uppercase">Income Audit</h1>
+        <div class="flex items-center gap-2 mt-1">
+          <TrendingUp class="w-3.5 h-3.5 text-success" />
+          <p class="text-[11px] font-medium text-muted uppercase tracking-wider">Revenue Realization Report</p>
         </div>
-        <h1 class="text-2xl font-black text-text tracking-tighter uppercase">Income Statement</h1>
       </div>
       
-      <div class="flex items-center gap-3">
-        <div class="px-4 py-1.5 rounded bg-success/5 border border-success/20 text-right shadow-glow-success">
-          <span class="text-[8px] font-black text-success uppercase tracking-widest block opacity-70 leading-none mb-1">Aggregate Income</span>
-          <span class="text-xl font-black font-mono text-success tracking-tighter leading-none">${{ fmt(totalIncome) }}</span>
+      <div class="flex items-center gap-4 text-right">
+        <div class="bg-emerald-50 border border-emerald-100 px-4 py-1.5 rounded">
+          <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Aggregate Income</p>
+          <p class="font-mono text-lg font-bold text-emerald-700">${{ fmt(totalIncome) }}</p>
         </div>
-        <button @click="refresh" class="btn btn-outline h-8 px-3">
-          <RefreshCw class="w-3 h-3" :class="{ 'animate-spin': loading }" />
-          <span class="text-[10px] font-black uppercase tracking-widest ml-1">Refresh</span>
+        <button @click="refresh" class="btn btn-outline h-10">
+          <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': loading }" />
+          <span class="ml-1">Refresh</span>
         </button>
       </div>
     </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="card flex flex-col items-center justify-center py-16 gap-3 bg-background/20 border-dashed">
-      <Loader2 class="w-8 h-8 text-primary animate-spin" />
-      <p class="text-[9px] font-black text-muted uppercase tracking-[0.3em]">Auditing Revenue Streams...</p>
-    </div>
-
-    <!-- Empty State -->
-    <div v-else-if="Object.keys(groupedIncome).length === 0" class="card py-16 border-dashed bg-background/20">
-      <div class="text-center max-w-xs mx-auto">
-        <BarChart3 class="w-10 h-10 text-muted-dark mx-auto mb-4 opacity-20" />
-        <h3 class="text-sm font-black text-text uppercase tracking-widest mb-1">No Revenue Data</h3>
-        <p class="text-[10px] text-muted font-bold uppercase tracking-tighter leading-tight">Income distributions will materialize here once transactions are reconciled.</p>
+    <!-- Table -->
+    <div class="card overflow-hidden shadow-sm p-0 border-slate-300">
+      <div v-if="loading" class="p-24 flex flex-col items-center justify-center gap-3 bg-white">
+        <Loader2 class="w-8 h-8 text-primary animate-spin" />
+        <p class="text-xs font-bold text-muted uppercase tracking-widest">Auditing Revenue Streams...</p>
       </div>
-    </div>
 
-    <!-- Income Cards -->
-    <template v-else>
-      <div class="grid grid-cols-1 gap-6">
-        <div v-for="(rows, category) in groupedIncome" :key="category" class="card p-0 overflow-hidden border-border bg-surface shadow-lg group hover:border-success/20 transition-colors">
-          <div class="flex items-center justify-between px-5 py-2.5 bg-background/50 border-b border-border">
-            <div class="flex items-center gap-3">
-              <div class="w-6 h-6 rounded bg-success/10 flex items-center justify-center border border-success/20">
-                <DollarSign class="w-3 h-3 text-success" />
-              </div>
-              <h3 class="text-[11px] font-black text-text uppercase tracking-widest">{{ category }}</h3>
-            </div>
-            <div class="text-right">
-              <span class="text-[8px] font-black text-muted uppercase tracking-widest block leading-none mb-0.5">CAT_TOTAL</span>
-              <span class="font-mono font-black text-success text-[13px] tracking-tighter">
-                ${{ fmt(rows.reduce((s, r) => s + Number(r.amount), 0)) }}
+      <div v-else-if="rawEntries.length === 0" class="p-24 text-center bg-white">
+        <p class="text-sm font-medium text-muted">No revenue distributions recorded for this period.</p>
+      </div>
+
+      <table v-else class="w-full bg-white">
+        <thead>
+          <tr class="bg-slate-50 border-b border-slate-200">
+            <th class="pl-6 w-48">Timestamp</th>
+            <th class="w-40">Category</th>
+            <th>Description</th>
+            <th class="text-right pr-6 w-40">Amount</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr v-for="(row, i) in rawEntries" :key="i" class="hover:bg-slate-50/50 transition-colors">
+            <td class="pl-6 py-3 font-mono text-xs text-muted-dark">
+              {{ new Date(row.created_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}
+            </td>
+            <td class="py-3">
+              <span class="text-[10px] font-bold uppercase tracking-tight text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                {{ row.category || 'Revenue' }}
               </span>
-            </div>
-          </div>
-
-          <div class="table-container border-0 rounded-none">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th class="w-36">Timestamp</th>
-                  <th>Ledger Description</th>
-                  <th class="text-right w-40">Credit ($)</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-border/20">
-                <tr v-for="(row, i) in rows" :key="i" class="group/row hover:bg-success/5 transition-colors">
-                  <td class="font-mono text-[10px] font-bold text-muted uppercase tracking-tighter">
-                    {{ new Date(row.created_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}
-                  </td>
-                  <td class="font-bold text-text-secondary text-[12px] group-hover/row:text-text transition-colors uppercase tracking-tight">
-                    {{ row.description || 'Direct Revenue Realization' }}
-                  </td>
-                  <td class="text-right">
-                    <span class="font-mono text-[12px] font-black text-success tracking-tighter">{{ fmt(row.amount) }}</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </template>
+            </td>
+            <td class="py-3 text-sm text-text font-medium">
+              {{ row.description || 'Direct Revenue Realization' }}
+            </td>
+            <td class="pr-6 py-3 text-right font-mono text-sm font-bold text-emerald-700 tabular-nums">
+              {{ fmt(row.amount) }}
+            </td>
+          </tr>
+        </tbody>
+        <tfoot class="bg-slate-50 font-bold border-t-2 border-slate-900">
+          <tr>
+            <td colspan="3" class="pl-6 py-4 text-xs uppercase tracking-widest text-slate-900">Total Statement Realization</td>
+            <td class="pr-6 py-4 text-right font-mono text-base text-slate-900 underline decoration-double">
+              ${{ fmt(totalIncome) }}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
   </div>
 </template>
-
-<style scoped>
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-</style>

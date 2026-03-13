@@ -1,23 +1,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { 
-  FileText, 
-  PlusCircle, 
-  Library, 
-  Scale, 
-  Building2, 
-  TrendingUp, 
-  DollarSign, 
-  Wallet,
-  ArrowUpRight,
-  ArrowDownRight,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-  Activity,
-  ShieldCheck,
-  ChevronRight
+  PlusCircle, Library, Scale, Building2, TrendingUp, DollarSign, Wallet,
+  ArrowUpRight, ArrowDownRight, Clock, CheckCircle, AlertCircle, Loader2,
+  Activity, ShieldCheck, ChevronRight, FileText, LayoutDashboard
 } from 'lucide-vue-next'
 
 const emit = defineEmits(['refresh'])
@@ -39,7 +25,6 @@ const accountsWebhook = import.meta.env.VITE_GET_ACCOUNTS_WEBHOOK
 const fetchDashboardData = async () => {
   isLoading.value = true
   try {
-    // Fetch journal entries
     if (journalWebhook) {
       const journalRes = await fetch(journalWebhook)
       if (journalRes.ok) {
@@ -49,12 +34,11 @@ const fetchDashboardData = async () => {
           stats.value.totalTransactions = entries.length
           stats.value.totalDebit = entries.reduce((sum, e) => sum + (Number(e.total_debit) || 0), 0)
           stats.value.totalCredit = entries.reduce((sum, e) => sum + (Number(e.total_credit) || 0), 0)
-          stats.value.recentActivity = entries.slice(0, 8)
+          stats.value.recentActivity = entries.slice(0, 10)
         }
       }
     }
 
-    // Fetch accounts count
     if (accountsWebhook) {
       const accountsRes = await fetch(accountsWebhook)
       if (accountsRes.ok) {
@@ -73,13 +57,9 @@ const fetchDashboardData = async () => {
 
 onMounted(fetchDashboardData)
 
-// Format currency
 const formatCurrency = (value) => {
   const num = Number(value) || 0
-  return num.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })
+  return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
 const systemStatus = computed(() => {
@@ -88,196 +68,135 @@ const systemStatus = computed(() => {
 })
 
 const quickLinks = [
-  { to: '/accounting/journal/new', icon: PlusCircle, label: 'Post New Entry', desc: 'Add distribution to ledger' },
-  { to: '/accounting/create-account', icon: Library, label: 'Setup Account', desc: 'Expand chart of accounts' },
-  { to: '/accounting/trial-balance', icon: Scale, label: 'Run Trial Balance', desc: 'Verify ledger integrity' }
+  { to: '/accounting/journal/new', icon: PlusCircle, label: 'Post Entry' },
+  { to: '/accounting/create-account', icon: Library, label: 'Setup Account' },
+  { to: '/accounting/trial-balance', icon: Scale, label: 'Run Audit' }
 ]
 </script>
 
 <template>
-  <div class="space-y-8 animate-fade-in">
-    <!-- System Status Banner -->
-    <div 
-      class="relative overflow-hidden rounded-lg border p-8 shadow-2xl transition-all duration-500"
-      :class="systemStatus === 'RECONCILED' ? 'bg-success/5 border-success/30 shadow-glow-success' : 'bg-danger/5 border-danger/30 shadow-glow-danger'"
-    >
-      <div class="absolute -right-8 -top-8 opacity-5">
-        <ShieldCheck v-if="systemStatus === 'RECONCILED'" class="w-64 h-64 text-success" />
-        <AlertCircle v-else class="w-64 h-64 text-danger" />
-      </div>
-
-      <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-        <div>
+  <div class="space-y-8 pb-12">
+    <!-- Top Command Row -->
+    <div class="flex flex-col lg:flex-row gap-6 items-stretch">
+      <!-- High-Contrast Status Banner -->
+      <div 
+        class="flex-1 rounded-lg border flex flex-col justify-center p-6 relative overflow-hidden"
+        :class="systemStatus === 'RECONCILED' ? 'bg-slate-900 border-slate-800' : 'bg-rose-900 border-rose-800'"
+      >
+        <div class="relative z-10">
           <div class="flex items-center gap-2 mb-2">
-            <span :class="['w-2 h-2 rounded-full animate-pulse', systemStatus === 'RECONCILED' ? 'bg-success' : 'bg-danger']"></span>
-            <span class="text-[10px] font-black uppercase tracking-[0.3em] text-muted-dark">Ledger Control Status</span>
+            <div :class="['w-2 h-2 rounded-full', systemStatus === 'RECONCILED' ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400 animate-ping']"></div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">System Status</span>
           </div>
-          <h1 class="text-4xl font-black text-text tracking-tighter uppercase mb-2">
-            {{ systemStatus === 'RECONCILED' ? 'Systems Reconciled' : 'Variance Detected' }}
+          <h1 class="text-2xl font-bold text-white tracking-tight uppercase">
+            {{ systemStatus === 'RECONCILED' ? 'Ledger Reconciled' : 'Variance Detected' }}
           </h1>
-          <p class="text-sm text-muted-dark font-bold uppercase tracking-widest">
-            Audit Period: Current Fiscal Year <span class="mx-2">|</span> {{ stats.totalTransactions }} Active Records
+          <p class="text-xs text-slate-400 mt-1 uppercase tracking-wide">
+            {{ stats.totalTransactions }} Active Transactions <span class="mx-2">|</span> Current Fiscal Scope
           </p>
         </div>
-        
-        <div class="flex items-center gap-12">
-          <div class="text-right">
-            <p class="text-[10px] font-black text-muted-dark uppercase tracking-widest mb-1">Total Assets (DR)</p>
-            <p class="text-3xl font-black font-mono text-text tracking-tighter">${{ formatCurrency(stats.totalDebit) }}</p>
-          </div>
-          <div class="h-12 w-[1px] bg-border/50"></div>
-          <div class="text-right">
-            <p class="text-[10px] font-black text-muted-dark uppercase tracking-widest mb-1">Total Equities (CR)</p>
-            <p class="text-3xl font-black font-mono text-text tracking-tighter">${{ formatCurrency(stats.totalCredit) }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Main Dashboard Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      
-      <!-- Recent Activity / Audit Trail -->
-      <div class="lg:col-span-8 space-y-4">
-        <div class="flex items-center justify-between px-2">
-          <div class="flex items-center gap-2">
-            <Activity class="w-4 h-4 text-primary" />
-            <h3 class="text-xs font-black text-text uppercase tracking-widest">Ledger Audit Trail</h3>
-          </div>
-          <RouterLink to="/accounting/journal" class="text-[10px] font-black text-primary hover:text-primary-hover uppercase tracking-widest flex items-center gap-1 transition-colors">
-            Access Archives <ChevronRight class="w-3 h-3" />
-          </RouterLink>
-        </div>
-
-        <div class="card p-0 overflow-hidden bg-surface/50">
-          <div v-if="isLoading" class="flex flex-col items-center justify-center py-24 gap-4 bg-background/20 border-dashed">
-            <Loader2 class="w-8 h-8 text-primary animate-spin" />
-            <p class="text-[9px] font-black text-muted uppercase tracking-[0.2em]">Querying Distributions...</p>
-          </div>
-
-          <div v-else-if="stats.recentActivity.length === 0" class="text-center py-24 border-dashed border-muted/20">
-            <FileText class="w-12 h-12 text-muted-dark mx-auto mb-4 opacity-20" />
-            <p class="text-[10px] font-black text-muted-dark uppercase tracking-widest">Zero Recent Records</p>
-          </div>
-
-          <div v-else class="divide-y divide-border/30">
-            <div 
-              v-for="(entry, index) in stats.recentActivity" 
-              :key="entry.id || index"
-              class="group flex items-center gap-6 px-6 py-3.5 hover:bg-background/40 transition-colors"
-            >
-              <div class="font-mono text-[11px] font-bold text-muted-dark uppercase w-20">
-                {{ new Date(entry.entry_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) }}
-              </div>
-              <div class="w-24">
-                <span class="px-2 py-0.5 bg-background border border-border text-[9px] font-black text-muted uppercase tracking-tighter rounded font-mono">
-                  #{{ entry.reference || '0000' }}
-                </span>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-[13px] font-bold text-text-secondary truncate group-hover:text-text transition-colors">
-                  {{ entry.description || 'UNSPECIFIED TRANSACTION' }}
-                </p>
-              </div>
-              <div class="text-right w-32">
-                <p class="text-[13px] font-black font-mono text-success tracking-tighter">${{ formatCurrency(entry.total_debit) }}</p>
-                <p class="text-[9px] font-black text-muted uppercase tracking-tighter leading-none mt-0.5">POSTED_DR</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Activity class="absolute -right-4 -bottom-4 w-32 h-32 text-white/5 rotate-12" />
       </div>
 
-      <!-- Quick Operations -->
-      <div class="lg:col-span-4 space-y-6">
-        <div class="space-y-4">
-          <div class="flex items-center gap-2 px-2">
-            <PlusCircle class="w-4 h-4 text-primary" />
-            <h3 class="text-xs font-black text-text uppercase tracking-widest">Operations</h3>
-          </div>
-          
-          <div class="grid grid-cols-1 gap-3">
-            <RouterLink 
-              v-for="link in quickLinks" 
-              :key="link.to"
-              :to="link.to"
-              class="card p-4 hover:border-primary/30 group transition-all duration-300"
-            >
-              <div class="flex items-center gap-4">
-                <div class="w-10 h-10 rounded bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <component :is="link.icon" class="w-5 h-5 text-primary" />
-                </div>
-                <div class="flex-1">
-                  <p class="text-[11px] font-black text-text uppercase tracking-widest mb-0.5">{{ link.label }}</p>
-                  <p class="text-[9px] font-bold text-muted-dark uppercase tracking-tighter">{{ link.desc }}</p>
-                </div>
-                <ArrowUpRight class="w-4 h-4 text-muted-dark group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-              </div>
-            </RouterLink>
-          </div>
-        </div>
-
-        <div class="space-y-4">
-          <div class="flex items-center gap-2 px-2">
-            <Building2 class="w-4 h-4 text-primary" />
-            <h3 class="text-xs font-black text-text uppercase tracking-widest">Financial Context</h3>
-          </div>
-          <div class="card p-6 bg-primary/5 border-primary/10">
-            <div class="space-y-4">
-              <div class="flex justify-between items-center">
-                <span class="text-[10px] font-bold text-muted-dark uppercase tracking-widest">Active Accounts</span>
-                <span class="text-lg font-black font-mono text-text tracking-tighter">{{ stats.accountsCount }}</span>
-              </div>
-              <div class="h-[1px] bg-primary/10"></div>
-              <div class="flex justify-between items-center">
-                <span class="text-[10px] font-bold text-muted-dark uppercase tracking-widest">Compliance Level</span>
-                <span class="text-[10px] font-black text-success uppercase tracking-widest px-2 py-0.5 bg-success/10 rounded border border-success/20">Certified</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Financial Reports Section -->
-    <div class="space-y-4 pt-4 border-t border-border">
-      <div class="flex items-center gap-2 px-2">
-        <TrendingUp class="w-4 h-4 text-primary" />
-        <h3 class="text-xs font-black text-text uppercase tracking-widest">Reporting Engine</h3>
-      </div>
-      
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Quick Action Bar -->
+      <div class="lg:w-80 flex flex-col gap-3">
         <RouterLink 
-          v-for="report in [
-            { to: '/accounting/profit-loss', icon: TrendingUp, label: 'Profit & Loss', color: 'text-success' },
-            { to: '/accounting/balance-sheet', icon: Building2, label: 'Balance Sheet', color: 'text-info' },
-            { to: '/accounting/income-report', icon: DollarSign, label: 'Income Statements', color: 'text-success' },
-            { to: '/accounting/expense-report', icon: Wallet, label: 'Expense Analysis', color: 'text-danger' }
-          ]"
-          :key="report.to"
-          :to="report.to"
-          class="card p-5 hover:bg-surface-hover group transition-all"
+          v-for="link in quickLinks" 
+          :key="link.to"
+          :to="link.to"
+          class="flex-1 flex items-center justify-between px-4 py-3 bg-white border border-border rounded-lg hover:border-primary hover:shadow-sm transition-all group"
         >
-          <div class="flex flex-col items-center text-center gap-3">
-            <div class="w-12 h-12 rounded-full bg-background/50 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <component :is="report.icon" :class="['w-6 h-6', report.color]" />
-            </div>
-            <p class="text-[11px] font-black text-text uppercase tracking-[0.2em]">{{ report.label }}</p>
+          <div class="flex items-center gap-3">
+            <component :is="link.icon" class="w-4 h-4 text-slate-400 group-hover:text-primary" />
+            <span class="text-xs font-bold text-slate-700 uppercase tracking-tight">{{ link.label }}</span>
           </div>
+          <ChevronRight class="w-3.5 h-3.5 text-slate-300 group-hover:text-primary group-hover:translate-x-0.5 transition-transform" />
         </RouterLink>
       </div>
     </div>
+
+    <!-- Financial KPI Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div v-for="kpi in [
+        { label: 'Total Assets (DR)', value: stats.totalDebit, icon: Building2, color: 'text-text' },
+        { label: 'Total Equity (CR)', value: stats.totalCredit, icon: Wallet, color: 'text-text' },
+        { label: 'Accounts', value: stats.accountsCount, icon: Library, color: 'text-primary', isRaw: true },
+        { label: 'Compliance', value: '100%', icon: ShieldCheck, color: 'text-emerald-600', isRaw: true }
+      ]" :key="kpi.label" class="card p-5">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-[10px] font-bold text-muted uppercase tracking-widest">{{ kpi.label }}</span>
+          <component :is="kpi.icon" class="w-4 h-4 text-slate-300" />
+        </div>
+        <p class="text-xl font-bold tracking-tight font-mono tabular-nums" :class="kpi.color">
+          {{ kpi.isRaw ? kpi.value : '$' + formatCurrency(kpi.value) }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Audit Trail Section -->
+    <div class="space-y-4">
+      <div class="flex items-center justify-between px-1">
+        <div class="flex items-center gap-2">
+          <Clock class="w-4 h-4 text-slate-400" />
+          <h3 class="text-xs font-bold text-text uppercase tracking-wider">Transaction Audit Trail</h3>
+        </div>
+        <RouterLink to="/accounting/journal" class="text-[10px] font-bold text-primary hover:underline uppercase tracking-widest">
+          View Full Journal
+        </RouterLink>
+      </div>
+
+      <div class="card overflow-hidden p-0 border-slate-300">
+        <div v-if="isLoading" class="p-24 flex flex-col items-center justify-center gap-3">
+          <Loader2 class="w-8 h-8 text-primary animate-spin" />
+          <p class="text-xs font-bold text-muted uppercase tracking-widest">Querying Transactions...</p>
+        </div>
+
+        <table v-else class="w-full">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200">
+              <th class="pl-6 w-32 py-2.5">Date</th>
+              <th class="w-24 py-2.5">Ref</th>
+              <th class="py-2.5">Description</th>
+              <th class="text-right pr-6 w-40 py-2.5">Amount</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 bg-white">
+            <tr v-for="entry in stats.recentActivity" :key="entry.id" class="hover:bg-slate-50 transition-colors">
+              <td class="pl-6 py-2.5 font-mono text-xs text-muted-dark uppercase">
+                {{ new Date(entry.entry_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) }}
+              </td>
+              <td class="py-2.5">
+                <span class="text-[10px] font-mono text-slate-500">#{{ entry.reference || '---' }}</span>
+              </td>
+              <td class="py-2.5 text-xs font-medium text-text-secondary">
+                {{ entry.description || 'Unspecified Transaction' }}
+              </td>
+              <td class="pr-6 py-2.5 text-right font-mono text-xs font-bold text-slate-700 tabular-nums">
+                {{ formatCurrency(entry.total_debit) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Reports Access Strip -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <RouterLink 
+        v-for="report in [
+          { to: '/accounting/profit-loss', label: 'P&L Statement' },
+          { to: '/accounting/balance-sheet', label: 'Balance Sheet' },
+          { to: '/accounting/income-report', label: 'Income Audit' },
+          { to: '/accounting/expense-report', label: 'Expense Audit' }
+        ]"
+        :key="report.to"
+        :to="report.to"
+        class="bg-slate-100 border border-slate-200 px-4 py-3 rounded text-center hover:bg-white hover:border-primary transition-all group"
+      >
+        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-primary transition-colors">
+          {{ report.label }}
+        </span>
+      </RouterLink>
+    </div>
   </div>
 </template>
-
-<style scoped>
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-</style>

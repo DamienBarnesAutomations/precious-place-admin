@@ -1,239 +1,98 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --color-bg: #f8fafc;
-    --color-surface: #ffffff;
-    --color-surface-hover: #f1f5f9;
-    --color-border: #e2e8f0;
-    --color-border-light: #f1f5f9;
-    --color-primary: #4f46e5;
-    --color-primary-hover: #4338ca;
-    --color-success: #059669;
-    --color-success-light: #10b981;
-    --color-danger: #dc2626;
-    --color-danger-light: #ef4444;
-    --color-warning: #d97706;
-    --color-info: #2563eb;
-    --color-muted: #64748b;
-    --color-muted-dark: #94a3b8;
-    --color-text: #0f172a;
-    --color-text-secondary: #334155;
-  }
-
-  .dark {
-    --color-bg: #0a0a0f;
-    --color-surface: #12121a;
-    --color-surface-hover: #1a1a24;
-    --color-border: #1e293b;
-    --color-border-light: #2a3a4a;
-    --color-primary: #6366f1;
-    --color-primary-hover: #818cf8;
-    --color-success: #10b981;
-    --color-success-light: #34d399;
-    --color-danger: #ef4444;
-    --color-danger-light: #f87171;
-    --color-warning: #f59e0b;
-    --color-info: #3b82f6;
-    --color-muted: #64748b;
-    --color-muted-dark: #475569;
-    --color-text: #f3f4f6;
-    --color-text-secondary: #cbd5e1;
-  }
-
-  * {
-    box-sizing: border-box;
+    /* Financial Density Defaults */
+    --header-height: 56px;
+    --sidebar-width: 240px;
   }
 
   html {
-    font-family: 'Inter', system-ui, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    @apply antialiased text-text bg-background;
+    font-size: 14px; /* Slightly tighter base */
   }
 
   body {
-    margin: 0;
-    padding: 0;
-    background-color: var(--color-bg);
-    color: var(--color-text);
-    min-height: 100vh;
-    font-size: 14px;
+    @apply overflow-hidden h-screen w-screen;
   }
 
-  #app {
-    min-height: 100vh;
+  /* Table Resets for Density */
+  table {
+    @apply w-full border-collapse text-left;
+  }
+  
+  th {
+    @apply text-xs font-semibold text-muted-dark uppercase tracking-wider py-2 px-3 border-b border-border bg-surface-hover sticky top-0 z-10;
   }
 
-  /* Custom scrollbar - Professional Tighter Look */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-border);
-    border-radius: 3px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-muted-dark);
+  td {
+    @apply text-sm text-text py-2 px-3 border-b border-border/50 align-top;
   }
 }
 
 @layer components {
-  /* Card component - Tighter for financial data */
-  .card {
-    @apply bg-surface border border-border rounded-lg p-4 transition-all duration-200;
-  }
-
-  .card-hover:hover {
-    @apply border-muted/30 shadow-card-hover;
-  }
-
-  /* Button variants - More precise */
+  /* Buttons - Precision Feel */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed text-sm active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 rounded px-3 py-1.5 text-xs font-medium transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .btn-primary {
-    @apply bg-primary text-white hover:bg-primary-hover shadow-glow-primary;
+    @apply bg-primary text-white hover:bg-primary-hover shadow-sm border border-transparent;
   }
 
-  .btn-success {
-    @apply bg-success text-white hover:bg-success-light shadow-glow-success;
-  }
-
-  .btn-danger {
-    @apply bg-danger text-white hover:bg-danger-light shadow-glow-danger;
+  .btn-outline {
+    @apply bg-white border border-border text-text-secondary hover:bg-surface-hover hover:text-text hover:border-muted;
   }
 
   .btn-ghost {
     @apply bg-transparent text-muted hover:bg-surface-hover hover:text-text;
   }
 
-  .btn-outline {
-    @apply bg-transparent border border-border text-text hover:bg-surface-hover hover:border-muted/30;
+  .btn-danger {
+    @apply bg-danger text-white hover:bg-red-700 shadow-sm;
   }
 
-  /* Input styles - Tighter and more formal */
+  /* Inputs - Technical/Monospace where appropriate */
   .input {
-    @apply w-full bg-background/50 border border-border rounded px-3 py-1.5 text-text placeholder-muted/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all duration-150 font-sans text-sm;
+    @apply block w-full rounded border-border bg-white py-1.5 px-3 text-sm text-text placeholder:text-muted/50 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors;
   }
 
-  .select {
-    @apply w-full bg-background/50 border border-border rounded px-3 py-1.5 text-text focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all duration-150 appearance-none cursor-pointer text-sm;
+  .input-mono {
+    @apply font-mono text-xs tracking-tight;
   }
 
-  /* Badge - Tighter */
+  /* Cards - Clean, high contrast borders */
+  .card {
+    @apply bg-surface rounded border border-border shadow-card;
+  }
+
+  /* Status Badges */
   .badge {
-    @apply inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider;
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset;
   }
-
+  
   .badge-success {
-    @apply bg-success/10 text-success border border-success/20;
+    @apply bg-success-light text-success-text ring-success/20;
   }
-
+  
   .badge-danger {
-    @apply bg-danger/10 text-danger border border-danger/20;
+    @apply bg-danger-light text-danger-text ring-danger/20;
   }
-
+  
   .badge-warning {
-    @apply bg-warning/10 text-warning border border-warning/20;
+    @apply bg-warning-light text-warning-text ring-warning/20;
   }
-
-  .badge-info {
-    @apply bg-info/10 text-info border border-info/20;
-  }
-
-  .badge-muted {
-    @apply bg-muted/10 text-muted border border-muted/20;
-  }
-
-  /* Table styles - Zebra-striped for scanning */
-  .table-container {
-    @apply overflow-x-auto rounded border border-border bg-surface;
-  }
-
-  .table {
-    @apply w-full text-sm border-collapse;
-  }
-
-  .table th {
-    @apply px-4 py-2.5 text-left text-xs font-bold text-muted-dark uppercase tracking-widest bg-background border-b border-border;
-  }
-
-  .table td {
-    @apply px-4 py-2 text-text-secondary border-b border-border/50;
-  }
-
-  .table tr:nth-child(even) td {
-    @apply bg-background/20;
-  }
-
-  .table tr:hover td {
-    @apply bg-surface-hover/50;
-  }
-
-  .table tr:last-child td {
-    @apply border-b-0;
-  }
-
-  /* Stat card - Refined */
-  .stat-card {
-    @apply card flex flex-col gap-1;
-  }
-
-  .stat-value {
-    @apply text-xl font-bold text-text font-mono;
-  }
-
-  .stat-label {
-    @apply text-xs font-semibold text-muted uppercase tracking-wider;
-  }
-
-  .stat-change {
-    @apply text-xs font-medium flex items-center gap-1;
-  }
-
-  .stat-change-positive {
-    @apply text-success;
-  }
-
-  .stat-change-negative {
-    @apply text-danger;
+  
+  .badge-neutral {
+    @apply bg-surface-hover text-muted-dark ring-border;
   }
 }
 
 @layer utilities {
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-success;
-  }
-
-  .animate-stagger-1 {
-    animation-delay: 0.1s;
-  }
-
-  .animate-stagger-2 {
-    animation-delay: 0.2s;
-  }
-
-  .animate-stagger-3 {
-    animation-delay: 0.3s;
-  }
-
-  .animate-stagger-4 {
-    animation-delay: 0.4s;
-  }
-
-  .glass {
-    @apply bg-surface/80 backdrop-blur-xl;
+  /* Currency Formatting Helper */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
